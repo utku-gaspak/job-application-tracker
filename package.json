@@ -1,10 +1,10 @@
 {
   "name": "job-tracker-fullstack",
   "scripts": {
-    "test:all": "npm run test:backend && npm run test:frontend",
+    "test:all": "bun run test:backend && bun run test:frontend",
     "test:backend": "dotnet test server/server.slnx",
-    "test:frontend": "cd client && npm test -- --run",
-    "test:watch": "npx concurrently \"dotnet watch test --project server/api.tests\" \"cd client && npm test\""
+    "test:frontend": "cd client && bun run test -- --run",
+    "test:watch": "bunx concurrently \"dotnet watch test --project server/api.tests\" \"cd client && bun run test\""
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
