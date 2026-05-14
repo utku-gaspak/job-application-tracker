@@ -1,8 +1,8 @@
-# Job Application Tracker 
+# Job Application Tracker
 
-Job Application Tracker is a full-stack app for managing job applications with JWT authentication, per-user data isolation, and a compact React dashboard, Built to track my own job applications while learning ASP.NET Core because spreadsheets weren't cutting it.
+Job Application Tracker is a full-stack app for managing job applications with JWT authentication, per-user data isolation, and a compact React dashboard. I built it to track my own applications while learning ASP.NET Core because spreadsheets were getting messy.
 
-It supports status tracking, application details, drag-and-drop updates, and a top-of-board filter bar for search, status, interest level, and technical skills. The current test suite includes 70 automated tests across the backend and frontend.
+It supports status tracking, application details, drag-and-drop updates, and a top-of-board filter bar for search, status, interest level, and technical skills. The current test suite includes 67 automated tests across the backend and frontend.
 
 Live site: https://traxr.xyz
 
@@ -30,6 +30,7 @@ The main UI flow is shown below.
 - Protected dashboard routes with persisted login state
 - Error handling for validation, authorization, server, and connection failures
 - OpenAPI and generated TypeScript client support for keeping the backend and frontend in sync
+- Docker Compose deployment with Caddy, PostgreSQL, and separate frontend/backend containers
 
 ## Tech Stack
 
@@ -49,9 +50,17 @@ The main UI flow is shown below.
 - TypeScript
 - Vite
 - Tailwind CSS
+- Bun
 - Vitest
 - React Testing Library
 - MSW
+
+### Deployment
+
+- Docker Compose
+- Caddy
+- Nginx
+- PostgreSQL container for VPS deployment
 
 ## Testing
 
@@ -116,4 +125,4 @@ The frontend expects the API at `http://localhost:5075` unless `VITE_API_BASE_UR
 
 ## Project Status
 
-The core backend and frontend flows are implemented and tested. Current work is focused on UI/UX refinement and small layout improvements.
+The core backend and frontend flows are implemented, tested, and deployed. There are still normal next-step improvements left, like email verification, password reset, rate limiting, backups, and more end-to-end/browser testing.
