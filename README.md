@@ -74,7 +74,7 @@ dotnet test server/server.slnx
 
 ```bash
 cd client
-npm test
+bun run test
 ```
 
 ## Setup Guide
@@ -103,13 +103,13 @@ Install dependencies:
 
 ```bash
 cd client
-npm install
+bun install
 ```
 
 Start the client:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 The frontend expects the API at `http://localhost:5075` unless `VITE_API_BASE_URL` is provided.
