@@ -1,6 +1,6 @@
-# Traxr — Job Application Tracker
+# Traxr - Job Application Tracker
 
-Traxr is a full-stack job search workflow tool with JWT authentication, per-user data isolation, and a React dashboard. I built it to track my own applications while learning ASP.NET Core — and kept extending it into a complete end-to-end job search tool.
+Traxr is a full-stack job search workflow tool with JWT authentication, per-user data isolation, and a React dashboard. I built it to track my own applications while learning ASP.NET Core - and kept extending it into a complete end-to-end job search tool.
 
 It covers the full pipeline: scrape job postings with [hiring-cafe-scout](https://github.com/utku-gaspak/hiring-cafe-scout), evaluate them with a swipe UI, queue the ones worth applying to, apply directly on company websites, then track status through the Kanban board.
 
@@ -17,7 +17,7 @@ Live site: https://traxr.xyz
 
 ### Job Scout
 - Upload jobs.json output from [hiring-cafe-scout](https://github.com/utku-gaspak/hiring-cafe-scout) directly into the app
-- Swipe-based evaluation UI — right to save, left to discard, keyboard shortcuts supported
+- Swipe-based evaluation UI - right to save, left to discard, keyboard shortcuts supported
 - To Apply queue with direct company apply links
 - One-click promotion from To Apply to the Kanban board as Applied
 
