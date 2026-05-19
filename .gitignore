@@ -11,7 +11,10 @@ Thumbs.db
 # Environment and Secrets 
 .env
 .env.local
+.env.local.test
 docker-compose.override.yml
+docker-compose.local.yml
+Caddyfile.local
 
 # Build and Temp 
 dist/
