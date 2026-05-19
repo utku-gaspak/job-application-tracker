@@ -23,6 +23,7 @@ Live site: https://traxr.xyz
 
 ### Application Tracker
 - JWT-based register and login flows
+- Demo login with a seeded board for quick walkthroughs
 - Per-user job application data
 - CRUD operations for job applications
 - Kanban status tracking for `Applied`, `Interviewing`, `Rejected`, and `Offer`
