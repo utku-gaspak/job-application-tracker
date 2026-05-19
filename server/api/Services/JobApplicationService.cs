@@ -3,7 +3,6 @@ using api.Data;
 using api.Dto;
 using api.Exceptions;
 using api.Models;
-using Npgsql;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Services;
@@ -32,17 +31,7 @@ public class JobApplicationService(AppDbContext dbContext) : IJobApplicationServ
         };
 
         dbContext.JobApplications.Add(jobApplication);
-        try
-        {
-            await dbContext.SaveChangesAsync();
-        }
-        catch (DbUpdateException ex) when (IsMissingNotesColumn(ex))
-        {
-            dbContext.ChangeTracker.Clear();
-            await EnsureNotesColumnExistsAsync();
-            dbContext.JobApplications.Add(jobApplication);
-            await dbContext.SaveChangesAsync();
-        }
+        await dbContext.SaveChangesAsync();
 
         return jobApplication;
     }
@@ -51,17 +40,10 @@ public class JobApplicationService(AppDbContext dbContext) : IJobApplicationServ
     {
         ValidateUserId(userId);
 
-        try
-        {
-            return await dbContext
-                .JobApplications.Where(jobApplication => jobApplication.UserId == userId)
-                .OrderByDescending(jobApplication => jobApplication.DateApplied)
-                .ToListAsync();
-        }
-        catch (PostgresException ex) when (IsMissingNotesColumn(ex))
-        {
-            return await LoadJobApplicationsWithoutNotesAsync(userId);
-        }
+        return await dbContext
+            .JobApplications.Where(jobApplication => jobApplication.UserId == userId)
+            .OrderByDescending(jobApplication => jobApplication.DateApplied)
+            .ToListAsync();
     }
 
     public async Task<JobApplication> GetByIdAsync(string id, string userId)
@@ -69,16 +51,9 @@ public class JobApplicationService(AppDbContext dbContext) : IJobApplicationServ
         ValidateId(id);
         ValidateUserId(userId);
 
-        try
-        {
-            return await dbContext.JobApplications.FirstOrDefaultAsync(jobApplication =>
-                    jobApplication.Id == id && jobApplication.UserId == userId
-                ) ?? throw new NotFoundException("Job application could not be found");
-        }
-        catch (PostgresException ex) when (IsMissingNotesColumn(ex))
-        {
-            return await LoadJobApplicationWithoutNotesAsync(id, userId);
-        }
+        return await dbContext.JobApplications.FirstOrDefaultAsync(jobApplication =>
+                jobApplication.Id == id && jobApplication.UserId == userId
+            ) ?? throw new NotFoundException("Job application could not be found");
     }
 
     public async Task UpdateAsync(string id, JobApplicationUpdateDto dto, string userId)
@@ -101,16 +76,7 @@ public class JobApplicationService(AppDbContext dbContext) : IJobApplicationServ
         jobApplication.TechnicalStack = NormalizeOptionalText(dto.TechnicalStack);
         jobApplication.Status = dto.Status;
         jobApplication.DateApplied = dto.DateApplied;
-
-        try
-        {
-            await dbContext.SaveChangesAsync();
-        }
-        catch (DbUpdateException ex) when (IsMissingNotesColumn(ex))
-        {
-            await EnsureNotesColumnExistsAsync();
-            await dbContext.SaveChangesAsync();
-        }
+        await dbContext.SaveChangesAsync();
     }
 
     public async Task<bool> DeleteAsync(string id, string userId)
@@ -183,114 +149,4 @@ public class JobApplicationService(AppDbContext dbContext) : IJobApplicationServ
         if (interestLevel is < 1 or > 5)
             throw new ValidationException("InterestLevel must be between 1 and 5.");
     }
-
-    private async Task<List<JobApplication>> LoadJobApplicationsWithoutNotesAsync(string userId)
-    {
-        var jobApplications = await dbContext
-            .JobApplications.Where(jobApplication => jobApplication.UserId == userId)
-            .OrderByDescending(jobApplication => jobApplication.DateApplied)
-            .Select(jobApplication => new JobApplicationWithoutNotesData(
-                jobApplication.Id,
-                jobApplication.CompanyName,
-                jobApplication.Position,
-                jobApplication.JobUrl,
-                jobApplication.Location,
-                jobApplication.SalaryRange,
-                jobApplication.JobDescription,
-                jobApplication.InterestLevel,
-                jobApplication.TechnicalStack,
-                jobApplication.Status,
-                jobApplication.DateApplied,
-                jobApplication.UserId
-            ))
-            .ToListAsync();
-
-        return jobApplications.Select(jobApplication => new JobApplication
-        {
-            Id = jobApplication.Id,
-            CompanyName = jobApplication.CompanyName,
-            Position = jobApplication.Position,
-            JobUrl = jobApplication.JobUrl,
-            Location = jobApplication.Location,
-            SalaryRange = jobApplication.SalaryRange,
-            JobDescription = jobApplication.JobDescription,
-            InterestLevel = jobApplication.InterestLevel,
-            TechnicalStack = jobApplication.TechnicalStack,
-            Status = jobApplication.Status,
-            DateApplied = jobApplication.DateApplied,
-            UserId = jobApplication.UserId,
-        }).ToList();
-    }
-
-    private async Task<JobApplication> LoadJobApplicationWithoutNotesAsync(
-        string id,
-        string userId
-    )
-    {
-        var jobApplication = await dbContext
-                .JobApplications.Where(jobApplication =>
-                    jobApplication.Id == id && jobApplication.UserId == userId
-                )
-                .Select(jobApplication => new JobApplicationWithoutNotesData(
-                    jobApplication.Id,
-                    jobApplication.CompanyName,
-                    jobApplication.Position,
-                    jobApplication.JobUrl,
-                    jobApplication.Location,
-                    jobApplication.SalaryRange,
-                    jobApplication.JobDescription,
-                    jobApplication.InterestLevel,
-                    jobApplication.TechnicalStack,
-                    jobApplication.Status,
-                    jobApplication.DateApplied,
-                    jobApplication.UserId
-                ))
-                .FirstOrDefaultAsync()
-            ?? throw new NotFoundException("Job application could not be found");
-
-        return new JobApplication
-        {
-            Id = jobApplication.Id,
-            CompanyName = jobApplication.CompanyName,
-            Position = jobApplication.Position,
-            JobUrl = jobApplication.JobUrl,
-            Location = jobApplication.Location,
-            SalaryRange = jobApplication.SalaryRange,
-            JobDescription = jobApplication.JobDescription,
-            InterestLevel = jobApplication.InterestLevel,
-            TechnicalStack = jobApplication.TechnicalStack,
-            Status = jobApplication.Status,
-            DateApplied = jobApplication.DateApplied,
-            UserId = jobApplication.UserId,
-        };
-    }
-
-    private static bool IsMissingNotesColumn(PostgresException exception) =>
-        exception.SqlState == PostgresErrorCodes.UndefinedColumn
-        && exception.MessageText.Contains("Notes", StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsMissingNotesColumn(DbUpdateException exception) =>
-        exception.InnerException is PostgresException postgresException
-        && IsMissingNotesColumn(postgresException);
-
-    private async Task EnsureNotesColumnExistsAsync() =>
-        await dbContext.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE "JobApplications"
-            ADD COLUMN IF NOT EXISTS "Notes" text NULL;
-            """);
-
-    private sealed record JobApplicationWithoutNotesData(
-        string Id,
-        string CompanyName,
-        string Position,
-        string? JobUrl,
-        string? Location,
-        string? SalaryRange,
-        string? JobDescription,
-        int? InterestLevel,
-        string? TechnicalStack,
-        JobApplicationStatus Status,
-        DateTime DateApplied,
-        string UserId
-    );
 }
