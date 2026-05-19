@@ -51,6 +51,39 @@ export interface JobApplicationUpdateInput {
   dateApplied: string;
 }
 
+export interface ScoutJob {
+  id: string;
+  title: string;
+  company: string;
+  location?: string | null;
+  workplaceType?: string | null;
+  commitment?: string | null;
+  postedAt?: string | null;
+  jobUrl?: string | null;
+  applyUrl?: string | null;
+  technicalTools?: string | null;
+  requirementsSummary?: string | null;
+  createdAt: string;
+}
+
+export interface ScoutJobCreateInput {
+  title: string;
+  company: string;
+  location?: string | null;
+  workplaceType?: string | null;
+  commitment?: string | null;
+  postedAt?: string | null;
+  jobUrl?: string | null;
+  applyUrl?: string | null;
+  technicalTools?: string | null;
+  requirementsSummary?: string | null;
+}
+
+export interface ScoutUploadResult {
+  imported: number;
+  skipped: number;
+}
+
 export const jobApplicationStatusLabels: Record<JobApplicationStatus, string> = {
   [JobApplicationStatus.Applied]: "Applied",
   [JobApplicationStatus.Interviewing]: "Interviewing",

@@ -8,11 +8,13 @@ import {
 import {
   BadgePlus,
   ArrowUpDown,
+  Binoculars,
   ChevronDown,
   Diamond,
   ExternalLink,
   FileText,
   Filter,
+  LayoutDashboard,
   LogOut,
   Moon,
   Search,
@@ -32,6 +34,7 @@ import {
   updateJobApplication,
 } from "../api/jobApplicationsApi";
 import JobApplicationForm from "./JobApplicationForm";
+import ScoutSection from "./ScoutSection";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -278,6 +281,9 @@ const Dashboard = () => {
     useState<JobApplication | null>(null);
   const [isDetailEditing, setIsDetailEditing] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<"tracker" | "scout">(
+    "tracker",
+  );
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -380,6 +386,7 @@ const Dashboard = () => {
   }, []);
 
   const openCreateDialog = () => {
+    setActiveSection("tracker");
     setIsCreateDialogOpen(true);
   };
 
@@ -644,6 +651,29 @@ const Dashboard = () => {
           </section>
 
           <div className="mt-4 flex w-full flex-col gap-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                aria-label="Open Tracker"
+                className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
+                onClick={() => setActiveSection("tracker")}
+                type="button"
+                variant={activeSection === "tracker" ? "default" : themeButtonVariant}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Tracker
+              </Button>
+              <Button
+                aria-label="Open Scout"
+                className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
+                onClick={() => setActiveSection("scout")}
+                type="button"
+                variant={activeSection === "scout" ? "default" : themeButtonVariant}
+              >
+                <Binoculars className="h-4 w-4" />
+                Scout
+              </Button>
+            </div>
+
             <Button
               aria-label="New Application"
               className="h-11 w-full transition-all hover:opacity-90"
@@ -666,6 +696,8 @@ const Dashboard = () => {
         </aside>
 
         <section className="flex min-h-0 flex-col gap-3 md:flex-1">
+          {activeSection === "tracker" ? (
+            <>
           <section className="deco-frame w-full border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel">
             <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
               <div className="grid flex-1 gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(2,minmax(0,1fr))]">
@@ -1265,6 +1297,14 @@ const Dashboard = () => {
               </div>
             </SheetContent>
           </Sheet>
+            </>
+          ) : (
+            <ScoutSection
+              onApplicationCreated={(application) =>
+                setApplications((current) => [application, ...current])
+              }
+            />
+          )}
         </section>
       </div>
     </main>

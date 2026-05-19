@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<AppUser>(options)
 {
     public DbSet<JobApplication> JobApplications { get; set; } = null!;
+    public DbSet<ScoutJob> ScoutJobs { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -18,5 +19,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithOne(jobApplication => jobApplication.User)
             .HasForeignKey(jobApplication => jobApplication.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ScoutJob>()
+            .HasIndex(scoutJob => scoutJob.JobUrl);
     }
 }
