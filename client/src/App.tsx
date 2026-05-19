@@ -20,7 +20,7 @@ const RouteFallback = () => (
 
 function App() {
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="flex min-h-screen flex-col overflow-x-hidden">
       <BrowserRouter>
         <Toaster
           position="top-right"
@@ -31,28 +31,30 @@ function App() {
           }}
         />
         <Suspense fallback={<RouteFallback />}>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            {/* Keep unknown routes flowing through the protected root instead of rendering a dead end. */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Routes>
+          <div className="flex-1">
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Keep unknown routes flowing through the protected root instead of rendering a dead end. */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Routes>
+          </div>
         </Suspense>
       </BrowserRouter>
     </div>

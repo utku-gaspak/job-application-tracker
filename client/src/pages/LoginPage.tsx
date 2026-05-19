@@ -1,5 +1,10 @@
 import axios from "axios";
-import { BriefcaseBusiness, ChevronRight, MoonStar, SunMedium } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  ChevronRight,
+  MoonStar,
+  SunMedium,
+} from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as loginRequest } from "../api/accountApi";
@@ -13,6 +18,7 @@ import {
 import { Input } from "../components/ui/input";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import Footer from "../components/Footer";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
@@ -27,7 +33,10 @@ const LoginPage = () => {
     alert("Login failed.");
   };
 
-  const submitCredentials = async (nextUsername: string, nextPassword: string) => {
+  const submitCredentials = async (
+    nextUsername: string,
+    nextPassword: string,
+  ) => {
     setLoading(true);
 
     try {
@@ -67,8 +76,8 @@ const LoginPage = () => {
   };
 
   return (
-    <main className="min-h-screen px-4 py-10 md:px-8">
-      <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+    <main className="flex min-h-screen flex-col px-4 pt-10 md:px-8 md:pt-10">
+      <div className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left Section: Information */}
         <section className="deco-frame border-border-gold-muted bg-deco-surface p-8 shadow-deco-panel">
           <div className="flex items-start justify-between gap-4">
@@ -77,7 +86,7 @@ const LoginPage = () => {
                 Job Application Tracker
               </p>
               <h1 className="max-w-[12ch] text-5xl leading-[0.95] text-deco-foreground md:text-6xl">
-                Organize your job search.
+                Traxr
               </h1>
             </div>
             <Button
@@ -85,7 +94,11 @@ const LoginPage = () => {
               variant="outline"
               size="icon"
               onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label={
+                theme === "dark"
+                  ? "Switch to light mode"
+                  : "Switch to dark mode"
+              }
             >
               {theme === "dark" ? (
                 <SunMedium className="h-4 w-4" />
@@ -173,6 +186,7 @@ const LoginPage = () => {
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </main>
   );
 };

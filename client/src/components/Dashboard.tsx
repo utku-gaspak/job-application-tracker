@@ -27,6 +27,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
+import Footer from "./Footer";
 import {
   createJobApplication,
   deleteJobApplication,
@@ -1305,6 +1306,9 @@ const Dashboard = () => {
             />
           </div>
         </section>
+      </div>
+      <div className="pt-3">
+        <Footer />
       </div>
     </main>
   );
