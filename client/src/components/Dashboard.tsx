@@ -696,8 +696,7 @@ const Dashboard = () => {
         </aside>
 
         <section className="flex min-h-0 flex-col gap-3 md:flex-1">
-          {activeSection === "tracker" ? (
-            <>
+          <div className={activeSection === "tracker" ? "contents" : "hidden"}>
           <section className="deco-frame w-full border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel">
             <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
               <div className="grid flex-1 gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(2,minmax(0,1fr))]">
@@ -1295,16 +1294,16 @@ const Dashboard = () => {
                   </div>
                 ) : null}
               </div>
-            </SheetContent>
-          </Sheet>
-            </>
-          ) : (
+              </SheetContent>
+            </Sheet>
+          </div>
+          <div className={activeSection === "scout" ? "contents" : "hidden"}>
             <ScoutSection
               onApplicationCreated={(application) =>
                 setApplications((current) => [application, ...current])
               }
             />
-          )}
+          </div>
         </section>
       </div>
     </main>
