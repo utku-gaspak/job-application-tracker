@@ -1,14 +1,12 @@
-# Job Application Tracker
+# Traxr — Job Application Tracker
 
-Job Application Tracker is a full-stack app for managing job applications with JWT authentication, per-user data isolation, and a compact React dashboard. I built it to track my own applications while learning ASP.NET Core because spreadsheets were getting messy.
+Traxr is a full-stack job search workflow tool with JWT authentication, per-user data isolation, and a React dashboard. I built it to track my own applications while learning ASP.NET Core — and kept extending it into a complete end-to-end job search tool.
 
-It supports status tracking, application details, drag-and-drop updates, and a top-of-board filter bar for search, status, interest level, and technical skills. The current test suite includes 67 automated tests across the backend and frontend.
+It covers the full pipeline: scrape job postings with [hiring-cafe-scout](https://github.com/utku-gaspak/hiring-cafe-scout), evaluate them with a swipe UI, queue the ones worth applying to, apply directly on company websites, then track status through the Kanban board.
 
 Live site: https://traxr.xyz
 
 ## Screenshots
-
-The main UI flow is shown below.
 
 ![Login screen](docs/screenshots/login1.png)
 ![Dashboard](docs/screenshots/dashboard1.png)
@@ -17,12 +15,19 @@ The main UI flow is shown below.
 
 ## Core Features
 
+### Job Scout
+- Upload jobs.json output from [hiring-cafe-scout](https://github.com/utku-gaspak/hiring-cafe-scout) directly into the app
+- Swipe-based evaluation UI — right to save, left to discard, keyboard shortcuts supported
+- To Apply queue with direct company apply links
+- One-click promotion from To Apply to the Kanban board as Applied
+
+### Application Tracker
 - JWT-based register and login flows
 - Per-user job application data
 - CRUD operations for job applications
 - Kanban status tracking for `Applied`, `Interviewing`, `Rejected`, and `Offer`
-- Optional application details, including job URL, location, salary range, job description, notes, interest level, and technical stack
-- Compact filter bar above the board with search, status, interest level, and skill transfer controls
+- Optional application details including job URL, location, salary range, job description, notes, interest level, and technical stack
+- Compact filter bar with search, status, interest level, and skill transfer controls
 - Drag-and-drop card movement with manual board ordering
 - Mobile accordion view for Kanban columns on small screens
 - Light and dark mode with a theme-aware favicon
@@ -35,7 +40,6 @@ The main UI flow is shown below.
 ## Tech Stack
 
 ### Backend
-
 - .NET 10
 - ASP.NET Core Web API
 - Entity Framework Core
@@ -45,7 +49,6 @@ The main UI flow is shown below.
 - FluentAssertions
 
 ### Frontend
-
 - React
 - TypeScript
 - Vite
@@ -56,7 +59,6 @@ The main UI flow is shown below.
 - MSW
 
 ### Deployment
-
 - Docker Compose
 - Caddy
 - Nginx
@@ -70,7 +72,6 @@ The project uses focused tests at both layers instead of relying on a live exter
 - Frontend tests use MSW to verify UI behavior without a live backend, including CRUD flows, loading states, empty states, validation, failed requests, and auth-expiry behavior.
 
 Current test count:
-
 - Backend: `48` tests
 - Frontend: `19` tests
 - Total: `67` tests
@@ -91,7 +92,6 @@ bun run test
 ### Backend
 
 Provide the required API configuration:
-
 - `ConnectionStrings__DefaultConnection`
 - `JWT__Issuer`
 - `JWT__Audience`
@@ -125,4 +125,4 @@ The frontend expects the API at `http://localhost:5075` unless `VITE_API_BASE_UR
 
 ## Project Status
 
-The core backend and frontend flows are implemented, tested, and deployed. There are still normal next-step improvements left, like email verification, password reset, rate limiting, backups, and more end-to-end/browser testing.
+The core backend and frontend flows are implemented, tested, and deployed. The Scout feature adds a scraper integration workflow on top of the existing tracker. Normal next-step improvements include email verification, password reset, rate limiting, backups, and more end-to-end testing.
