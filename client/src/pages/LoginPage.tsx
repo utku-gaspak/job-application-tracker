@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BriefcaseBusiness, ChevronRight } from "lucide-react";
+import { BriefcaseBusiness, ChevronRight, MoonStar, SunMedium } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as loginRequest } from "../api/accountApi";
@@ -12,6 +12,7 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
@@ -19,20 +20,20 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const { login: storeToken } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const showLoginFailure = () => {
     alert("Login failed.");
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const submitCredentials = async (nextUsername: string, nextPassword: string) => {
     setLoading(true);
 
     try {
       const authData = await loginRequest({
-        username,
-        password,
+        username: nextUsername,
+        password: nextPassword,
       });
 
       if (authData && authData.token) {
@@ -54,17 +55,45 @@ const LoginPage = () => {
     }
   };
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await submitCredentials(username, password);
+  };
+
+  const handleDemoLogin = async () => {
+    setUsername("demo");
+    setPassword("demo123");
+    await submitCredentials("demo", "demo123");
+  };
+
   return (
     <main className="min-h-screen px-4 py-10 md:px-8">
       <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left Section: Information */}
         <section className="deco-frame border-border-gold-muted bg-deco-surface p-8 shadow-deco-panel">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-primary-gold">
-            Job Application Tracker
-          </p>
-          <h1 className="max-w-[12ch] text-5xl leading-[0.95] text-deco-foreground md:text-6xl">
-            Organize your job search.
-          </h1>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-primary-gold">
+                Job Application Tracker
+              </p>
+              <h1 className="max-w-[12ch] text-5xl leading-[0.95] text-deco-foreground md:text-6xl">
+                Organize your job search.
+              </h1>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? (
+                <SunMedium className="h-4 w-4" />
+              ) : (
+                <MoonStar className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
           <p className="mt-5 max-w-xl text-base text-deco-muted">
             Manage all your application data in one secure and clean interface.
           </p>
@@ -120,6 +149,15 @@ const LoginPage = () => {
                 className="mt-2 w-full tracking-widest"
               >
                 {loading ? "Signing in..." : "SIGN IN"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={loading}
+                className="w-full tracking-widest"
+                onClick={handleDemoLogin}
+              >
+                SEE IT IN ACTION
               </Button>
               <p className="text-sm text-deco-muted">
                 Need an account?{" "}

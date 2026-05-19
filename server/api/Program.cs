@@ -84,6 +84,8 @@ builder
     {
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
         options.Password.RequiredLength = 6;
     })
     .AddEntityFrameworkStores<AppDbContext>()
@@ -157,6 +159,7 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "ScoutJobs"
         ADD COLUMN IF NOT EXISTS "IsDiscarded" boolean NOT NULL DEFAULT false;
         """);
+    await DemoDataSeeder.SeedAsync(scope.ServiceProvider);
 }
 
 app.UseExceptionHandler();
