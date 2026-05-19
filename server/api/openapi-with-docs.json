@@ -252,46 +252,35 @@
         ]
       }
     },
-    "/api/scout/upload": {
-      "post": {
+    "/api/scout/jobs/{id}": {
+      "patch": {
         "tags": [
           "ScoutJobs"
         ],
-        "operationId": "ScoutJobs_Upload",
+        "operationId": "ScoutJobs_UpdateState",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
         "requestBody": {
+          "x-name": "scoutJobState",
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
-                "properties": {
-                  "ContentType": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "ContentDisposition": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "Headers": {
-                    "type": "array",
-                    "nullable": true,
-                    "items": {}
-                  },
-                  "Length": {
-                    "type": "integer",
-                    "format": "int64"
-                  },
-                  "Name": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "FileName": {
-                    "type": "string",
-                    "nullable": true
-                  }
-                }
+                "$ref": "#/components/schemas/ScoutJobStateUpdateDto"
               }
             }
-          }
+          },
+          "required": true,
+          "x-position": 2
         },
         "responses": {
           "200": {
@@ -299,7 +288,43 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ScoutUploadResultDto"
+                  "$ref": "#/components/schemas/ScoutJob"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "ScoutJobs"
+        ],
+        "operationId": "ScoutJobs_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -399,32 +424,54 @@
         ]
       }
     },
-    "/api/scout/jobs/{id}": {
-      "delete": {
+    "/api/scout/upload": {
+      "post": {
         "tags": [
           "ScoutJobs"
         ],
-        "operationId": "ScoutJobs_Delete",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
+        "operationId": "ScoutJobs_Upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "ContentType": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "ContentDisposition": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "Headers": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {}
+                  },
+                  "Length": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "Name": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "FileName": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "",
             "content": {
-              "application/octet-stream": {
+              "application/json": {
                 "schema": {
-                  "type": "string",
-                  "format": "binary"
+                  "$ref": "#/components/schemas/ScoutUploadResultDto"
                 }
               }
             }
@@ -767,17 +814,80 @@
           }
         }
       },
-      "ScoutUploadResultDto": {
+      "ScoutJob": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "company"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "company": {
+            "type": "string",
+            "minLength": 1
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "workplaceType": {
+            "type": "string",
+            "nullable": true
+          },
+          "commitment": {
+            "type": "string",
+            "nullable": true
+          },
+          "postedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "jobUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "applyUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "technicalTools": {
+            "type": "string",
+            "nullable": true
+          },
+          "requirementsSummary": {
+            "type": "string",
+            "nullable": true
+          },
+          "savedForApply": {
+            "type": "boolean"
+          },
+          "isDiscarded": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ScoutJobStateUpdateDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "imported": {
-            "type": "integer",
-            "format": "int32"
+          "savedForApply": {
+            "type": "boolean"
           },
-          "skipped": {
-            "type": "integer",
-            "format": "int32"
+          "isDiscarded": {
+            "type": "boolean"
           }
         }
       },
@@ -832,62 +942,17 @@
           }
         }
       },
-      "ScoutJob": {
+      "ScoutUploadResultDto": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "title",
-          "company"
-        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
+          "imported": {
+            "type": "integer",
+            "format": "int32"
           },
-          "title": {
-            "type": "string",
-            "minLength": 1
-          },
-          "company": {
-            "type": "string",
-            "minLength": 1
-          },
-          "location": {
-            "type": "string",
-            "nullable": true
-          },
-          "workplaceType": {
-            "type": "string",
-            "nullable": true
-          },
-          "commitment": {
-            "type": "string",
-            "nullable": true
-          },
-          "postedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "jobUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "applyUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "technicalTools": {
-            "type": "string",
-            "nullable": true
-          },
-          "requirementsSummary": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
+          "skipped": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       }

@@ -16,6 +16,8 @@ public record ScoutJobCreateDto(
     string? RequirementsSummary
 );
 
+public record ScoutJobStateUpdateDto(bool SavedForApply, bool IsDiscarded);
+
 public record ScoutUploadResultDto(int Imported, int Skipped);
 
 public record ScoutUploadParseResult(

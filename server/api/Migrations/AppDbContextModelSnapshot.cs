@@ -300,6 +300,12 @@ namespace api.Migrations
                     b.Property<string>("RequirementsSummary")
                         .HasColumnType("text");
 
+                    b.Property<bool>("SavedForApply")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDiscarded")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("TechnicalTools")
                         .HasColumnType("text");
 

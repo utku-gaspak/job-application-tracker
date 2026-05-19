@@ -63,6 +63,8 @@ export interface ScoutJob {
   applyUrl?: string | null;
   technicalTools?: string | null;
   requirementsSummary?: string | null;
+  savedForApply: boolean;
+  isDiscarded: boolean;
   createdAt: string;
 }
 
@@ -77,6 +79,11 @@ export interface ScoutJobCreateInput {
   applyUrl?: string | null;
   technicalTools?: string | null;
   requirementsSummary?: string | null;
+}
+
+export interface ScoutJobStateUpdateInput {
+  savedForApply: boolean;
+  isDiscarded: boolean;
 }
 
 export interface ScoutUploadResult {

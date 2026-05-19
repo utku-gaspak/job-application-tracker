@@ -30,5 +30,9 @@ public class ScoutJob
     [Column(TypeName = "text")]
     public string? RequirementsSummary { get; set; }
 
+    public bool SavedForApply { get; set; } = false;
+
+    public bool IsDiscarded { get; set; } = false;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

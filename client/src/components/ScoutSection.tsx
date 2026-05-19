@@ -15,6 +15,7 @@ import {
   deleteAllScoutJobs,
   deleteScoutJob,
   listScoutJobs,
+  updateScoutJobState,
   uploadScoutJobs,
 } from "../api/scoutJobsApi";
 import { createJobApplication } from "../api/jobApplicationsApi";
@@ -79,7 +80,9 @@ const emptyManualScoutForm = {
 };
 
 const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
-  const [activeView, setActiveView] = useState<"upload" | "evaluate">("upload");
+  const [activeView, setActiveView] = useState<
+    "upload" | "evaluate" | "to-apply"
+  >("upload");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadResult, setUploadResult] = useState<ScoutUploadResult | null>(null);
   const [jobs, setJobs] = useState<ScoutJob[]>([]);
@@ -91,7 +94,15 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
   const [manualForm, setManualForm] = useState(emptyManualScoutForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const currentJob = jobs[currentIndex] ?? null;
+  const evaluateJobs = useMemo(
+    () => jobs.filter((job) => !job.savedForApply && !job.isDiscarded),
+    [jobs],
+  );
+  const toApplyJobs = useMemo(
+    () => jobs.filter((job) => job.savedForApply && !job.isDiscarded),
+    [jobs],
+  );
+  const currentJob = evaluateJobs[currentIndex] ?? null;
   const currentTools = useMemo(
     () => splitTools(currentJob?.technicalTools),
     [currentJob],
@@ -116,10 +127,29 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
     void loadJobs();
   }, [loadJobs]);
 
+  useEffect(() => {
+    if (evaluateJobs.length === 0) {
+      if (currentIndex !== 0) {
+        setCurrentIndex(0);
+      }
+      return;
+    }
+
+    if (currentIndex >= evaluateJobs.length) {
+      setCurrentIndex(evaluateJobs.length - 1);
+    }
+  }, [currentIndex, evaluateJobs.length]);
+
   const removeJobFromQueue = (id: string) => {
     setJobs((current) => current.filter((job) => job.id !== id));
     setCurrentIndex((index) =>
       index > 0 && index >= jobs.length - 1 ? index - 1 : index,
+    );
+  };
+
+  const updateJobInQueue = (updatedJob: ScoutJob) => {
+    setJobs((current) =>
+      current.map((job) => (job.id === updatedJob.id ? updatedJob : job)),
     );
   };
 
@@ -193,6 +223,28 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
     }
   };
 
+  const handleSaveForLater = useCallback(async () => {
+    if (!currentJob || isActing) {
+      return;
+    }
+
+    try {
+      setIsActing(true);
+      setErrorMessage(null);
+      const updatedJob = await updateScoutJobState(currentJob.id, {
+        savedForApply: true,
+        isDiscarded: false,
+      });
+      updateJobInQueue(updatedJob);
+      toast.success("Scout job moved to To Apply.");
+    } catch (error) {
+      console.error("Save scout job for later failed:", error);
+      setErrorMessage("Could not save the scout job for later.");
+    } finally {
+      setIsActing(false);
+    }
+  }, [currentJob, isActing]);
+
   const handleDiscard = useCallback(async () => {
     if (!currentJob || isActing) {
       return;
@@ -201,8 +253,11 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
     try {
       setIsActing(true);
       setErrorMessage(null);
-      await deleteScoutJob(currentJob.id);
-      removeJobFromQueue(currentJob.id);
+      const updatedJob = await updateScoutJobState(currentJob.id, {
+        savedForApply: false,
+        isDiscarded: true,
+      });
+      updateJobInQueue(updatedJob);
       toast.success("Scout job discarded.");
     } catch (error) {
       console.error("Discard scout job failed:", error);
@@ -210,46 +265,73 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
     } finally {
       setIsActing(false);
     }
-  }, [currentJob, isActing, jobs.length]);
+  }, [currentJob, isActing]);
 
-  const handleSaveToTracker = useCallback(async () => {
-    if (!currentJob || isActing) {
-      return;
-    }
+  const handleMarkAsApplied = useCallback(
+    async (job: ScoutJob) => {
+      if (isActing) {
+        return;
+      }
 
-    try {
-      setIsActing(true);
-      setErrorMessage(null);
-      const notes = buildScoutNotes(currentJob);
-      const createdApplication = await createJobApplication({
-        companyName: currentJob.company,
-        position: currentJob.title,
-        jobUrl: currentJob.jobUrl ?? currentJob.applyUrl ?? undefined,
-        location: currentJob.location ?? undefined,
-        notes: notes || undefined,
-        technicalStack: currentJob.technicalTools ?? undefined,
-        status: JobApplicationStatus.Applied,
-      });
+      try {
+        setIsActing(true);
+        setErrorMessage(null);
+        const notes = buildScoutNotes(job);
+        const createdApplication = await createJobApplication({
+          companyName: job.company,
+          position: job.title,
+          jobUrl: job.applyUrl ?? job.jobUrl ?? undefined,
+          location: job.location ?? undefined,
+          notes: notes || undefined,
+          technicalStack: job.technicalTools ?? undefined,
+          status: JobApplicationStatus.Applied,
+        });
 
-      await deleteScoutJob(currentJob.id);
-      onApplicationCreated(createdApplication);
-      removeJobFromQueue(currentJob.id);
-      toast.success("Scout job saved to tracker.");
-    } catch (error) {
-      console.error("Save scout job failed:", error);
-      setErrorMessage("Could not save the scout job to the tracker.");
-    } finally {
-      setIsActing(false);
-    }
-  }, [currentJob, isActing, jobs.length, onApplicationCreated]);
+        await deleteScoutJob(job.id);
+        onApplicationCreated(createdApplication);
+        removeJobFromQueue(job.id);
+        toast.success("Scout job moved to tracker.");
+      } catch (error) {
+        console.error("Mark scout job applied failed:", error);
+        setErrorMessage("Could not move the scout job to the tracker.");
+      } finally {
+        setIsActing(false);
+      }
+    },
+    [isActing, onApplicationCreated, jobs.length],
+  );
+
+  const handleRemoveScoutJob = useCallback(
+    async (job: ScoutJob) => {
+      if (isActing) {
+        return;
+      }
+
+      try {
+        setIsActing(true);
+        setErrorMessage(null);
+        await deleteScoutJob(job.id);
+        removeJobFromQueue(job.id);
+        toast.success("Scout job removed.");
+      } catch (error) {
+        console.error("Remove scout job failed:", error);
+        setErrorMessage("Could not remove the scout job.");
+      } finally {
+        setIsActing(false);
+      }
+    },
+    [isActing, jobs.length],
+  );
 
   const handleSkip = useCallback(() => {
     if (!currentJob || isActing) {
       return;
     }
 
-    setCurrentIndex((index) => Math.min(index + 1, jobs.length));
-  }, [currentJob, isActing, jobs.length]);
+    setCurrentIndex((index) =>
+      Math.min(index + 1, Math.max(0, evaluateJobs.length - 1)),
+    );
+  }, [currentJob, evaluateJobs.length, isActing]);
 
   useEffect(() => {
     if (activeView !== "evaluate") {
@@ -259,7 +341,7 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "ArrowRight" || event.key.toLowerCase() === "l") {
         event.preventDefault();
-        void handleSaveToTracker();
+        void handleSaveForLater();
       }
 
       if (event.key === "ArrowLeft" || event.key.toLowerCase() === "h") {
@@ -275,7 +357,7 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeView, handleDiscard, handleSaveToTracker, handleSkip]);
+  }, [activeView, handleDiscard, handleSaveForLater, handleSkip]);
 
   const handleDeleteAll = async () => {
     try {
@@ -320,6 +402,13 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
               variant={activeView === "evaluate" ? "default" : "outline"}
             >
               Evaluate
+            </Button>
+            <Button
+              onClick={() => setActiveView("to-apply")}
+              type="button"
+              variant={activeView === "to-apply" ? "default" : "outline"}
+            >
+              To Apply
             </Button>
             <Button onClick={() => void loadJobs()} type="button" variant="outline">
               <RefreshCcw className="h-4 w-4" />
@@ -387,7 +476,7 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
               <CardTitle>Evaluate</CardTitle>
               <p className="mt-1 text-sm text-deco-muted">
                 {currentJob
-                  ? `${Math.min(currentIndex + 1, jobs.length)} of ${jobs.length} remaining`
+                  ? `${Math.min(currentIndex + 1, evaluateJobs.length)} of ${evaluateJobs.length} remaining`
                   : "No scout jobs waiting."}
               </p>
             </div>
@@ -525,17 +614,17 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
                   </Button>
                   <Button
                     disabled={isActing}
-                    onClick={() => void handleSaveToTracker()}
+                    onClick={() => void handleSaveForLater()}
                     type="button"
                   >
                     <Save className="h-4 w-4" />
-                    Save to Tracker
+                    Save for later
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
 
                 <p className="mt-4 text-xs uppercase tracking-[0.16em] text-deco-muted">
-                  Shortcuts: H or Left = discard, L or Right = save, Escape = skip
+                  Shortcuts: H or Left = discard, L or Right = save for later, Escape = skip
                 </p>
               </article>
             ) : null}
@@ -547,6 +636,121 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
                 </p>
                 <p className="mt-3 text-sm text-deco-muted">
                   Upload a new jobs.json file or refresh the queue.
+                </p>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {activeView === "to-apply" ? (
+        <Card className="min-h-0 flex-1">
+          <CardHeader className="flex-row items-center justify-between gap-3">
+            <div>
+              <CardTitle>To Apply</CardTitle>
+              <p className="mt-1 text-sm text-deco-muted">
+                {toApplyJobs.length > 0
+                  ? `${toApplyJobs.length} jobs saved for later.`
+                  : "No saved jobs yet."}
+              </p>
+            </div>
+            <Button
+              disabled={isActing || jobs.length === 0}
+              onClick={() => void handleDeleteAll()}
+              type="button"
+              variant="ghost"
+            >
+              <Trash2 className="h-4 w-4" />
+              Clear Scout Queue
+            </Button>
+          </CardHeader>
+
+          <CardContent>
+            {isLoading ? (
+              <p className="text-sm text-deco-muted">Loading scout jobs...</p>
+            ) : null}
+
+            {!isLoading && toApplyJobs.length > 0 ? (
+              <div className="grid gap-3">
+                {toApplyJobs.map((job) => {
+                  const jobTools = splitTools(job.technicalTools);
+                  const applyHref = job.applyUrl ?? job.jobUrl ?? null;
+
+                  return (
+                    <article
+                      className="deco-frame border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel"
+                      key={job.id}
+                    >
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+                            {job.company}
+                          </p>
+                          <h3 className="mt-2 font-heading text-2xl text-deco-foreground">
+                            {job.title}
+                          </h3>
+                          <div className="mt-3 flex flex-wrap gap-2 text-sm text-deco-muted">
+                            <span>{job.location ?? "Not provided"}</span>
+                            {job.workplaceType ? <span>• {job.workplaceType}</span> : null}
+                            {job.commitment ? <span>• {job.commitment}</span> : null}
+                            <span>• {formatPostedDate(job.postedAt)}</span>
+                          </div>
+                        </div>
+
+                        {applyHref ? (
+                          <Button asChild size="sm" variant="outline">
+                            <a href={applyHref} rel="noreferrer" target="_blank">
+                              <ExternalLink className="h-4 w-4" />
+                              Open apply link
+                            </a>
+                          </Button>
+                        ) : null}
+                      </div>
+
+                      {jobTools.length > 0 ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {jobTools.map((tool) => (
+                            <span
+                              className="deco-frame border-border-gold-muted bg-deco-card px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-deco-foreground"
+                              key={tool}
+                            >
+                              {tool}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        <Button
+                          disabled={isActing}
+                          onClick={() => void handleMarkAsApplied(job)}
+                          type="button"
+                        >
+                          <Save className="h-4 w-4" />
+                          Mark as Applied
+                        </Button>
+                        <Button
+                          disabled={isActing}
+                          onClick={() => void handleRemoveScoutJob(job)}
+                          type="button"
+                          variant="outline"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {!isLoading && toApplyJobs.length === 0 ? (
+              <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-5 py-10 text-center">
+                <p className="font-heading text-2xl text-deco-foreground">
+                  No saved Scout jobs yet.
+                </p>
+                <p className="mt-3 text-sm text-deco-muted">
+                  Save jobs from Evaluate to build your To Apply list.
                 </p>
               </div>
             ) : null}

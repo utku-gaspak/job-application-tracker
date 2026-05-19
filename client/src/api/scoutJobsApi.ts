@@ -5,6 +5,7 @@ import { finalUrl } from "../baseUrl";
 import type {
   ScoutJob,
   ScoutJobCreateInput,
+  ScoutJobStateUpdateInput,
   ScoutUploadResult,
 } from "../types";
 
@@ -58,6 +59,14 @@ export const uploadScoutJobs = async (file: File) => {
 
 export const createScoutJob = async (input: ScoutJobCreateInput) => {
   const response = await scoutJobsApi.post<ScoutJob>("/jobs", input);
+  return response.data;
+};
+
+export const updateScoutJobState = async (
+  id: string,
+  input: ScoutJobStateUpdateInput,
+) => {
+  const response = await scoutJobsApi.patch<ScoutJob>(`/jobs/${id}`, input);
   return response.data;
 };
 

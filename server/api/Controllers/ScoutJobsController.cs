@@ -14,6 +14,26 @@ namespace api.Controllers;
 [Route("api/scout")]
 public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
 {
+    [HttpPatch("jobs/{id:guid}")]
+    public async Task<ActionResult<ScoutJob>> UpdateState(
+        [FromRoute] Guid id,
+        [FromBody] ScoutJobStateUpdateDto scoutJobState,
+        CancellationToken cancellationToken
+    )
+    {
+        var job = await dbContext.ScoutJobs.FindAsync([id], cancellationToken);
+        if (job is null)
+        {
+            return NotFound();
+        }
+
+        job.SavedForApply = scoutJobState.SavedForApply;
+        job.IsDiscarded = scoutJobState.IsDiscarded;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(job);
+    }
+
     [HttpPost("jobs")]
     public async Task<ActionResult<ScoutJob>> Create(
         [FromBody] ScoutJobCreateDto scoutJob,
@@ -51,6 +71,8 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
             ApplyUrl = TrimToNull(scoutJob.ApplyUrl),
             TechnicalTools = TrimToNull(scoutJob.TechnicalTools),
             RequirementsSummary = TrimToNull(scoutJob.RequirementsSummary),
+            SavedForApply = false,
+            IsDiscarded = false,
         };
 
         dbContext.ScoutJobs.Add(entity);

@@ -149,6 +149,14 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await dbContext.Database.MigrateAsync();
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "ScoutJobs"
+        ADD COLUMN IF NOT EXISTS "SavedForApply" boolean NOT NULL DEFAULT false;
+        """);
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "ScoutJobs"
+        ADD COLUMN IF NOT EXISTS "IsDiscarded" boolean NOT NULL DEFAULT false;
+        """);
 }
 
 app.UseExceptionHandler();
