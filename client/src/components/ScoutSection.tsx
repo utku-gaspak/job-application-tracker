@@ -96,7 +96,7 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
   const [manualForm, setManualForm] = useState(emptyManualScoutForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [toApplyViewMode, setToApplyViewMode] = useState<"detailed" | "list">(
-    "detailed",
+    "list",
   );
 
   const evaluateJobs = useMemo(
