@@ -19,6 +19,8 @@ Live site: https://traxr.xyz
 - Upload jobs.json output from [hiring-cafe-scout](https://github.com/utku-gaspak/hiring-cafe-scout) directly into the app
 - Swipe-based evaluation UI - right to save, left to discard, keyboard shortcuts supported
 - To Apply queue with direct company apply links
+- JSON or CSV export for the Scout queue
+- Scout-side summary counts for the current queue
 - One-click promotion from To Apply to the Kanban board as Applied
 
 ### Application Tracker
@@ -31,8 +33,10 @@ Live site: https://traxr.xyz
 - Compact filter bar with search, status, interest level, and skill transfer controls
 - Drag-and-drop card movement with manual board ordering
 - Mobile accordion view for Kanban columns on small screens
+- Toggleable tracker status diagram with PNG export
 - Light and dark mode with a theme-aware favicon
 - Sort toggle for newest or oldest applications first
+- Guided onboarding tour for tracker and Scout flows
 - Protected dashboard routes with persisted login state
 - Error handling for validation, authorization, server, and connection failures
 - OpenAPI and generated TypeScript client support for keeping the backend and frontend in sync
