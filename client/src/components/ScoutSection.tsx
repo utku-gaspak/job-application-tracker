@@ -846,7 +846,7 @@ const ScoutSection = ({
                   </Button>
                 </div>
 
-                <p className="mt-4 text-xs uppercase tracking-[0.16em] text-deco-muted">
+                <p className="mt-4 hidden text-xs uppercase tracking-[0.16em] text-deco-muted md:block">
                   Shortcuts: H or Left = discard, L or Right = save for later, Escape = skip
                 </p>
               </article>
