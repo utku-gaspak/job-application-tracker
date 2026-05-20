@@ -13,7 +13,9 @@ import {
   Diamond,
   CircleHelp,
   ExternalLink,
+  Download,
   FileText,
+  FileDigit,
   Filter,
   LayoutDashboard,
   LogOut,
@@ -82,6 +84,22 @@ const splitTechnicalStack = (value?: string | null) =>
     .map((skill) => skill.trim())
     .filter(Boolean) ?? [];
 
+const downloadBlob = (blob: Blob, fileName: string) => {
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+const escapeCsvField = (value?: string | number | null) => {
+  const safeValue = value ?? "";
+  return `"${String(safeValue).replace(/"/g, '""')}"`;
+};
+
 const getUniqueTechnicalSkills = (applications: JobApplication[]) =>
   Array.from(
     new Set(
@@ -90,6 +108,68 @@ const getUniqueTechnicalSkills = (applications: JobApplication[]) =>
       ),
     ),
   ).sort((left, right) => left.localeCompare(right));
+
+const buildTrackerExportJson = (applications: JobApplication[]) =>
+  JSON.stringify(
+    {
+      results: applications.map((application) => ({
+        id: application.id,
+        company_name: application.companyName,
+        position: application.position,
+        job_url: application.jobUrl,
+        location: application.location,
+        salary_range: application.salaryRange,
+        job_description: application.jobDescription,
+        notes: application.notes,
+        interest_level: application.interestLevel,
+        technical_stack: application.technicalStack,
+        status: jobApplicationStatusLabels[application.status],
+        date_applied: application.dateApplied,
+        user_id: application.userId,
+      })),
+    },
+    null,
+    2,
+  );
+
+const buildTrackerExportCsv = (applications: JobApplication[]) => {
+  const rows = [
+    [
+      "id",
+      "company_name",
+      "position",
+      "job_url",
+      "location",
+      "salary_range",
+      "job_description",
+      "notes",
+      "interest_level",
+      "technical_stack",
+      "status",
+      "date_applied",
+      "user_id",
+    ].join(","),
+    ...applications.map((application) =>
+      [
+        escapeCsvField(application.id),
+        escapeCsvField(application.companyName),
+        escapeCsvField(application.position),
+        escapeCsvField(application.jobUrl),
+        escapeCsvField(application.location),
+        escapeCsvField(application.salaryRange),
+        escapeCsvField(application.jobDescription),
+        escapeCsvField(application.notes),
+        escapeCsvField(application.interestLevel),
+        escapeCsvField(application.technicalStack),
+        escapeCsvField(jobApplicationStatusLabels[application.status]),
+        escapeCsvField(application.dateApplied),
+        escapeCsvField(application.userId),
+      ].join(","),
+    ),
+  ];
+
+  return rows.join("\n");
+};
 
 const matchesFilters = (
   application: JobApplication,
@@ -292,6 +372,7 @@ const Dashboard = () => {
     useState<JobApplication | null>(null);
   const [isDetailEditing, setIsDetailEditing] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -338,6 +419,22 @@ const Dashboard = () => {
       ...current,
       [status]: !current[status],
     }));
+  };
+
+  const handleTrackerExport = (format: "json" | "csv") => {
+    const content =
+      format === "csv"
+        ? buildTrackerExportCsv(applications)
+        : buildTrackerExportJson(applications);
+    const blob = new Blob([content], {
+      type:
+        format === "csv"
+          ? "text/csv;charset=utf-8"
+          : "application/json;charset=utf-8",
+    });
+
+    downloadBlob(blob, format === "csv" ? "applications.csv" : "applications.json");
+    toast.success(`Tracker exported as ${format.toUpperCase()}.`);
   };
 
   const profileStats = useMemo(() => {
@@ -827,6 +924,15 @@ const Dashboard = () => {
                   Clear All
                 </Button>
                 <Button
+                  className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
+                  onClick={() => setIsExportDialogOpen(true)}
+                  type="button"
+                  variant={themeButtonVariant}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+                <Button
                   aria-expanded={isFilterOpen}
                   className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
                   onClick={() => setIsFilterOpen((current) => !current)}
@@ -1127,6 +1233,46 @@ const Dashboard = () => {
                 onSuccess={closeCreateDialog}
                 onUpdate={handleUpdate}
               />
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+            <DialogContent className="deco-frame-thick w-[min(96vw,30rem)] border-border-gold bg-deco-bg shadow-deco-panel">
+              <DialogHeader>
+                <DialogTitle className="font-heading text-2xl text-deco-foreground">
+                  Export tracker data
+                </DialogTitle>
+                <DialogDescription className="text-sm text-deco-muted">
+                  Choose JSON for backup or CSV for Excel.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-3 pt-2 sm:grid-cols-2">
+                <Button
+                  className="justify-start"
+                  onClick={() => {
+                    setIsExportDialogOpen(false);
+                    handleTrackerExport("json");
+                  }}
+                  type="button"
+                  variant="outline"
+                >
+                  <Download className="h-4 w-4" />
+                  JSON
+                </Button>
+                <Button
+                  className="justify-start"
+                  onClick={() => {
+                    setIsExportDialogOpen(false);
+                    handleTrackerExport("csv");
+                  }}
+                  type="button"
+                  variant="outline"
+                >
+                  <FileDigit className="h-4 w-4" />
+                  CSV
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
 

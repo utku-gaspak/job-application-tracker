@@ -62,7 +62,9 @@ public static class ScoutJobUploadParser
                     "requirements",
                     "summary"
                 )),
-                CreatedAt = DateTime.UtcNow,
+                SavedForApply = ReadBoolean(item, "saved_for_apply", "savedForApply") ?? false,
+                IsDiscarded = ReadBoolean(item, "is_discarded", "isDiscarded") ?? false,
+                CreatedAt = ReadDate(item, "created_at", "createdAt") ?? DateTime.UtcNow,
             });
         }
 
@@ -178,6 +180,42 @@ public static class ScoutJobUploadParser
         )
             ? DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc)
             : null;
+    }
+
+    private static bool? ReadBoolean(JsonElement item, params string[] propertyNames)
+    {
+        foreach (var propertyName in propertyNames)
+        {
+            if (!item.TryGetProperty(propertyName, out var value))
+            {
+                continue;
+            }
+
+            if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.True)
+            {
+                return true;
+            }
+
+            if (value.ValueKind == JsonValueKind.False)
+            {
+                return false;
+            }
+
+            if (
+                value.ValueKind == JsonValueKind.String
+                && bool.TryParse(value.GetString(), out var parsed)
+            )
+            {
+                return parsed;
+            }
+        }
+
+        return null;
     }
 
     private static string? NormalizeOptionalText(string? value)

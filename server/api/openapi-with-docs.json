@@ -483,6 +483,43 @@
           }
         ]
       }
+    },
+    "/api/scout/jobs/export": {
+      "get": {
+        "tags": [
+          "ScoutJobs"
+        ],
+        "operationId": "ScoutJobs_ExportJobs",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "json"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
     }
   },
   "components": {

@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text.Json;
+using System.Text;
 using api.Data;
 using api.Dto;
 using api.Models;
@@ -149,6 +151,66 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
         return Ok(jobs);
     }
 
+    [HttpGet("jobs/export")]
+    public async Task<IActionResult> ExportJobs(
+        [FromQuery] string format = "json",
+        CancellationToken cancellationToken = default
+    )
+    {
+        var jobs = await dbContext
+            .ScoutJobs.OrderBy(job => job.PostedAt == null)
+            .ThenByDescending(job => job.PostedAt)
+            .ThenByDescending(job => job.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        if (format.Equals("csv", StringComparison.OrdinalIgnoreCase))
+        {
+            var csv = BuildCsv(jobs);
+            var csvBytes = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv);
+            return File(csvBytes, "text/csv", "jobs.csv");
+        }
+
+        if (
+            !format.Equals("json", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(format)
+        )
+        {
+            return BadRequest("Export format must be json or csv.");
+        }
+
+        var payload = new
+        {
+            results = jobs.Select(job => new
+            {
+                job.Id,
+                job.Title,
+                job.Company,
+                LocationDisplay = job.Location,
+                job.WorkplaceType,
+                job.Commitment,
+                PostedAt = job.PostedAt?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                JobUrl = job.JobUrl,
+                ApplyUrl = job.ApplyUrl,
+                TechnicalTools = job.TechnicalTools,
+                RequirementsSummary = job.RequirementsSummary,
+                job.SavedForApply,
+                job.IsDiscarded,
+                CreatedAt = job.CreatedAt,
+            }),
+        };
+
+        var json = JsonSerializer.SerializeToUtf8Bytes(
+            payload,
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                WriteIndented = true,
+            }
+        );
+
+        return File(json, "application/json", "jobs.json");
+    }
+
     [HttpDelete("jobs/{id:guid}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken cancellationToken)
     {
@@ -174,5 +236,64 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
     {
         var trimmed = value?.Trim();
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+    }
+
+    private static string BuildCsv(IEnumerable<ScoutJob> jobs)
+    {
+        var rows = new List<string>
+        {
+            string.Join(
+                ",",
+                [
+                    "id",
+                    "title",
+                    "company",
+                    "location_display",
+                    "workplace_type",
+                    "commitment",
+                    "posted_at",
+                    "job_url",
+                    "apply_url",
+                    "technical_tools",
+                    "requirements_summary",
+                    "saved_for_apply",
+                    "is_discarded",
+                    "created_at",
+                ]
+            ),
+        };
+
+        rows.AddRange(
+            jobs.Select(job =>
+                string.Join(
+                    ",",
+                    [
+                        CsvEscape(job.Id.ToString()),
+                        CsvEscape(job.Title),
+                        CsvEscape(job.Company),
+                        CsvEscape(job.Location),
+                        CsvEscape(job.WorkplaceType),
+                        CsvEscape(job.Commitment),
+                        CsvEscape(job.PostedAt?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
+                        CsvEscape(job.JobUrl),
+                        CsvEscape(job.ApplyUrl),
+                        CsvEscape(job.TechnicalTools),
+                        CsvEscape(job.RequirementsSummary),
+                        CsvEscape(job.SavedForApply ? "true" : "false"),
+                        CsvEscape(job.IsDiscarded ? "true" : "false"),
+                        CsvEscape(job.CreatedAt.ToString("O", CultureInfo.InvariantCulture)),
+                    ]
+                )
+            )
+        );
+
+        return string.Join(Environment.NewLine, rows);
+    }
+
+    private static string CsvEscape(string? value)
+    {
+        var safeValue = value ?? string.Empty;
+        var escaped = safeValue.Replace("\"", "\"\"");
+        return $"\"{escaped}\"";
     }
 }

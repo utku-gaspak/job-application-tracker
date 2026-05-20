@@ -75,6 +75,19 @@ export const listScoutJobs = async () => {
   return response.data;
 };
 
+export const exportScoutJobs = async () => {
+  return exportScoutJobsAs("json");
+};
+
+export const exportScoutJobsAs = async (format: "json" | "csv") => {
+  const response = await scoutJobsApi.get<Blob>("/jobs/export", {
+    params: { format },
+    responseType: "blob",
+  });
+
+  return response.data;
+};
+
 export const deleteScoutJob = async (id: string) => {
   await scoutJobsApi.delete(`/jobs/${id}`);
 };

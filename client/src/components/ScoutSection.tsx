@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Binoculars,
+  Download,
   FileDigit,
   ExternalLink,
   FileUp,
@@ -32,7 +33,13 @@ import {
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 
@@ -70,6 +77,87 @@ const buildScoutNotes = (job: ScoutJob) =>
     .filter(Boolean)
     .join("\n\n");
 
+const downloadBlob = (blob: Blob, fileName: string) => {
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+const buildExportJson = (jobs: ScoutJob[]) =>
+  JSON.stringify(
+    {
+      results: jobs.map((job) => ({
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        location_display: job.location,
+        workplace_type: job.workplaceType,
+        commitment: job.commitment,
+        posted_at: job.postedAt ? job.postedAt.slice(0, 10) : null,
+        job_url: job.jobUrl,
+        apply_url: job.applyUrl,
+        technical_tools: job.technicalTools,
+        requirements_summary: job.requirementsSummary,
+        saved_for_apply: job.savedForApply,
+        is_discarded: job.isDiscarded,
+        created_at: job.createdAt,
+      })),
+    },
+    null,
+    2,
+  );
+
+const escapeCsvField = (value?: string | null) => {
+  const safeValue = value ?? "";
+  return `"${safeValue.replace(/"/g, '""')}"`;
+};
+
+const buildExportCsv = (jobs: ScoutJob[]) => {
+  const rows = [
+    [
+      "id",
+      "title",
+      "company",
+      "location_display",
+      "workplace_type",
+      "commitment",
+      "posted_at",
+      "job_url",
+      "apply_url",
+      "technical_tools",
+      "requirements_summary",
+      "saved_for_apply",
+      "is_discarded",
+      "created_at",
+    ].join(","),
+    ...jobs.map((job) =>
+      [
+        escapeCsvField(job.id),
+        escapeCsvField(job.title),
+        escapeCsvField(job.company),
+        escapeCsvField(job.location),
+        escapeCsvField(job.workplaceType),
+        escapeCsvField(job.commitment),
+        escapeCsvField(job.postedAt ? job.postedAt.slice(0, 10) : null),
+        escapeCsvField(job.jobUrl),
+        escapeCsvField(job.applyUrl),
+        escapeCsvField(job.technicalTools),
+        escapeCsvField(job.requirementsSummary),
+        escapeCsvField(String(job.savedForApply)),
+        escapeCsvField(String(job.isDiscarded)),
+        escapeCsvField(job.createdAt),
+      ].join(","),
+    ),
+  ];
+
+  return rows.join("\n");
+};
+
 const emptyManualScoutForm = {
   title: "",
   company: "",
@@ -98,6 +186,7 @@ const ScoutSection = ({
   const [isUploading, setIsUploading] = useState(false);
   const [isActing, setIsActing] = useState(false);
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [manualForm, setManualForm] = useState(emptyManualScoutForm);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -148,6 +237,21 @@ const ScoutSection = ({
       setIsLoading(false);
     }
   }, []);
+
+  const handleExport = useCallback(async (format: "json" | "csv") => {
+    try {
+      const content =
+        format === "csv" ? buildExportCsv(jobs) : buildExportJson(jobs);
+      const blob = new Blob([content], {
+        type: format === "csv" ? "text/csv;charset=utf-8" : "application/json;charset=utf-8",
+      });
+      downloadBlob(blob, format === "csv" ? "jobs.csv" : "jobs.json");
+      toast.success(`Scout jobs exported as ${format.toUpperCase()}.`);
+    } catch (error) {
+      console.error("Export scout jobs failed:", error);
+      setErrorMessage("Could not export scout jobs.");
+    }
+  }, [jobs]);
 
   useEffect(() => {
     void loadJobs();
@@ -495,6 +599,10 @@ const ScoutSection = ({
             <Button onClick={() => void loadJobs()} type="button" variant="outline">
               <RefreshCcw className="h-4 w-4" />
               Refresh
+            </Button>
+            <Button onClick={() => setIsExportDialogOpen(true)} type="button" variant="outline">
+              <Download className="h-4 w-4" />
+              Export
             </Button>
             <Button onClick={openManualDialog} type="button" variant="outline">
               <Plus className="h-4 w-4" />
@@ -1133,6 +1241,46 @@ const ScoutSection = ({
                 Add scout job
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+        <DialogContent className="deco-frame-thick w-[min(96vw,30rem)] border-border-gold bg-deco-bg shadow-deco-panel">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-2xl text-deco-foreground">
+              Export Scout queue
+            </DialogTitle>
+            <DialogDescription className="text-sm text-deco-muted">
+              Choose JSON for re-imports or CSV for spreadsheet tools like Excel.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 pt-2 sm:grid-cols-2">
+            <Button
+              className="justify-start"
+              onClick={() => {
+                setIsExportDialogOpen(false);
+                void handleExport("json");
+              }}
+              type="button"
+              variant="outline"
+            >
+              <Download className="h-4 w-4" />
+              JSON
+            </Button>
+            <Button
+              className="justify-start"
+              onClick={() => {
+                setIsExportDialogOpen(false);
+                void handleExport("csv");
+              }}
+              type="button"
+              variant="outline"
+            >
+              <FileDigit className="h-4 w-4" />
+              CSV
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
