@@ -1,5 +1,14 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
+import { useAuth } from "./AuthContext";
 
 export type WorkflowSection = "tracker" | "scout";
 export type MissionPhase = "triage" | "action" | "summary";
@@ -7,12 +16,17 @@ export type MissionPhase = "triage" | "action" | "summary";
 interface WorkflowContextType {
   activeSection: WorkflowSection;
   setActiveSection: (section: WorkflowSection) => void;
+  scoutTourView: "upload" | "evaluate" | "to-apply" | null;
+  setScoutTourView: (view: "upload" | "evaluate" | "to-apply" | null) => void;
   isMissionLoopOpen: boolean;
   openMissionLoop: () => void;
   closeMissionLoop: () => void;
   missionPhase: MissionPhase;
   setMissionPhase: (phase: MissionPhase) => void;
   advanceMissionPhase: () => void;
+  missionStepIndex: number;
+  setMissionStepIndex: (index: number) => void;
+  advanceMissionStep: () => void;
   missionSavedCount: number;
   missionDiscardedCount: number;
   missionAppliedCount: number;
@@ -31,14 +45,13 @@ const WORKFLOW_SECTION_HASH = {
   scout: "#scout",
 } as const;
 
-const MISSION_LOOP_OPEN_EVENT = "traxr:workflow:mission-open";
-const MISSION_LOOP_CLOSE_EVENT = "traxr:workflow:mission-close";
-const MISSION_LOOP_RESET_EVENT = "traxr:workflow:mission-reset";
+const MISSION_TOUR_SEEN_KEY_PREFIX = "traxr:mission-tour-seen:v1";
 
 const getSectionFromHash = (hash: string): WorkflowSection =>
   hash.toLowerCase() === WORKFLOW_SECTION_HASH.scout ? "scout" : "tracker";
 
 export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
+  const { username } = useAuth();
   const [activeSection, setActiveSectionState] = useState<WorkflowSection>(() =>
     typeof window === "undefined"
       ? "tracker"
@@ -46,9 +59,14 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   );
   const [isMissionLoopOpen, setIsMissionLoopOpen] = useState(false);
   const [missionPhase, setMissionPhase] = useState<MissionPhase>("triage");
+  const [missionStepIndex, setMissionStepIndex] = useState(0);
   const [missionSavedCount, setMissionSavedCount] = useState(0);
   const [missionDiscardedCount, setMissionDiscardedCount] = useState(0);
   const [missionAppliedCount, setMissionAppliedCount] = useState(0);
+  const lastSessionUsernameRef = useRef<string | null>(null);
+  const [scoutTourView, setScoutTourView] = useState<
+    "upload" | "evaluate" | "to-apply" | null
+  >(null);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -58,28 +76,12 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
     window.addEventListener("hashchange", handleHashChange);
     handleHashChange();
 
-    const handleMissionOpen = () => setIsMissionLoopOpen(true);
-    const handleMissionClose = () => setIsMissionLoopOpen(false);
-    const handleMissionReset = () => {
-      setMissionPhase("triage");
-      setMissionSavedCount(0);
-      setMissionDiscardedCount(0);
-      setMissionAppliedCount(0);
-    };
-
-    window.addEventListener(MISSION_LOOP_OPEN_EVENT, handleMissionOpen);
-    window.addEventListener(MISSION_LOOP_CLOSE_EVENT, handleMissionClose);
-    window.addEventListener(MISSION_LOOP_RESET_EVENT, handleMissionReset);
-
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
-      window.removeEventListener(MISSION_LOOP_OPEN_EVENT, handleMissionOpen);
-      window.removeEventListener(MISSION_LOOP_CLOSE_EVENT, handleMissionClose);
-      window.removeEventListener(MISSION_LOOP_RESET_EVENT, handleMissionReset);
     };
   }, []);
 
-  const setActiveSection = (section: WorkflowSection) => {
+  const setActiveSection = useCallback((section: WorkflowSection) => {
     setActiveSectionState(section);
     const nextHash = WORKFLOW_SECTION_HASH[section];
 
@@ -90,55 +92,95 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
         `${window.location.pathname}${nextHash}`,
       );
     }
-  };
+  }, []);
 
-  const openMissionLoop = () => {
+  const openMissionLoop = useCallback(() => {
     setMissionPhase("triage");
+    setMissionStepIndex(0);
     setMissionSavedCount(0);
     setMissionDiscardedCount(0);
     setMissionAppliedCount(0);
     setIsMissionLoopOpen(true);
-  };
+  }, []);
 
-  const closeMissionLoop = () => {
+  const closeMissionLoop = useCallback(() => {
     setIsMissionLoopOpen(false);
-  };
+  }, []);
 
-  const incrementMissionSavedCount = () => {
+  const incrementMissionSavedCount = useCallback(() => {
     setMissionSavedCount((current) => current + 1);
-  };
+  }, []);
 
-  const incrementMissionDiscardedCount = () => {
+  const incrementMissionDiscardedCount = useCallback(() => {
     setMissionDiscardedCount((current) => current + 1);
-  };
+  }, []);
 
-  const incrementMissionAppliedCount = () => {
+  const incrementMissionAppliedCount = useCallback(() => {
     setMissionAppliedCount((current) => current + 1);
-  };
+  }, []);
 
-  const advanceMissionPhase = () => {
+  const advanceMissionPhase = useCallback(() => {
     setMissionPhase((current) =>
       current === "triage" ? "action" : "summary",
     );
-  };
+  }, []);
 
-  const resetMissionProgress = () => {
+  const advanceMissionStep = useCallback(() => {
+    setMissionStepIndex((current) => current + 1);
+  }, []);
+
+  const resetMissionProgress = useCallback(() => {
     setMissionPhase("triage");
     setMissionSavedCount(0);
     setMissionDiscardedCount(0);
     setMissionAppliedCount(0);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!username) {
+      lastSessionUsernameRef.current = null;
+      return;
+    }
+
+    const normalizedUsername = username.toLowerCase();
+    const previousUsername =
+      lastSessionUsernameRef.current?.toLowerCase() ?? null;
+
+    if (previousUsername === normalizedUsername) {
+      return;
+    }
+
+    lastSessionUsernameRef.current = username;
+
+    if (normalizedUsername === "demo") {
+      openMissionLoop();
+      return;
+    }
+
+    const seenKey = `${MISSION_TOUR_SEEN_KEY_PREFIX}:${normalizedUsername}`;
+    const hasSeenTour = window.localStorage.getItem(seenKey) === "true";
+
+    if (!hasSeenTour) {
+      window.localStorage.setItem(seenKey, "true");
+      openMissionLoop();
+    }
+  }, [openMissionLoop, username]);
 
   const value = useMemo(
     () => ({
       activeSection,
       setActiveSection,
+      scoutTourView,
+      setScoutTourView,
       isMissionLoopOpen,
       openMissionLoop,
       closeMissionLoop,
       missionPhase,
       setMissionPhase,
       advanceMissionPhase,
+      missionStepIndex,
+      setMissionStepIndex,
+      advanceMissionStep,
       missionSavedCount,
       missionDiscardedCount,
       missionAppliedCount,
@@ -147,7 +189,27 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       incrementMissionAppliedCount,
       resetMissionProgress,
     }),
-    [activeSection, isMissionLoopOpen, missionPhase, missionSavedCount, missionDiscardedCount, missionAppliedCount],
+    [
+      activeSection,
+      setActiveSection,
+      isMissionLoopOpen,
+      openMissionLoop,
+      closeMissionLoop,
+      missionPhase,
+      setMissionPhase,
+      advanceMissionPhase,
+      missionStepIndex,
+      setMissionStepIndex,
+      advanceMissionStep,
+      missionSavedCount,
+      missionDiscardedCount,
+      missionAppliedCount,
+      incrementMissionSavedCount,
+      incrementMissionDiscardedCount,
+      incrementMissionAppliedCount,
+      resetMissionProgress,
+      scoutTourView,
+    ],
   );
 
   return (

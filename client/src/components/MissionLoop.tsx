@@ -16,12 +16,9 @@ import { Card, CardContent } from "./ui/card";
 
 interface MissionLoopProps {
   open: boolean;
-  scoutTourView: "upload" | "evaluate" | "to-apply" | null;
-  onOpenChange: (open: boolean) => void;
   onGoScout: () => void;
   onGoTracker: () => void;
   onAdvancePhase: () => void;
-  onSetScoutView: (view: "upload" | "evaluate" | "to-apply") => void;
 }
 
 const missionSteps = [
@@ -118,29 +115,39 @@ const restoreTargetStyle = (target: HTMLElement | null) => {
 
 const MissionLoop = ({
   open,
-  scoutTourView,
-  onOpenChange,
   onGoScout,
   onGoTracker,
   onAdvancePhase,
-  onSetScoutView,
 }: MissionLoopProps) => {
-  const { activeSection, missionSavedCount, missionDiscardedCount, missionAppliedCount } =
+  const {
+    activeSection,
+    closeMissionLoop,
+    missionStepIndex,
+    setMissionStepIndex,
+    advanceMissionStep,
+    missionSavedCount,
+    missionDiscardedCount,
+    missionAppliedCount,
+    scoutTourView,
+    setScoutTourView,
+  } =
     useWorkflow();
-  const [stepIndex, setStepIndex] = useState(0);
   const [anchorStyle, setAnchorStyle] = useState<AnchorStyle | null>(null);
   const currentTargetRef = useRef<HTMLElement | null>(null);
-  const currentStep = useMemo(() => missionSteps[stepIndex], [stepIndex]);
+  const currentStep = useMemo(
+    () => missionSteps[missionStepIndex],
+    [missionStepIndex],
+  );
   const CurrentIcon = currentStep.icon;
 
   useEffect(() => {
     if (!open) {
-      setStepIndex(0);
+      setMissionStepIndex(0);
       setAnchorStyle(null);
       restoreTargetStyle(currentTargetRef.current);
       currentTargetRef.current = null;
     }
-  }, [open]);
+  }, [open, setMissionStepIndex]);
 
   useEffect(() => {
     if (!open) {
@@ -155,9 +162,9 @@ const MissionLoop = ({
     onGoScout();
 
     if (currentStep.scoutView && scoutTourView !== currentStep.scoutView) {
-      onSetScoutView(currentStep.scoutView);
+      setScoutTourView(currentStep.scoutView);
     }
-  }, [currentStep, open, onGoScout, onGoTracker, onSetScoutView, scoutTourView]);
+  }, [currentStep, open, onGoScout, onGoTracker, scoutTourView, setScoutTourView]);
 
   useLayoutEffect(() => {
     if (!open) {
@@ -281,21 +288,21 @@ const MissionLoop = ({
   }, [currentStep, open, activeSection, scoutTourView]);
 
   const goBack = () => {
-    if (stepIndex === 0) {
-      onOpenChange(false);
+    if (missionStepIndex === 0) {
+      closeMissionLoop();
       return;
     }
 
-    setStepIndex((current) => current - 1);
+    setMissionStepIndex((current) => current - 1);
   };
 
   const goNext = () => {
-    if (stepIndex === missionSteps.length - 1) {
-      onOpenChange(false);
+    if (missionStepIndex === missionSteps.length - 1) {
+      closeMissionLoop();
       return;
     }
 
-    setStepIndex((current) => current + 1);
+    advanceMissionStep();
     onAdvancePhase();
   };
 
@@ -308,7 +315,7 @@ const MissionLoop = ({
       <button
         aria-label="Close mission tour"
         className="absolute inset-0 cursor-default bg-black/18"
-        onClick={() => onOpenChange(false)}
+        onClick={() => closeMissionLoop()}
         type="button"
       />
 
@@ -326,7 +333,7 @@ const MissionLoop = ({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                Step {stepIndex + 1} of {missionSteps.length}
+                Step {missionStepIndex + 1} of {missionSteps.length}
               </p>
               <h3 className="mt-1 flex items-center gap-2 font-heading text-xl text-deco-foreground">
                 <CurrentIcon className="h-5 w-5 text-primary-gold" />
@@ -336,7 +343,7 @@ const MissionLoop = ({
             <Button
               aria-label="Close mission tour"
               className="h-8 w-8 p-0"
-              onClick={() => onOpenChange(false)}
+              onClick={() => closeMissionLoop()}
               type="button"
               variant="ghost"
             >
@@ -359,7 +366,7 @@ const MissionLoop = ({
                   key={step.id}
                   className={cn(
                     "h-2.5 w-2.5 rounded-full border",
-                    index === stepIndex
+                    index === missionStepIndex
                       ? "border-primary-gold bg-primary-gold"
                       : "border-border-gold bg-transparent",
                   )}
@@ -368,7 +375,7 @@ const MissionLoop = ({
             </div>
 
             <Button type="button" onClick={goNext}>
-              {stepIndex === missionSteps.length - 1 ? "Finish" : "Next"}
+              {missionStepIndex === missionSteps.length - 1 ? "Finish" : "Next"}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

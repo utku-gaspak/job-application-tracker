@@ -25,7 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
@@ -273,8 +273,6 @@ const mobileAccordionDefaults: Record<JobApplicationStatus, boolean> = {
   [JobApplicationStatus.Offer]: false,
 };
 
-const MISSION_TOUR_SEEN_KEY_PREFIX = "traxr:mission-tour-seen:v1";
-
 const Dashboard = () => {
   const { logout, username } = useAuth();
   const {
@@ -282,7 +280,6 @@ const Dashboard = () => {
     setActiveSection: setWorkflowSection,
     isMissionLoopOpen,
     openMissionLoop,
-    closeMissionLoop,
     advanceMissionPhase,
   } = useWorkflow();
   const { theme, toggleTheme } = useTheme();
@@ -291,9 +288,6 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [scoutTourView, setScoutTourView] = useState<
-    "upload" | "evaluate" | "to-apply" | null
-  >(null);
   const [selectedApplication, setSelectedApplication] =
     useState<JobApplication | null>(null);
   const [isDetailEditing, setIsDetailEditing] = useState(false);
@@ -308,8 +302,6 @@ const Dashboard = () => {
   const [mobileExpandedColumns, setMobileExpandedColumns] = useState<
     Record<JobApplicationStatus, boolean>
   >(mobileAccordionDefaults);
-  const isDemoAccount = username?.toLowerCase() === "demo";
-  const previousUsernameRef = useRef<string | null>(null);
 
   const availableSkills = useMemo(
     () => getUniqueTechnicalSkills(applications),
@@ -400,32 +392,6 @@ const Dashboard = () => {
 
     void loadApplications();
   }, []);
-
-  useEffect(() => {
-    const previousUsername = previousUsernameRef.current;
-    previousUsernameRef.current = username;
-
-    if (!username) {
-      return;
-    }
-
-    if (isDemoAccount && previousUsername !== username) {
-      openMissionLoop();
-      return;
-    }
-
-    if (previousUsername === username) {
-      return;
-    }
-
-    const seenKey = `${MISSION_TOUR_SEEN_KEY_PREFIX}:${username.toLowerCase()}`;
-    const hasSeenTour = window.localStorage.getItem(seenKey) === "true";
-
-    if (!hasSeenTour) {
-      openMissionLoop();
-      window.localStorage.setItem(seenKey, "true");
-    }
-  }, [isDemoAccount, openMissionLoop, username]);
 
   const switchSection = (section: WorkflowSection) => {
     setWorkflowSection(section);
@@ -1366,7 +1332,6 @@ const Dashboard = () => {
           <div className={activeSection === "scout" ? "contents" : "hidden"}>
             <ScoutSection
               isActive={activeSection === "scout"}
-              tourView={scoutTourView}
               onApplicationCreated={(application) =>
                 setApplications((current) => [application, ...current])
               }
@@ -1379,20 +1344,13 @@ const Dashboard = () => {
       </div>
       <MissionLoop
         open={isMissionLoopOpen}
-        scoutTourView={scoutTourView}
         onGoScout={() => {
           switchSection("scout");
         }}
         onGoTracker={() => {
           switchSection("tracker");
         }}
-        onSetScoutView={(view) => setScoutTourView(view)}
         onAdvancePhase={advanceMissionPhase}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            closeMissionLoop();
-          }
-        }}
       />
     </main>
   );

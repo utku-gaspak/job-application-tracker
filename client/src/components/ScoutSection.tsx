@@ -39,7 +39,6 @@ import { Textarea } from "./ui/textarea";
 interface ScoutSectionProps {
   onApplicationCreated: (application: JobApplication) => void;
   isActive: boolean;
-  tourView?: "upload" | "evaluate" | "to-apply" | null;
 }
 
 const splitTools = (value?: string | null) =>
@@ -87,7 +86,6 @@ const emptyManualScoutForm = {
 const ScoutSection = ({
   onApplicationCreated,
   isActive,
-  tourView,
 }: ScoutSectionProps) => {
   const [activeView, setActiveView] = useState<
     "upload" | "evaluate" | "to-apply"
@@ -102,11 +100,6 @@ const ScoutSection = ({
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
   const [manualForm, setManualForm] = useState(emptyManualScoutForm);
 
-  useEffect(() => {
-    if (tourView) {
-      setActiveView(tourView);
-    }
-  }, [tourView]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [toApplyViewMode, setToApplyViewMode] = useState<"detailed" | "list">(
     "list",
@@ -114,11 +107,18 @@ const ScoutSection = ({
   const {
     isMissionLoopOpen,
     missionPhase,
+    scoutTourView,
     setMissionPhase,
     incrementMissionSavedCount,
     incrementMissionDiscardedCount,
     incrementMissionAppliedCount,
   } = useWorkflow();
+
+  useEffect(() => {
+    if (scoutTourView) {
+      setActiveView(scoutTourView);
+    }
+  }, [scoutTourView]);
 
   const evaluateJobs = useMemo(
     () => jobs.filter((job) => !job.savedForApply && !job.isDiscarded),
