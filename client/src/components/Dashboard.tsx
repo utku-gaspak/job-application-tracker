@@ -270,6 +270,14 @@ const mobileAccordionDefaults: Record<JobApplicationStatus, boolean> = {
   [JobApplicationStatus.Offer]: false,
 };
 
+const sectionHashMap = {
+  tracker: "#tracker",
+  scout: "#scout",
+} as const;
+
+const getSectionFromHash = (hash: string): "tracker" | "scout" =>
+  hash.toLowerCase() === sectionHashMap.scout ? "scout" : "tracker";
+
 const Dashboard = () => {
   const { logout, username } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -283,7 +291,10 @@ const Dashboard = () => {
   const [isDetailEditing, setIsDetailEditing] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<"tracker" | "scout">(
-    "tracker",
+    () =>
+      typeof window === "undefined"
+        ? "tracker"
+        : getSectionFromHash(window.location.hash),
   );
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [searchTerm, setSearchTerm] = useState("");
@@ -386,8 +397,35 @@ const Dashboard = () => {
     void loadApplications();
   }, []);
 
+  useEffect(() => {
+    const handleHashChange = () => {
+      setActiveSection(getSectionFromHash(window.location.hash));
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    handleHashChange();
+
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  const switchSection = (section: "tracker" | "scout") => {
+    setActiveSection(section);
+    setIsCreateDialogOpen(false);
+    setSelectedApplication(null);
+    setIsDetailEditing(false);
+
+    const nextHash = sectionHashMap[section];
+    if (window.location.hash !== nextHash) {
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${nextHash}`,
+      );
+    }
+  };
+
   const openCreateDialog = () => {
-    setActiveSection("tracker");
+    switchSection("tracker");
     setIsCreateDialogOpen(true);
   };
 
@@ -656,7 +694,7 @@ const Dashboard = () => {
               <Button
                 aria-label="Open Tracker"
                 className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
-                onClick={() => setActiveSection("tracker")}
+                onClick={() => switchSection("tracker")}
                 type="button"
                 variant={activeSection === "tracker" ? "default" : themeButtonVariant}
               >
@@ -666,7 +704,7 @@ const Dashboard = () => {
               <Button
                 aria-label="Open Scout"
                 className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
-                onClick={() => setActiveSection("scout")}
+                onClick={() => switchSection("scout")}
                 type="button"
                 variant={activeSection === "scout" ? "default" : themeButtonVariant}
               >
@@ -1300,6 +1338,7 @@ const Dashboard = () => {
           </div>
           <div className={activeSection === "scout" ? "contents" : "hidden"}>
             <ScoutSection
+              isActive={activeSection === "scout"}
               onApplicationCreated={(application) =>
                 setApplications((current) => [application, ...current])
               }

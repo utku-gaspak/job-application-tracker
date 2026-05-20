@@ -37,6 +37,7 @@ import { Textarea } from "./ui/textarea";
 
 interface ScoutSectionProps {
   onApplicationCreated: (application: JobApplication) => void;
+  isActive: boolean;
 }
 
 const splitTools = (value?: string | null) =>
@@ -81,7 +82,10 @@ const emptyManualScoutForm = {
   requirementsSummary: "",
 };
 
-const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
+const ScoutSection = ({
+  onApplicationCreated,
+  isActive,
+}: ScoutSectionProps) => {
   const [activeView, setActiveView] = useState<
     "upload" | "evaluate" | "to-apply"
   >("upload");
@@ -341,11 +345,22 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
   }, [currentJob, evaluateJobs.length, isActing]);
 
   useEffect(() => {
-    if (activeView !== "evaluate") {
+    if (!isActive || activeView !== "evaluate") {
       return;
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isEditableTarget =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target?.isContentEditable === true;
+
+      if (isEditableTarget) {
+        return;
+      }
+
       if (event.key === "ArrowRight" || event.key.toLowerCase() === "l") {
         event.preventDefault();
         void handleSaveForLater();
@@ -364,7 +379,7 @@ const ScoutSection = ({ onApplicationCreated }: ScoutSectionProps) => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeView, handleDiscard, handleSaveForLater, handleSkip]);
+  }, [activeView, handleDiscard, handleSaveForLater, handleSkip, isActive]);
 
   const handleDeleteAll = async () => {
     try {
