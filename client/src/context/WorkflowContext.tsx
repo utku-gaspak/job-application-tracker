@@ -27,7 +27,6 @@ interface WorkflowContextType {
   missionStepIndex: number;
   setMissionStepIndex: (index: number) => void;
   advanceMissionStep: () => void;
-  resetMissionProgress: () => void;
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(
@@ -105,10 +104,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
     setMissionStepIndex((current) => current + 1);
   }, []);
 
-  const resetMissionProgress = useCallback(() => {
-    setMissionPhase("triage");
-  }, []);
-
   useEffect(() => {
     if (!username) {
       lastSessionUsernameRef.current = null;
@@ -154,7 +149,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       missionStepIndex,
       setMissionStepIndex,
       advanceMissionStep,
-      resetMissionProgress,
     }),
     [
       activeSection,
@@ -168,7 +162,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       missionStepIndex,
       setMissionStepIndex,
       advanceMissionStep,
-      resetMissionProgress,
       scoutTourView,
     ],
   );

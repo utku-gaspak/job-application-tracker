@@ -228,16 +228,6 @@ const matchesFilters = (
 const INTEREST_MIN = 1;
 const INTEREST_MAX = 5;
 
-const clampInterestRange = (lower: number, upper: number) => {
-  const normalizedLower = Math.max(INTEREST_MIN, Math.min(lower, INTEREST_MAX));
-  const normalizedUpper = Math.max(INTEREST_MIN, Math.min(upper, INTEREST_MAX));
-
-  return {
-    lower: Math.min(normalizedLower, normalizedUpper),
-    upper: Math.max(normalizedLower, normalizedUpper),
-  };
-};
-
 const formatInterestRangeLabel = (lower: number, upper: number) =>
   lower === INTEREST_MIN && upper === INTEREST_MAX
     ? "All"
