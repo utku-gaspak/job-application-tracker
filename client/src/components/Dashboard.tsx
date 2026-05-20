@@ -688,7 +688,7 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="mx-auto flex min-h-[calc(100dvh/var(--ui-scale))] w-full max-w-[1600px] flex-col overflow-x-hidden px-3 py-3 md:h-[calc(100dvh/var(--ui-scale))] lg:px-5">
+    <main className="mx-auto flex min-h-[calc(100dvh/var(--ui-scale))] w-full max-w-[1600px] flex-col overflow-x-hidden px-3 py-3 lg:px-5">
       <header className="deco-frame-thick mb-4 flex w-full flex-col gap-3 px-4 py-4 shadow-deco-panel bg-deco-surface-soft sm:px-6 md:flex-row md:items-center md:justify-between">
         {" "}
         <div className="flex min-w-0 flex-col gap-2 md:flex-row md:items-center md:gap-4">
@@ -830,80 +830,10 @@ const Dashboard = () => {
             className="deco-frame w-full border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel"
             data-tour-id="tracker-filters"
           >
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-              <div className="grid flex-1 gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(2,minmax(0,1fr))]">
-                <label className="grid gap-2">
-                  <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                    Search
-                  </span>
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-deco-muted" />
-                    <Input
-                      aria-label="Search applications"
-                      className="h-10 border-border-gold-muted bg-deco-surface pl-9"
-                      placeholder="Company or position"
-                      value={searchTerm}
-                      onChange={(event) => setSearchTerm(event.target.value)}
-                    />
-                  </div>
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                    Status
-                  </span>
-                  <select
-                    aria-label="Filter status"
-                    className="deco-frame h-10 border-border-gold-muted bg-deco-surface px-3 py-2 text-sm outline-none transition-colors focus:border-primary-gold focus:ring-2 focus:ring-primary-gold-muted"
-                    value={statusFilter}
-                    onChange={(event) =>
-                      setStatusFilter(
-                        event.target.value === "all"
-                          ? "all"
-                          : (Number(
-                              event.target.value,
-                            ) as JobApplicationStatus),
-                      )
-                    }
-                  >
-                    <option value="all">All statuses</option>
-                    {jobApplicationStatusOrder.map((status) => (
-                      <option key={status} value={status}>
-                        {jobApplicationStatusLabels[status]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                    Interest
-                  </span>
-                  <select
-                    aria-label="Filter interest level"
-                    className="deco-frame h-10 border-border-gold-muted bg-deco-surface px-3 py-2 text-sm outline-none transition-colors focus:border-primary-gold focus:ring-2 focus:ring-primary-gold-muted"
-                    value={interestFilter}
-                    onChange={(event) =>
-                      setInterestFilter(
-                        event.target.value === "all"
-                          ? "all"
-                          : Number(event.target.value),
-                      )
-                    }
-                  >
-                    <option value="all">Any interest</option>
-                    {interestLevelOptions.map((level) => (
-                      <option key={level} value={level}>
-                        {level}/5
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <div className="flex w-full flex-wrap items-stretch gap-2 md:w-auto md:items-center">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-wrap items-stretch gap-2">
                 <Button
-                  className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
+                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
                   onClick={() => {
                     const nextSortOrder =
                       sortOrder === "newest" ? "oldest" : "newest";
@@ -919,15 +849,7 @@ const Dashboard = () => {
                   {sortOrder === "newest" ? "Newest first" : "Oldest first"}
                 </Button>
                 <Button
-                  className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
-                  onClick={clearAllFilters}
-                  type="button"
-                  variant={themeButtonVariant}
-                >
-                  Clear All
-                </Button>
-                <Button
-                  className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
+                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
                   onClick={() => setIsExportDialogOpen(true)}
                   type="button"
                   variant={themeButtonVariant}
@@ -937,7 +859,7 @@ const Dashboard = () => {
                 </Button>
                 <Button
                   aria-pressed={showStatusSankey}
-                  className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
+                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
                   onClick={() => setShowStatusSankey((current) => !current)}
                   type="button"
                   variant={themeButtonVariant}
@@ -945,36 +867,121 @@ const Dashboard = () => {
                   <BarChart3 className="mr-2 h-4 w-4" />
                   {showStatusSankey ? "Board" : "Diagram"}
                 </Button>
-                <Button
-                  aria-expanded={isFilterOpen}
-                  className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
-                  onClick={() => setIsFilterOpen((current) => !current)}
-                  type="button"
-                  variant={themeButtonVariant}
-                >
-                  <Filter className="mr-2 h-4 w-4" />
-                  {isFilterOpen ? "Less" : "More"}
-                  <ChevronDown
-                    className={`ml-2 h-4 w-4 transition-transform ${
-                      isFilterOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </Button>
               </div>
+
+              <Button
+                aria-expanded={isFilterOpen}
+                aria-controls="tracker-filter-accordion"
+                className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
+                onClick={() => setIsFilterOpen((current) => !current)}
+                type="button"
+                variant={themeButtonVariant}
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Filters
+                <ChevronDown
+                  className={`ml-2 h-4 w-4 transition-transform ${
+                    isFilterOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </Button>
             </div>
 
             {isFilterOpen ? (
-              <div className="mt-4 border-t border-border-gold-muted pt-4">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                    Skill Transfer
-                  </span>
-                  <span className="text-[0.65rem] uppercase tracking-[0.18em] text-deco-muted">
-                    Selected {selectedSkills.length}
-                  </span>
+              <div
+                className="mt-4 grid gap-4 border-t border-border-gold-muted pt-4"
+                id="tracker-filter-accordion"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="grid gap-1">
+                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+                      Filters
+                    </span>
+                    <span className="text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
+                      Search, status, interest, and skill transfer
+                    </span>
+                  </div>
+                  <Button
+                    className="h-9 px-4 text-[0.6rem] uppercase tracking-[0.18em]"
+                    onClick={clearAllFilters}
+                    type="button"
+                    variant={themeButtonVariant}
+                  >
+                    Clear All
+                  </Button>
                 </div>
 
-                <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                <div className="grid gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(2,minmax(0,1fr))]">
+                  <label className="grid gap-2">
+                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+                      Search
+                    </span>
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-deco-muted" />
+                      <Input
+                        aria-label="Search applications"
+                        className="h-10 border-border-gold-muted bg-deco-surface pl-9"
+                        placeholder="Company or position"
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                      />
+                    </div>
+                  </label>
+
+                  <label className="grid gap-2">
+                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+                      Status
+                    </span>
+                    <select
+                      aria-label="Filter status"
+                      className="deco-frame h-10 border-border-gold-muted bg-deco-surface px-3 py-2 text-sm outline-none transition-colors focus:border-primary-gold focus:ring-2 focus:ring-primary-gold-muted"
+                      value={statusFilter}
+                      onChange={(event) =>
+                        setStatusFilter(
+                          event.target.value === "all"
+                            ? "all"
+                            : (Number(
+                                event.target.value,
+                              ) as JobApplicationStatus),
+                        )
+                      }
+                    >
+                      <option value="all">All statuses</option>
+                      {jobApplicationStatusOrder.map((status) => (
+                        <option key={status} value={status}>
+                          {jobApplicationStatusLabels[status]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="grid gap-2">
+                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+                      Interest
+                    </span>
+                    <select
+                      aria-label="Filter interest level"
+                      className="deco-frame h-10 border-border-gold-muted bg-deco-surface px-3 py-2 text-sm outline-none transition-colors focus:border-primary-gold focus:ring-2 focus:ring-primary-gold-muted"
+                      value={interestFilter}
+                      onChange={(event) =>
+                        setInterestFilter(
+                          event.target.value === "all"
+                            ? "all"
+                            : Number(event.target.value),
+                        )
+                      }
+                    >
+                      <option value="all">Any interest</option>
+                      {interestLevelOptions.map((level) => (
+                        <option key={level} value={level}>
+                          {level}/5
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <div className="grid gap-3 lg:grid-cols-2">
                   <div className="deco-frame border-border-gold-muted bg-deco-surface-soft p-3">
                     <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-primary-gold">
                       Selected
@@ -1502,7 +1509,7 @@ const Dashboard = () => {
           </div>
         </section>
       </div>
-      <div className="pt-3">
+      <div className="mt-auto pt-3">
         <Footer />
       </div>
       <MissionLoop
