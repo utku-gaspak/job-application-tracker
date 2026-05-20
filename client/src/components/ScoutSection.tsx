@@ -579,9 +579,10 @@ const ScoutSection = ({
             </h2>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
             <Button
               data-tour-id="scout-upload"
+              className="w-full justify-center"
               onClick={() => setActiveView("upload")}
               type="button"
               variant={activeView === "upload" ? "default" : "outline"}
@@ -590,6 +591,7 @@ const ScoutSection = ({
             </Button>
             <Button
               data-tour-id="scout-evaluate"
+              className="w-full justify-center"
               onClick={() => setActiveView("evaluate")}
               type="button"
               variant={activeView === "evaluate" ? "default" : "outline"}
@@ -598,21 +600,37 @@ const ScoutSection = ({
             </Button>
             <Button
               data-tour-id="scout-to-apply"
+              className="w-full justify-center"
               onClick={() => setActiveView("to-apply")}
               type="button"
               variant={activeView === "to-apply" ? "default" : "outline"}
             >
               To Apply
             </Button>
-            <Button onClick={() => void loadJobs()} type="button" variant="outline">
+            <Button
+              className="w-full justify-center"
+              onClick={() => void loadJobs()}
+              type="button"
+              variant="outline"
+            >
               <RefreshCcw className="h-4 w-4" />
               Refresh
             </Button>
-            <Button onClick={() => setIsExportDialogOpen(true)} type="button" variant="outline">
+            <Button
+              className="w-full justify-center"
+              onClick={() => setIsExportDialogOpen(true)}
+              type="button"
+              variant="outline"
+            >
               <Download className="h-4 w-4" />
               Export
             </Button>
-            <Button onClick={openManualDialog} type="button" variant="outline">
+            <Button
+              className="w-full justify-center"
+              onClick={openManualDialog}
+              type="button"
+              variant="outline"
+            >
               <Plus className="h-4 w-4" />
               Add manually
             </Button>
@@ -632,7 +650,7 @@ const ScoutSection = ({
             <CardTitle>Upload jobs.json</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <label className="deco-frame flex min-h-[10rem] cursor-pointer flex-col items-center justify-center gap-3 border-border-gold-muted bg-deco-surface-soft p-6 text-center transition-colors hover:bg-primary-gold-muted">
+            <label className="deco-frame flex min-h-[8.5rem] cursor-pointer flex-col items-center justify-center gap-3 border-border-gold-muted bg-deco-surface-soft p-4 text-center transition-colors hover:bg-primary-gold-muted sm:min-h-[10rem] sm:p-6">
               <FileUp className="h-8 w-8 text-primary-gold" />
               <span className="text-sm text-deco-foreground">
                 {selectedFile?.name ?? "Choose a hiring-cafe-scout jobs.json file"}
@@ -669,8 +687,8 @@ const ScoutSection = ({
 
       {activeView === "evaluate" ? (
         <Card className="min-h-0 flex-1 overflow-hidden" data-tour-id="scout-evaluate-panel">
-          <CardHeader className="flex-row items-center justify-between gap-3">
-            <div>
+          <CardHeader className="flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+            <div className="min-w-0">
               <CardTitle>Evaluate</CardTitle>
               <p className="mt-1 text-sm text-deco-muted">
                 {currentJob
@@ -680,6 +698,7 @@ const ScoutSection = ({
             </div>
             <Button
               disabled={isActing || jobs.length === 0}
+              className="w-full sm:w-auto"
               onClick={() => void handleDeleteAll()}
               type="button"
               variant="ghost"
@@ -704,14 +723,14 @@ const ScoutSection = ({
                     <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
                       {currentJob.company}
                     </p>
-                    <h3 className="mt-2 font-heading text-3xl text-deco-foreground">
+                    <h3 className="mt-2 font-heading text-2xl text-deco-foreground sm:text-3xl">
                       {currentJob.title}
                     </h3>
                   </div>
                   <Badge>{formatPostedDate(currentJob.postedAt)}</Badge>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <div className="deco-frame border-border-gold-muted bg-deco-surface px-3 py-2">
                     <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
                       Location
@@ -795,9 +814,10 @@ const ScoutSection = ({
                   ) : null}
                 </div>
 
-                <div className="mt-6 flex flex-col gap-3 border-t border-primary-gold-muted pt-4 sm:flex-row sm:justify-between">
+                <div className="mt-6 grid gap-3 border-t border-primary-gold-muted pt-4 sm:grid-cols-3">
                   <Button
                     disabled={isActing}
+                    className="w-full justify-center"
                     onClick={() => void handleDiscard()}
                     type="button"
                     variant="outline"
@@ -807,6 +827,7 @@ const ScoutSection = ({
                   </Button>
                   <Button
                     disabled={isActing}
+                    className="w-full justify-center"
                     onClick={handleSkip}
                     type="button"
                     variant="ghost"
@@ -815,6 +836,7 @@ const ScoutSection = ({
                   </Button>
                   <Button
                     disabled={isActing}
+                    className="w-full justify-center"
                     onClick={() => void handleSaveForLater()}
                     type="button"
                   >
@@ -846,8 +868,8 @@ const ScoutSection = ({
 
       {activeView === "to-apply" ? (
         <Card className="flex min-h-0 flex-1 flex-col overflow-hidden" data-tour-id="scout-to-apply-panel">
-          <CardHeader className="shrink-0 flex-row items-center justify-between gap-3">
-            <div>
+          <CardHeader className="shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <CardTitle>To Apply</CardTitle>
               <p className="mt-1 text-sm text-deco-muted">
                 {toApplyJobs.length > 0
@@ -857,7 +879,7 @@ const ScoutSection = ({
             </div>
             <Button
               aria-pressed={toApplyViewMode === "list"}
-              className="h-9 px-3"
+              className="h-9 w-full justify-center px-3 sm:w-auto"
               onClick={() =>
                 setToApplyViewMode((current) =>
                   current === "detailed" ? "list" : "detailed",
@@ -877,6 +899,7 @@ const ScoutSection = ({
             </Button>
             <Button
               disabled={isActing || jobs.length === 0}
+              className="w-full justify-center sm:w-auto"
               onClick={() => void handleDeleteAll()}
               type="button"
               variant="ghost"
@@ -909,63 +932,22 @@ const ScoutSection = ({
                       }`}
                       key={job.id}
                     >
-                      <div
-                        className={`flex ${
-                          toApplyViewMode === "list"
-                            ? "flex-col gap-2 xl:flex-row xl:items-center xl:justify-between"
-                            : "flex-col gap-2 lg:flex-row lg:items-start lg:justify-between"
-                        }`}
-                      >
-                        <div className="min-w-0">
-                          {toApplyViewMode === "list" ? (
-                            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] text-deco-muted">
-                              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+                      <div className={toApplyViewMode === "list" ? "md:hidden" : "hidden"}>
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex min-w-0 flex-col gap-1">
+                              <p className="truncate text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
                                 {job.company}
                               </p>
-                              <span className="text-deco-muted">—</span>
                               <h3 className="truncate font-heading text-[0.95rem] text-deco-foreground">
                                 {job.title}
                               </h3>
-                              {listTools.length > 0 ? (
-                                <>
-                                  <span className="text-deco-muted">—</span>
-                                  <span className="truncate">
-                                    {listTools.join(", ")}
-                                  </span>
-                                </>
-                              ) : null}
-                              <span className="text-deco-muted">—</span>
-                              <span>
-                                {job.workplaceType ?? "Not provided"}
-                                {job.location ? `, ${job.location}` : ""}
-                              </span>
                             </div>
-                          ) : (
-                            <>
-                              <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-                                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
-                                  {job.company}
-                                </p>
-                                <span className="text-sm text-deco-muted">—</span>
-                                <h3 className="font-heading text-xl text-deco-foreground">
-                                  {job.title}
-                                </h3>
-                              </div>
-                              <div className="mt-2 flex flex-wrap gap-2 text-[0.72rem] text-deco-muted">
-                                <span>{job.location ?? "Not provided"}</span>
-                                {job.workplaceType ? <span>• {job.workplaceType}</span> : null}
-                                {job.commitment ? <span>• {job.commitment}</span> : null}
-                                <span>• {formatPostedDate(job.postedAt)}</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        {toApplyViewMode === "list" ? (
-                          <div className="flex flex-wrap items-center gap-2">
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
                             <Button
                               disabled={isActing}
-                              className="h-9 px-3"
+                              className="h-9 w-9 shrink-0 p-0"
                               onClick={() => void handleMarkAsApplied(job)}
                               type="button"
                               title="Mark as Applied"
@@ -974,7 +956,7 @@ const ScoutSection = ({
                             </Button>
                             <Button
                               disabled={isActing}
-                              className="h-9 px-3"
+                              className="h-9 w-9 shrink-0 p-0"
                               onClick={() => void handleRemoveScoutJob(job)}
                               type="button"
                               variant="outline"
@@ -985,25 +967,119 @@ const ScoutSection = ({
                             {applyHref ? (
                               <Button
                                 asChild
-                                className="h-9 shrink-0"
+                                className="h-9 w-9 shrink-0 p-0"
                                 size="sm"
                                 variant="outline"
+                                title="Open apply link"
                               >
                                 <a href={applyHref} rel="noreferrer" target="_blank">
                                   <ExternalLink className="h-4 w-4" />
-                                  Open
                                 </a>
                               </Button>
                             ) : null}
                           </div>
-                        ) : applyHref ? (
-                          <Button asChild className="h-9 shrink-0" size="sm" variant="outline">
-                            <a href={applyHref} rel="noreferrer" target="_blank">
-                              <ExternalLink className="h-4 w-4" />
-                              Open apply link
-                            </a>
-                          </Button>
-                        ) : null}
+                        </div>
+                      </div>
+
+                      <div className="hidden md:block">
+                        <div
+                          className={`flex ${
+                            toApplyViewMode === "list"
+                              ? "flex-col gap-2 xl:flex-row xl:items-center xl:justify-between"
+                              : "flex-col gap-2 lg:flex-row lg:items-start lg:justify-between"
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            {toApplyViewMode === "list" ? (
+                              <>
+                                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] text-deco-muted">
+                                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+                                    {job.company}
+                                  </p>
+                                  <span className="text-deco-muted">—</span>
+                                  <h3 className="truncate font-heading text-[0.95rem] text-deco-foreground">
+                                    {job.title}
+                                  </h3>
+                                  {listTools.length > 0 ? (
+                                    <>
+                                      <span className="text-deco-muted">—</span>
+                                      <span className="truncate">
+                                        {listTools.join(", ")}
+                                      </span>
+                                    </>
+                                  ) : null}
+                                  <span className="text-deco-muted">—</span>
+                                  <span>
+                                    {job.workplaceType ?? "Not provided"}
+                                    {job.location ? `, ${job.location}` : ""}
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+                                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+                                    {job.company}
+                                  </p>
+                                  <span className="text-sm text-deco-muted">—</span>
+                                  <h3 className="font-heading text-xl text-deco-foreground">
+                                    {job.title}
+                                  </h3>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2 text-[0.72rem] text-deco-muted">
+                                  <span>{job.location ?? "Not provided"}</span>
+                                  {job.workplaceType ? <span>• {job.workplaceType}</span> : null}
+                                  {job.commitment ? <span>• {job.commitment}</span> : null}
+                                  <span>• {formatPostedDate(job.postedAt)}</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+
+                          {toApplyViewMode === "list" ? (
+                            <div className="flex shrink-0 items-center gap-2">
+                              <Button
+                                disabled={isActing}
+                                className="h-9 px-3"
+                                onClick={() => void handleMarkAsApplied(job)}
+                                type="button"
+                                title="Mark as Applied"
+                              >
+                                <Save className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                disabled={isActing}
+                                className="h-9 px-3"
+                                onClick={() => void handleRemoveScoutJob(job)}
+                                type="button"
+                                variant="outline"
+                                title="Remove"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                              {applyHref ? (
+                                <Button
+                                  asChild
+                                  className="h-9 shrink-0"
+                                  size="sm"
+                                  variant="outline"
+                                >
+                                  <a href={applyHref} rel="noreferrer" target="_blank">
+                                    <ExternalLink className="h-4 w-4" />
+                                    Open
+                                  </a>
+                                </Button>
+                              ) : null}
+                            </div>
+                          ) : applyHref ? (
+                            <Button asChild className="h-9 shrink-0" size="sm" variant="outline">
+                              <a href={applyHref} rel="noreferrer" target="_blank">
+                                <ExternalLink className="h-4 w-4" />
+                                Open apply link
+                              </a>
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
 
                       {toApplyViewMode === "detailed" && jobTools.length > 0 ? (
@@ -1020,10 +1096,10 @@ const ScoutSection = ({
                       ) : null}
 
                       {toApplyViewMode === "detailed" ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                           <Button
                             disabled={isActing}
-                            className="h-9 px-3"
+                            className="h-9 w-full justify-center px-3 sm:w-auto"
                             onClick={() => void handleMarkAsApplied(job)}
                             type="button"
                           >
@@ -1032,7 +1108,7 @@ const ScoutSection = ({
                           </Button>
                           <Button
                             disabled={isActing}
-                            className="h-9 px-3"
+                            className="h-9 w-full justify-center px-3 sm:w-auto"
                             onClick={() => void handleRemoveScoutJob(job)}
                             type="button"
                             variant="outline"
