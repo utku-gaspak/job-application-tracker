@@ -11,6 +11,7 @@ import {
   Binoculars,
   ChevronDown,
   Diamond,
+  CircleHelp,
   ExternalLink,
   FileText,
   Filter,
@@ -27,7 +28,12 @@ import { createPortal } from "react-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
+import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
 import Footer from "./Footer";
+import WelcomeWizard, {
+  WELCOME_WIZARD_SEEN_KEY,
+  WELCOME_WIZARD_SNOOZE_KEY,
+} from "./WelcomeWizard";
 import {
   createJobApplication,
   deleteJobApplication,
@@ -270,16 +276,15 @@ const mobileAccordionDefaults: Record<JobApplicationStatus, boolean> = {
   [JobApplicationStatus.Offer]: false,
 };
 
-const sectionHashMap = {
-  tracker: "#tracker",
-  scout: "#scout",
-} as const;
-
-const getSectionFromHash = (hash: string): "tracker" | "scout" =>
-  hash.toLowerCase() === sectionHashMap.scout ? "scout" : "tracker";
-
 const Dashboard = () => {
   const { logout, username } = useAuth();
+  const {
+    activeSection,
+    setActiveSection: setWorkflowSection,
+    isWelcomeWizardOpen,
+    openWelcomeWizard: openWorkflowWizard,
+    closeWelcomeWizard: closeWorkflowWizard,
+  } = useWorkflow();
   const { theme, toggleTheme } = useTheme();
   const themeButtonVariant = theme === "dark" ? "outline" : "default";
   const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -290,12 +295,6 @@ const Dashboard = () => {
     useState<JobApplication | null>(null);
   const [isDetailEditing, setIsDetailEditing] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<"tracker" | "scout">(
-    () =>
-      typeof window === "undefined"
-        ? "tracker"
-        : getSectionFromHash(window.location.hash),
-  );
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -306,6 +305,7 @@ const Dashboard = () => {
   const [mobileExpandedColumns, setMobileExpandedColumns] = useState<
     Record<JobApplicationStatus, boolean>
   >(mobileAccordionDefaults);
+  const isDemoAccount = username?.toLowerCase() === "demo";
 
   const availableSkills = useMemo(
     () => getUniqueTechnicalSkills(applications),
@@ -398,30 +398,48 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const handleHashChange = () => {
-      setActiveSection(getSectionFromHash(window.location.hash));
-    };
+    if (isDemoAccount) {
+      openWorkflowWizard();
+      return;
+    }
 
-    window.addEventListener("hashchange", handleHashChange);
-    handleHashChange();
+    const seenWizard =
+      window.localStorage.getItem(WELCOME_WIZARD_SEEN_KEY) === "true";
+    const snoozedWizard =
+      window.localStorage.getItem(WELCOME_WIZARD_SNOOZE_KEY) === "true";
 
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
+    if (!seenWizard && !snoozedWizard) {
+      openWorkflowWizard();
+    }
+  }, [isDemoAccount, openWorkflowWizard]);
 
-  const switchSection = (section: "tracker" | "scout") => {
-    setActiveSection(section);
+  const switchSection = (section: WorkflowSection) => {
+    setWorkflowSection(section);
     setIsCreateDialogOpen(false);
     setSelectedApplication(null);
     setIsDetailEditing(false);
+  };
 
-    const nextHash = sectionHashMap[section];
-    if (window.location.hash !== nextHash) {
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}${nextHash}`,
-      );
+  const openWelcomeWizard = () => {
+    if (!isDemoAccount) {
+      window.localStorage.setItem(WELCOME_WIZARD_SNOOZE_KEY, "false");
     }
+    openWorkflowWizard();
+  };
+
+  const snoozeWelcomeWizard = () => {
+    if (!isDemoAccount) {
+      window.localStorage.setItem(WELCOME_WIZARD_SNOOZE_KEY, "true");
+    }
+    closeWorkflowWizard();
+  };
+
+  const finishWelcomeWizard = () => {
+    if (!isDemoAccount) {
+      window.localStorage.setItem(WELCOME_WIZARD_SEEN_KEY, "true");
+      window.localStorage.setItem(WELCOME_WIZARD_SNOOZE_KEY, "false");
+    }
+    closeWorkflowWizard();
   };
 
   const openCreateDialog = () => {
@@ -628,6 +646,18 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <Button
+            aria-label={
+              isWelcomeWizardOpen ? "Hide welcome guide" : "Open welcome guide"
+            }
+            className="h-11 w-11 p-0 transition-all"
+            onClick={() =>
+              isWelcomeWizardOpen ? snoozeWelcomeWizard() : openWelcomeWizard()
+            }
+            variant={themeButtonVariant}
+          >
+            <CircleHelp className="h-5 w-5" />
+          </Button>
           <Button
             aria-label={
               theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
@@ -1349,6 +1379,19 @@ const Dashboard = () => {
       <div className="pt-3">
         <Footer />
       </div>
+      <WelcomeWizard
+        open={isWelcomeWizardOpen}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            snoozeWelcomeWizard();
+            return;
+          }
+
+          openWelcomeWizard();
+        }}
+        onFinish={finishWelcomeWizard}
+        onSnoozeLater={snoozeWelcomeWizard}
+      />
     </main>
   );
 };
