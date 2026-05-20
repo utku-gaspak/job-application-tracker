@@ -27,12 +27,6 @@ interface WorkflowContextType {
   missionStepIndex: number;
   setMissionStepIndex: (index: number) => void;
   advanceMissionStep: () => void;
-  missionSavedCount: number;
-  missionDiscardedCount: number;
-  missionAppliedCount: number;
-  incrementMissionSavedCount: () => void;
-  incrementMissionDiscardedCount: () => void;
-  incrementMissionAppliedCount: () => void;
   resetMissionProgress: () => void;
 }
 
@@ -60,9 +54,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const [isMissionLoopOpen, setIsMissionLoopOpen] = useState(false);
   const [missionPhase, setMissionPhase] = useState<MissionPhase>("triage");
   const [missionStepIndex, setMissionStepIndex] = useState(0);
-  const [missionSavedCount, setMissionSavedCount] = useState(0);
-  const [missionDiscardedCount, setMissionDiscardedCount] = useState(0);
-  const [missionAppliedCount, setMissionAppliedCount] = useState(0);
   const lastSessionUsernameRef = useRef<string | null>(null);
   const [scoutTourView, setScoutTourView] = useState<
     "upload" | "evaluate" | "to-apply" | null
@@ -97,26 +88,11 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const openMissionLoop = useCallback(() => {
     setMissionPhase("triage");
     setMissionStepIndex(0);
-    setMissionSavedCount(0);
-    setMissionDiscardedCount(0);
-    setMissionAppliedCount(0);
     setIsMissionLoopOpen(true);
   }, []);
 
   const closeMissionLoop = useCallback(() => {
     setIsMissionLoopOpen(false);
-  }, []);
-
-  const incrementMissionSavedCount = useCallback(() => {
-    setMissionSavedCount((current) => current + 1);
-  }, []);
-
-  const incrementMissionDiscardedCount = useCallback(() => {
-    setMissionDiscardedCount((current) => current + 1);
-  }, []);
-
-  const incrementMissionAppliedCount = useCallback(() => {
-    setMissionAppliedCount((current) => current + 1);
   }, []);
 
   const advanceMissionPhase = useCallback(() => {
@@ -131,9 +107,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
 
   const resetMissionProgress = useCallback(() => {
     setMissionPhase("triage");
-    setMissionSavedCount(0);
-    setMissionDiscardedCount(0);
-    setMissionAppliedCount(0);
   }, []);
 
   useEffect(() => {
@@ -181,12 +154,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       missionStepIndex,
       setMissionStepIndex,
       advanceMissionStep,
-      missionSavedCount,
-      missionDiscardedCount,
-      missionAppliedCount,
-      incrementMissionSavedCount,
-      incrementMissionDiscardedCount,
-      incrementMissionAppliedCount,
       resetMissionProgress,
     }),
     [
@@ -201,12 +168,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       missionStepIndex,
       setMissionStepIndex,
       advanceMissionStep,
-      missionSavedCount,
-      missionDiscardedCount,
-      missionAppliedCount,
-      incrementMissionSavedCount,
-      incrementMissionDiscardedCount,
-      incrementMissionAppliedCount,
       resetMissionProgress,
       scoutTourView,
     ],

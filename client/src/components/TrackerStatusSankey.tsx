@@ -45,19 +45,6 @@ const NODE_GAP = 18;
 const TARGET_MIN_HEIGHT = 42;
 const LINK_UNIT = 18;
 
-const readColor = (name: string, fallback: string) => {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  const value = window
-    .getComputedStyle(document.documentElement)
-    .getPropertyValue(name)
-    .trim();
-
-  return value || fallback;
-};
-
   const statusPalette = [
     {
       status: JobApplicationStatus.Applied,

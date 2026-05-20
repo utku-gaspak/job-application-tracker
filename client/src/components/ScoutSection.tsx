@@ -198,9 +198,6 @@ const ScoutSection = ({
     missionPhase,
     scoutTourView,
     setMissionPhase,
-    incrementMissionSavedCount,
-    incrementMissionDiscardedCount,
-    incrementMissionAppliedCount,
   } = useWorkflow();
 
   useEffect(() => {
@@ -369,7 +366,6 @@ const ScoutSection = ({
       });
       updateJobInQueue(updatedJob);
       if (isMissionLoopOpen) {
-        incrementMissionSavedCount();
         if (missionPhase === "triage") {
           setMissionPhase("action");
         }
@@ -383,7 +379,6 @@ const ScoutSection = ({
     }
   }, [
     currentJob,
-    incrementMissionSavedCount,
     isActing,
     isMissionLoopOpen,
     missionPhase,
@@ -404,7 +399,6 @@ const ScoutSection = ({
       });
       updateJobInQueue(updatedJob);
       if (isMissionLoopOpen) {
-        incrementMissionDiscardedCount();
         if (missionPhase === "triage") {
           setMissionPhase("action");
         }
@@ -418,7 +412,6 @@ const ScoutSection = ({
     }
   }, [
     currentJob,
-    incrementMissionDiscardedCount,
     isActing,
     isMissionLoopOpen,
     missionPhase,
@@ -449,7 +442,6 @@ const ScoutSection = ({
         onApplicationCreated(createdApplication);
         removeJobFromQueue(job.id);
         if (isMissionLoopOpen) {
-          incrementMissionAppliedCount();
           setMissionPhase("summary");
         }
         toast.success("Scout job moved to tracker.");
@@ -461,7 +453,6 @@ const ScoutSection = ({
       }
     },
     [
-      incrementMissionAppliedCount,
       isActing,
       isMissionLoopOpen,
       onApplicationCreated,

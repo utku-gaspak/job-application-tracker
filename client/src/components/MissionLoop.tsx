@@ -21,7 +21,17 @@ interface MissionLoopProps {
   onAdvancePhase: () => void;
 }
 
-const missionSteps = [
+type MissionStep = {
+  id: string;
+  anchorId: string | null;
+  section: "tracker" | "scout";
+  scoutView?: "upload" | "evaluate" | "to-apply";
+  title: string;
+  icon: typeof CircleHelp;
+  body: string;
+};
+
+const missionSteps: readonly MissionStep[] = [
   {
     id: "mission-intro",
     anchorId: null,
@@ -91,8 +101,6 @@ const missionSteps = [
   },
 ] as const;
 
-type MissionStep = (typeof missionSteps)[number];
-
 const TOUR_WIDTH = 500;
 const TOUR_GAP = 14;
 type AnchorStyle = {
@@ -124,9 +132,6 @@ const MissionLoop = ({
     missionStepIndex,
     setMissionStepIndex,
     advanceMissionStep,
-    missionSavedCount,
-    missionDiscardedCount,
-    missionAppliedCount,
     scoutTourView,
     setScoutTourView,
   } =
@@ -160,7 +165,7 @@ const MissionLoop = ({
 
     onGoScout();
 
-    if (currentStep.scoutView && scoutTourView !== currentStep.scoutView) {
+    if ("scoutView" in currentStep && currentStep.scoutView && scoutTourView !== currentStep.scoutView) {
       setScoutTourView(currentStep.scoutView);
     }
   }, [currentStep, open, onGoScout, onGoTracker, scoutTourView, setScoutTourView]);
@@ -292,7 +297,7 @@ const MissionLoop = ({
       return;
     }
 
-    setMissionStepIndex((current) => current - 1);
+    setMissionStepIndex(missionStepIndex - 1);
   };
 
   const goNext = () => {
