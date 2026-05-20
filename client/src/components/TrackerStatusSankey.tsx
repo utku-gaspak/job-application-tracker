@@ -7,6 +7,7 @@ import {
   jobApplicationStatusOrder,
   type JobApplication,
 } from "../types";
+import { useTheme } from "../context/ThemeContext";
 import { Button } from "./ui/button";
 
 interface TrackerStatusSankeyProps {
@@ -57,12 +58,12 @@ const readColor = (name: string, fallback: string) => {
   return value || fallback;
 };
 
-const statusPalette = [
-  {
-    status: JobApplicationStatus.Applied,
-    label: jobApplicationStatusLabels[JobApplicationStatus.Applied],
-    color: "#8fb7e8",
-  },
+  const statusPalette = [
+    {
+      status: JobApplicationStatus.Applied,
+      label: "Waiting response",
+      color: "#8fb7e8",
+    },
   {
     status: JobApplicationStatus.Interviewing,
     label: jobApplicationStatusLabels[JobApplicationStatus.Interviewing],
@@ -95,7 +96,11 @@ const buildSvgPath = (sourceX: number, sourceY: number, targetX: number, targetY
   ].join(" ");
 };
 
-const downloadSvgAsPng = async (svg: SVGSVGElement, fileName: string) => {
+const downloadSvgAsPng = async (
+  svg: SVGSVGElement,
+  fileName: string,
+  backgroundColor: string,
+) => {
   const serializer = new XMLSerializer();
   const source = serializer.serializeToString(svg);
   const svgBlob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
@@ -120,7 +125,7 @@ const downloadSvgAsPng = async (svg: SVGSVGElement, fileName: string) => {
   }
 
   context.scale(scale, scale);
-  context.fillStyle = readColor("--color-deco-bg", "#f1f5f9");
+  context.fillStyle = backgroundColor;
   context.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
   context.drawImage(image, 0, 0, VIEW_WIDTH, VIEW_HEIGHT);
 
@@ -137,6 +142,14 @@ const downloadSvgAsPng = async (svg: SVGSVGElement, fileName: string) => {
 
 const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const { theme } = useTheme();
+  const isDarkTheme = theme === "dark";
+
+  const diagramSurfaceColor = isDarkTheme ? "#1e2326" : "#f1f5f9";
+  const diagramTextColor = isDarkTheme ? "#d3c6aa" : "#1e293b";
+  const diagramMutedColor = isDarkTheme ? "#859289" : "#64748b";
+  const diagramBorderColor = isDarkTheme ? "#dbbc7f" : "#94a3b8";
+  const diagramSourceFill = isDarkTheme ? "#2e383c" : "url(#source-gradient)";
 
   const nodes = useMemo(() => {
     const counts = new Map<JobApplicationStatus, number>(
@@ -245,7 +258,11 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
     }
 
     try {
-      await downloadSvgAsPng(svgRef.current, "tracker-status-sankey.png");
+      await downloadSvgAsPng(
+        svgRef.current,
+        "tracker-status-sankey.png",
+        diagramSurfaceColor,
+      );
       toast.success("Tracker diagram downloaded as PNG.");
     } catch (error) {
       console.error("Export sankey PNG failed:", error);
@@ -319,7 +336,7 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
           </defs>
 
           <rect
-            fill={readColor("--color-deco-bg", "#f1f5f9")}
+            fill={diagramSurfaceColor}
             height={VIEW_HEIGHT}
             rx="0"
             width={VIEW_WIDTH}
@@ -344,24 +361,38 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
           })}
 
           <rect
-            fill="url(#source-gradient)"
+            fill={diagramSourceFill}
             height={nodes.sourceNode.height}
             rx="10"
-            stroke={readColor("--color-border-gold", "#94a3b8")}
+            stroke={diagramBorderColor}
             strokeWidth="2"
             width={nodes.sourceNode.width}
             x={nodes.sourceNode.x}
             y={nodes.sourceNode.y}
           />
           <text
-            fill={readColor("--color-deco-foreground", "#1e293b")}
+            fill={diagramTextColor}
             fontSize="18"
             fontWeight="700"
             textAnchor="middle"
             x={nodes.sourceNode.x + nodes.sourceNode.width / 2}
-            y={nodes.sourceNode.y + 34}
+            y={nodes.sourceNode.y + nodes.sourceNode.height / 2 - 18}
           >
-            All applications ({nodes.sourceNode.count})
+            <tspan x={nodes.sourceNode.x + nodes.sourceNode.width / 2} dy="0">
+              Total
+            </tspan>
+            <tspan x={nodes.sourceNode.x + nodes.sourceNode.width / 2} dy="20">
+              Applications
+            </tspan>
+            <tspan
+              x={nodes.sourceNode.x + nodes.sourceNode.width / 2}
+              dy="18"
+              fill={diagramMutedColor}
+              fontSize="14"
+              fontWeight="600"
+            >
+              ({nodes.sourceNode.count})
+            </tspan>
           </text>
 
           {nodes.targetNodes.map((node) => (
@@ -377,12 +408,13 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
                 y={node.y}
               />
               <text
-                fill={readColor("--color-deco-foreground", "#1e293b")}
-                fontSize="18"
+                fill={diagramTextColor}
+                fontSize="16"
                 fontWeight="700"
+                dominantBaseline="middle"
                 textAnchor="middle"
                 x={node.x + node.width / 2}
-                y={node.y + 30}
+                y={node.y + node.height / 2}
               >
                 {node.label} ({node.count})
               </text>
