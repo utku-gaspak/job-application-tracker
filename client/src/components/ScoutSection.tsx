@@ -21,6 +21,7 @@ import {
   uploadScoutJobs,
 } from "../api/scoutJobsApi";
 import { createJobApplication } from "../api/jobApplicationsApi";
+import { useWorkflow } from "../context/WorkflowContext";
 import {
   JobApplicationStatus,
   type JobApplication,
@@ -38,6 +39,7 @@ import { Textarea } from "./ui/textarea";
 interface ScoutSectionProps {
   onApplicationCreated: (application: JobApplication) => void;
   isActive: boolean;
+  tourView?: "upload" | "evaluate" | "to-apply" | null;
 }
 
 const splitTools = (value?: string | null) =>
@@ -85,6 +87,7 @@ const emptyManualScoutForm = {
 const ScoutSection = ({
   onApplicationCreated,
   isActive,
+  tourView,
 }: ScoutSectionProps) => {
   const [activeView, setActiveView] = useState<
     "upload" | "evaluate" | "to-apply"
@@ -98,10 +101,24 @@ const ScoutSection = ({
   const [isActing, setIsActing] = useState(false);
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
   const [manualForm, setManualForm] = useState(emptyManualScoutForm);
+
+  useEffect(() => {
+    if (tourView) {
+      setActiveView(tourView);
+    }
+  }, [tourView]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [toApplyViewMode, setToApplyViewMode] = useState<"detailed" | "list">(
     "list",
   );
+  const {
+    isMissionLoopOpen,
+    missionPhase,
+    setMissionPhase,
+    incrementMissionSavedCount,
+    incrementMissionDiscardedCount,
+    incrementMissionAppliedCount,
+  } = useWorkflow();
 
   const evaluateJobs = useMemo(
     () => jobs.filter((job) => !job.savedForApply && !job.isDiscarded),
@@ -247,6 +264,12 @@ const ScoutSection = ({
         isDiscarded: false,
       });
       updateJobInQueue(updatedJob);
+      if (isMissionLoopOpen) {
+        incrementMissionSavedCount();
+        if (missionPhase === "triage") {
+          setMissionPhase("action");
+        }
+      }
       toast.success("Scout job moved to To Apply.");
     } catch (error) {
       console.error("Save scout job for later failed:", error);
@@ -254,7 +277,14 @@ const ScoutSection = ({
     } finally {
       setIsActing(false);
     }
-  }, [currentJob, isActing]);
+  }, [
+    currentJob,
+    incrementMissionSavedCount,
+    isActing,
+    isMissionLoopOpen,
+    missionPhase,
+    setMissionPhase,
+  ]);
 
   const handleDiscard = useCallback(async () => {
     if (!currentJob || isActing) {
@@ -269,6 +299,12 @@ const ScoutSection = ({
         isDiscarded: true,
       });
       updateJobInQueue(updatedJob);
+      if (isMissionLoopOpen) {
+        incrementMissionDiscardedCount();
+        if (missionPhase === "triage") {
+          setMissionPhase("action");
+        }
+      }
       toast.success("Scout job discarded.");
     } catch (error) {
       console.error("Discard scout job failed:", error);
@@ -276,7 +312,14 @@ const ScoutSection = ({
     } finally {
       setIsActing(false);
     }
-  }, [currentJob, isActing]);
+  }, [
+    currentJob,
+    incrementMissionDiscardedCount,
+    isActing,
+    isMissionLoopOpen,
+    missionPhase,
+    setMissionPhase,
+  ]);
 
   const handleMarkAsApplied = useCallback(
     async (job: ScoutJob) => {
@@ -301,6 +344,10 @@ const ScoutSection = ({
         await deleteScoutJob(job.id);
         onApplicationCreated(createdApplication);
         removeJobFromQueue(job.id);
+        if (isMissionLoopOpen) {
+          incrementMissionAppliedCount();
+          setMissionPhase("summary");
+        }
         toast.success("Scout job moved to tracker.");
       } catch (error) {
         console.error("Mark scout job applied failed:", error);
@@ -309,7 +356,14 @@ const ScoutSection = ({
         setIsActing(false);
       }
     },
-    [isActing, onApplicationCreated, jobs.length],
+    [
+      incrementMissionAppliedCount,
+      isActing,
+      isMissionLoopOpen,
+      onApplicationCreated,
+      jobs.length,
+      setMissionPhase,
+    ],
   );
 
   const handleRemoveScoutJob = useCallback(
@@ -399,7 +453,10 @@ const ScoutSection = ({
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-3">
-      <section className="deco-frame border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel">
+      <section
+        className="deco-frame border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel"
+        data-tour-id="scout-header"
+      >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
@@ -412,6 +469,7 @@ const ScoutSection = ({
 
           <div className="flex flex-wrap gap-2">
             <Button
+              data-tour-id="scout-upload"
               onClick={() => setActiveView("upload")}
               type="button"
               variant={activeView === "upload" ? "default" : "outline"}
@@ -419,6 +477,7 @@ const ScoutSection = ({
               Upload
             </Button>
             <Button
+              data-tour-id="scout-evaluate"
               onClick={() => setActiveView("evaluate")}
               type="button"
               variant={activeView === "evaluate" ? "default" : "outline"}
@@ -426,6 +485,7 @@ const ScoutSection = ({
               Evaluate
             </Button>
             <Button
+              data-tour-id="scout-to-apply"
               onClick={() => setActiveView("to-apply")}
               type="button"
               variant={activeView === "to-apply" ? "default" : "outline"}
@@ -451,7 +511,7 @@ const ScoutSection = ({
       ) : null}
 
       {activeView === "upload" ? (
-        <Card>
+        <Card data-tour-id="scout-upload-panel">
           <CardHeader>
             <CardTitle>Upload jobs.json</CardTitle>
           </CardHeader>
@@ -492,7 +552,7 @@ const ScoutSection = ({
       ) : null}
 
       {activeView === "evaluate" ? (
-        <Card className="min-h-0 flex-1 overflow-hidden">
+        <Card className="min-h-0 flex-1 overflow-hidden" data-tour-id="scout-evaluate-panel">
           <CardHeader className="flex-row items-center justify-between gap-3">
             <div>
               <CardTitle>Evaluate</CardTitle>
@@ -520,7 +580,10 @@ const ScoutSection = ({
 
             {!isLoading && currentJob ? (
               <article className="deco-frame border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div
+                  className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+                  data-tour-id="scout-evaluate-card"
+                >
                   <div className="min-w-0">
                     <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
                       {currentJob.company}
@@ -666,7 +729,7 @@ const ScoutSection = ({
       ) : null}
 
       {activeView === "to-apply" ? (
-        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden" data-tour-id="scout-to-apply-panel">
           <CardHeader className="shrink-0 flex-row items-center justify-between gap-3">
             <div>
               <CardTitle>To Apply</CardTitle>

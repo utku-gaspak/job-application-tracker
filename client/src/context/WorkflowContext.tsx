@@ -2,13 +2,24 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 export type WorkflowSection = "tracker" | "scout";
+export type MissionPhase = "triage" | "action" | "summary";
 
 interface WorkflowContextType {
   activeSection: WorkflowSection;
   setActiveSection: (section: WorkflowSection) => void;
-  isWelcomeWizardOpen: boolean;
-  openWelcomeWizard: () => void;
-  closeWelcomeWizard: () => void;
+  isMissionLoopOpen: boolean;
+  openMissionLoop: () => void;
+  closeMissionLoop: () => void;
+  missionPhase: MissionPhase;
+  setMissionPhase: (phase: MissionPhase) => void;
+  advanceMissionPhase: () => void;
+  missionSavedCount: number;
+  missionDiscardedCount: number;
+  missionAppliedCount: number;
+  incrementMissionSavedCount: () => void;
+  incrementMissionDiscardedCount: () => void;
+  incrementMissionAppliedCount: () => void;
+  resetMissionProgress: () => void;
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(
@@ -20,8 +31,9 @@ const WORKFLOW_SECTION_HASH = {
   scout: "#scout",
 } as const;
 
-const WELCOME_WIZARD_OPEN_EVENT = "traxr:workflow:wizard-open";
-const WELCOME_WIZARD_CLOSE_EVENT = "traxr:workflow:wizard-close";
+const MISSION_LOOP_OPEN_EVENT = "traxr:workflow:mission-open";
+const MISSION_LOOP_CLOSE_EVENT = "traxr:workflow:mission-close";
+const MISSION_LOOP_RESET_EVENT = "traxr:workflow:mission-reset";
 
 const getSectionFromHash = (hash: string): WorkflowSection =>
   hash.toLowerCase() === WORKFLOW_SECTION_HASH.scout ? "scout" : "tracker";
@@ -32,7 +44,11 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       ? "tracker"
       : getSectionFromHash(window.location.hash),
   );
-  const [isWelcomeWizardOpen, setIsWelcomeWizardOpen] = useState(false);
+  const [isMissionLoopOpen, setIsMissionLoopOpen] = useState(false);
+  const [missionPhase, setMissionPhase] = useState<MissionPhase>("triage");
+  const [missionSavedCount, setMissionSavedCount] = useState(0);
+  const [missionDiscardedCount, setMissionDiscardedCount] = useState(0);
+  const [missionAppliedCount, setMissionAppliedCount] = useState(0);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -42,16 +58,24 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
     window.addEventListener("hashchange", handleHashChange);
     handleHashChange();
 
-    const handleWizardOpen = () => setIsWelcomeWizardOpen(true);
-    const handleWizardClose = () => setIsWelcomeWizardOpen(false);
+    const handleMissionOpen = () => setIsMissionLoopOpen(true);
+    const handleMissionClose = () => setIsMissionLoopOpen(false);
+    const handleMissionReset = () => {
+      setMissionPhase("triage");
+      setMissionSavedCount(0);
+      setMissionDiscardedCount(0);
+      setMissionAppliedCount(0);
+    };
 
-    window.addEventListener(WELCOME_WIZARD_OPEN_EVENT, handleWizardOpen);
-    window.addEventListener(WELCOME_WIZARD_CLOSE_EVENT, handleWizardClose);
+    window.addEventListener(MISSION_LOOP_OPEN_EVENT, handleMissionOpen);
+    window.addEventListener(MISSION_LOOP_CLOSE_EVENT, handleMissionClose);
+    window.addEventListener(MISSION_LOOP_RESET_EVENT, handleMissionReset);
 
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
-      window.removeEventListener(WELCOME_WIZARD_OPEN_EVENT, handleWizardOpen);
-      window.removeEventListener(WELCOME_WIZARD_CLOSE_EVENT, handleWizardClose);
+      window.removeEventListener(MISSION_LOOP_OPEN_EVENT, handleMissionOpen);
+      window.removeEventListener(MISSION_LOOP_CLOSE_EVENT, handleMissionClose);
+      window.removeEventListener(MISSION_LOOP_RESET_EVENT, handleMissionReset);
     };
   }, []);
 
@@ -68,23 +92,62 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const openWelcomeWizard = () => {
-    setIsWelcomeWizardOpen(true);
+  const openMissionLoop = () => {
+    setMissionPhase("triage");
+    setMissionSavedCount(0);
+    setMissionDiscardedCount(0);
+    setMissionAppliedCount(0);
+    setIsMissionLoopOpen(true);
   };
 
-  const closeWelcomeWizard = () => {
-    setIsWelcomeWizardOpen(false);
+  const closeMissionLoop = () => {
+    setIsMissionLoopOpen(false);
+  };
+
+  const incrementMissionSavedCount = () => {
+    setMissionSavedCount((current) => current + 1);
+  };
+
+  const incrementMissionDiscardedCount = () => {
+    setMissionDiscardedCount((current) => current + 1);
+  };
+
+  const incrementMissionAppliedCount = () => {
+    setMissionAppliedCount((current) => current + 1);
+  };
+
+  const advanceMissionPhase = () => {
+    setMissionPhase((current) =>
+      current === "triage" ? "action" : "summary",
+    );
+  };
+
+  const resetMissionProgress = () => {
+    setMissionPhase("triage");
+    setMissionSavedCount(0);
+    setMissionDiscardedCount(0);
+    setMissionAppliedCount(0);
   };
 
   const value = useMemo(
     () => ({
       activeSection,
       setActiveSection,
-      isWelcomeWizardOpen,
-      openWelcomeWizard,
-      closeWelcomeWizard,
+      isMissionLoopOpen,
+      openMissionLoop,
+      closeMissionLoop,
+      missionPhase,
+      setMissionPhase,
+      advanceMissionPhase,
+      missionSavedCount,
+      missionDiscardedCount,
+      missionAppliedCount,
+      incrementMissionSavedCount,
+      incrementMissionDiscardedCount,
+      incrementMissionAppliedCount,
+      resetMissionProgress,
     }),
-    [activeSection, isWelcomeWizardOpen],
+    [activeSection, isMissionLoopOpen, missionPhase, missionSavedCount, missionDiscardedCount, missionAppliedCount],
   );
 
   return (

@@ -25,15 +25,12 @@ import {
   X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
 import Footer from "./Footer";
-import WelcomeWizard, {
-  WELCOME_WIZARD_SEEN_KEY,
-  WELCOME_WIZARD_SNOOZE_KEY,
-} from "./WelcomeWizard";
+import MissionLoop from "./MissionLoop";
 import {
   createJobApplication,
   deleteJobApplication,
@@ -276,14 +273,17 @@ const mobileAccordionDefaults: Record<JobApplicationStatus, boolean> = {
   [JobApplicationStatus.Offer]: false,
 };
 
+const MISSION_TOUR_SEEN_KEY_PREFIX = "traxr:mission-tour-seen:v1";
+
 const Dashboard = () => {
   const { logout, username } = useAuth();
   const {
     activeSection,
     setActiveSection: setWorkflowSection,
-    isWelcomeWizardOpen,
-    openWelcomeWizard: openWorkflowWizard,
-    closeWelcomeWizard: closeWorkflowWizard,
+    isMissionLoopOpen,
+    openMissionLoop,
+    closeMissionLoop,
+    advanceMissionPhase,
   } = useWorkflow();
   const { theme, toggleTheme } = useTheme();
   const themeButtonVariant = theme === "dark" ? "outline" : "default";
@@ -291,6 +291,9 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [scoutTourView, setScoutTourView] = useState<
+    "upload" | "evaluate" | "to-apply" | null
+  >(null);
   const [selectedApplication, setSelectedApplication] =
     useState<JobApplication | null>(null);
   const [isDetailEditing, setIsDetailEditing] = useState(false);
@@ -306,6 +309,7 @@ const Dashboard = () => {
     Record<JobApplicationStatus, boolean>
   >(mobileAccordionDefaults);
   const isDemoAccount = username?.toLowerCase() === "demo";
+  const previousUsernameRef = useRef<string | null>(null);
 
   const availableSkills = useMemo(
     () => getUniqueTechnicalSkills(applications),
@@ -398,48 +402,36 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (isDemoAccount) {
-      openWorkflowWizard();
+    const previousUsername = previousUsernameRef.current;
+    previousUsernameRef.current = username;
+
+    if (!username) {
       return;
     }
 
-    const seenWizard =
-      window.localStorage.getItem(WELCOME_WIZARD_SEEN_KEY) === "true";
-    const snoozedWizard =
-      window.localStorage.getItem(WELCOME_WIZARD_SNOOZE_KEY) === "true";
-
-    if (!seenWizard && !snoozedWizard) {
-      openWorkflowWizard();
+    if (isDemoAccount && previousUsername !== username) {
+      openMissionLoop();
+      return;
     }
-  }, [isDemoAccount, openWorkflowWizard]);
+
+    if (previousUsername === username) {
+      return;
+    }
+
+    const seenKey = `${MISSION_TOUR_SEEN_KEY_PREFIX}:${username.toLowerCase()}`;
+    const hasSeenTour = window.localStorage.getItem(seenKey) === "true";
+
+    if (!hasSeenTour) {
+      openMissionLoop();
+      window.localStorage.setItem(seenKey, "true");
+    }
+  }, [isDemoAccount, openMissionLoop, username]);
 
   const switchSection = (section: WorkflowSection) => {
     setWorkflowSection(section);
     setIsCreateDialogOpen(false);
     setSelectedApplication(null);
     setIsDetailEditing(false);
-  };
-
-  const openWelcomeWizard = () => {
-    if (!isDemoAccount) {
-      window.localStorage.setItem(WELCOME_WIZARD_SNOOZE_KEY, "false");
-    }
-    openWorkflowWizard();
-  };
-
-  const snoozeWelcomeWizard = () => {
-    if (!isDemoAccount) {
-      window.localStorage.setItem(WELCOME_WIZARD_SNOOZE_KEY, "true");
-    }
-    closeWorkflowWizard();
-  };
-
-  const finishWelcomeWizard = () => {
-    if (!isDemoAccount) {
-      window.localStorage.setItem(WELCOME_WIZARD_SEEN_KEY, "true");
-      window.localStorage.setItem(WELCOME_WIZARD_SNOOZE_KEY, "false");
-    }
-    closeWorkflowWizard();
   };
 
   const openCreateDialog = () => {
@@ -647,13 +639,9 @@ const Dashboard = () => {
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Button
-            aria-label={
-              isWelcomeWizardOpen ? "Hide welcome guide" : "Open welcome guide"
-            }
+            aria-label="Open guided mission loop"
             className="h-11 w-11 p-0 transition-all"
-            onClick={() =>
-              isWelcomeWizardOpen ? snoozeWelcomeWizard() : openWelcomeWizard()
-            }
+            onClick={openMissionLoop}
             variant={themeButtonVariant}
           >
             <CircleHelp className="h-5 w-5" />
@@ -690,7 +678,7 @@ const Dashboard = () => {
         </div>
       </header>
       <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-stretch md:min-h-0 md:flex-1">
-        <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel backdrop-blur md:h-full md:overflow-hidden md:p-6">
+        <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel md:h-full md:overflow-hidden md:p-6">
           <section className="deco-frame border-border-gold bg-deco-surface p-4 shadow-sm">
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
               Profile
@@ -720,7 +708,7 @@ const Dashboard = () => {
           </section>
 
           <div className="mt-4 flex w-full flex-col gap-3">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2">
               <Button
                 aria-label="Open Tracker"
                 className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
@@ -728,8 +716,10 @@ const Dashboard = () => {
                 type="button"
                 variant={activeSection === "tracker" ? "default" : themeButtonVariant}
               >
-                <LayoutDashboard className="h-4 w-4" />
-                Tracker
+                <span className="flex w-full items-center justify-center gap-2">
+                  <LayoutDashboard className="h-4 w-4 shrink-0" />
+                  <span>Tracker</span>
+                </span>
               </Button>
               <Button
                 aria-label="Open Scout"
@@ -737,25 +727,29 @@ const Dashboard = () => {
                 onClick={() => switchSection("scout")}
                 type="button"
                 variant={activeSection === "scout" ? "default" : themeButtonVariant}
+                data-tour-id="scout-nav"
               >
-                <Binoculars className="h-4 w-4" />
-                Scout
-              </Button>
-            </div>
-
-            <Button
-              aria-label="New Application"
-              className="h-11 w-full transition-all hover:opacity-90"
-              onClick={openCreateDialog}
-            >
-              <div className="flex w-full items-center px-4">
-                <BadgePlus className="h-4 w-4 shrink-0" />
-                <span className="flex-1 text-center text-[0.65rem] uppercase tracking-[0.25em]">
-                  Add New
+                <span className="flex w-full items-center justify-center gap-2">
+                  <Binoculars className="h-4 w-4 shrink-0" />
+                  <span>Scout</span>
                 </span>
-                <div className="w-4" />
-              </div>
-            </Button>
+              </Button>
+              {activeSection === "tracker" ? (
+                <Button
+                  aria-label="New Application"
+                  className="h-10 w-full transition-all hover:opacity-90"
+                  onClick={openCreateDialog}
+                  data-tour-id="tracker-add-new"
+                >
+                  <span className="flex w-full items-center justify-center gap-2">
+                    <BadgePlus className="h-4 w-4 shrink-0" />
+                    <span>Add New</span>
+                  </span>
+                </Button>
+              ) : (
+                <div aria-hidden="true" className="h-10" />
+              )}
+            </div>
 
             <p className="hidden items-center gap-2 px-1 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-deco-muted md:flex">
               <span className="h-1 w-1 rounded-full bg-primary-gold" />
@@ -766,7 +760,10 @@ const Dashboard = () => {
 
         <section className="flex min-h-0 flex-col gap-3 md:flex-1">
           <div className={activeSection === "tracker" ? "contents" : "hidden"}>
-          <section className="deco-frame w-full border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel">
+          <section
+            className="deco-frame w-full border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel"
+            data-tour-id="tracker-filters"
+          >
             <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
               <div className="grid flex-1 gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(2,minmax(0,1fr))]">
                 <label className="grid gap-2">
@@ -1050,7 +1047,7 @@ const Dashboard = () => {
           ) : null}
 
           {!isLoading && filteredApplications.length > 0 ? (
-            <div className="hidden md:block">
+            <div className="hidden md:block" data-tour-id="tracker-board">
               <DragDropContext
                 onDragEnd={(result) => void handleDragEnd(result)}
               >
@@ -1369,6 +1366,7 @@ const Dashboard = () => {
           <div className={activeSection === "scout" ? "contents" : "hidden"}>
             <ScoutSection
               isActive={activeSection === "scout"}
+              tourView={scoutTourView}
               onApplicationCreated={(application) =>
                 setApplications((current) => [application, ...current])
               }
@@ -1379,18 +1377,22 @@ const Dashboard = () => {
       <div className="pt-3">
         <Footer />
       </div>
-      <WelcomeWizard
-        open={isWelcomeWizardOpen}
+      <MissionLoop
+        open={isMissionLoopOpen}
+        scoutTourView={scoutTourView}
+        onGoScout={() => {
+          switchSection("scout");
+        }}
+        onGoTracker={() => {
+          switchSection("tracker");
+        }}
+        onSetScoutView={(view) => setScoutTourView(view)}
+        onAdvancePhase={advanceMissionPhase}
         onOpenChange={(nextOpen) => {
           if (!nextOpen) {
-            snoozeWelcomeWizard();
-            return;
+            closeMissionLoop();
           }
-
-          openWelcomeWizard();
         }}
-        onFinish={finishWelcomeWizard}
-        onSnoozeLater={snoozeWelcomeWizard}
       />
     </main>
   );
