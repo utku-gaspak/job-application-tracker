@@ -45,6 +45,12 @@ import { Textarea } from "./ui/textarea";
 
 interface ScoutSectionProps {
   onApplicationCreated: (application: JobApplication) => void;
+  onSummaryChange: (summary: {
+    total: number;
+    toEvaluate: number;
+    toApply: number;
+    discarded: number;
+  }) => void;
   isActive: boolean;
 }
 
@@ -173,6 +179,7 @@ const emptyManualScoutForm = {
 
 const ScoutSection = ({
   onApplicationCreated,
+  onSummaryChange,
   isActive,
 }: ScoutSectionProps) => {
   const [activeView, setActiveView] = useState<
@@ -219,6 +226,15 @@ const ScoutSection = ({
     () => splitTools(currentJob?.technicalTools),
     [currentJob],
   );
+
+  useEffect(() => {
+    onSummaryChange({
+      total: jobs.length,
+      toEvaluate: evaluateJobs.length,
+      toApply: toApplyJobs.length,
+      discarded: jobs.filter((job) => job.isDiscarded).length,
+    });
+  }, [evaluateJobs.length, jobs, onSummaryChange, toApplyJobs.length]);
 
   const loadJobs = useCallback(async () => {
     try {

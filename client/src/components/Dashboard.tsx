@@ -28,7 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
@@ -178,7 +178,10 @@ const matchesFilters = (
   filters: {
     searchTerm: string;
     statusFilter: JobApplicationStatus | "all";
-    interestFilter: number | "all";
+    interestRange: {
+      lower: number;
+      upper: number;
+    };
     selectedSkills: string[];
   },
 ) => {
@@ -201,11 +204,17 @@ const matchesFilters = (
     return false;
   }
 
-  if (
-    filters.interestFilter !== "all" &&
-    application.interestLevel !== filters.interestFilter
-  ) {
-    return false;
+  const isDefaultInterestRange =
+    filters.interestRange.lower === 1 && filters.interestRange.upper === 5;
+
+  if (!isDefaultInterestRange) {
+    if (
+      application.interestLevel == null ||
+      application.interestLevel < filters.interestRange.lower ||
+      application.interestLevel > filters.interestRange.upper
+    ) {
+      return false;
+    }
   }
 
   return filters.selectedSkills.every((skill) =>
@@ -215,6 +224,24 @@ const matchesFilters = (
     ),
   );
 };
+
+const INTEREST_MIN = 1;
+const INTEREST_MAX = 5;
+
+const clampInterestRange = (lower: number, upper: number) => {
+  const normalizedLower = Math.max(INTEREST_MIN, Math.min(lower, INTEREST_MAX));
+  const normalizedUpper = Math.max(INTEREST_MIN, Math.min(upper, INTEREST_MAX));
+
+  return {
+    lower: Math.min(normalizedLower, normalizedUpper),
+    upper: Math.max(normalizedLower, normalizedUpper),
+  };
+};
+
+const formatInterestRangeLabel = (lower: number, upper: number) =>
+  lower === INTEREST_MIN && upper === INTEREST_MAX
+    ? "All"
+    : `${lower}/5 - ${upper}/5`;
 
 const getLoadApplicationsErrorMessage = (error: unknown) => {
   // Keep server-side failures and connectivity failures distinct so the UI can suggest the right next step.
@@ -381,11 +408,24 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState<
     JobApplicationStatus | "all"
   >("all");
-  const [interestFilter, setInterestFilter] = useState<number | "all">("all");
+  const [interestRange, setInterestRange] = useState({
+    lower: INTEREST_MIN,
+    upper: INTEREST_MAX,
+  });
+  const [activeInterestHandle, setActiveInterestHandle] = useState<
+    "lower" | "upper" | null
+  >(null);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [mobileExpandedColumns, setMobileExpandedColumns] = useState<
     Record<JobApplicationStatus, boolean>
   >(mobileAccordionDefaults);
+  const interestRangeRef = useRef<HTMLDivElement | null>(null);
+  const [scoutSummary, setScoutSummary] = useState({
+    total: 0,
+    toEvaluate: 0,
+    toApply: 0,
+    discarded: 0,
+  });
 
   const availableSkills = useMemo(
     () => getUniqueTechnicalSkills(applications),
@@ -398,11 +438,11 @@ const Dashboard = () => {
         matchesFilters(application, {
           searchTerm,
           statusFilter,
-          interestFilter,
+          interestRange,
           selectedSkills,
         }),
       ),
-    [applications, interestFilter, searchTerm, selectedSkills, statusFilter],
+    [applications, interestRange, searchTerm, selectedSkills, statusFilter],
   );
 
   const columns = useMemo(
@@ -423,6 +463,64 @@ const Dashboard = () => {
       [status]: !current[status],
     }));
   };
+
+  const updateInterestLower = (nextLower: number) => {
+    setInterestRange((current) => ({
+      lower: Math.min(nextLower, current.upper),
+      upper: current.upper,
+    }));
+  };
+
+  const updateInterestUpper = (nextUpper: number) => {
+    setInterestRange((current) => ({
+      lower: current.lower,
+      upper: Math.max(nextUpper, current.lower),
+    }));
+  };
+
+  const setInterestValueFromClientX = useCallback(
+    (clientX: number, handle: "lower" | "upper") => {
+      const track = interestRangeRef.current;
+      if (!track) {
+        return;
+      }
+
+      const rect = track.getBoundingClientRect();
+      const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      const nextValue =
+        INTEREST_MIN + Math.round(ratio * (INTEREST_MAX - INTEREST_MIN));
+
+      if (handle === "lower") {
+        updateInterestLower(nextValue);
+        return;
+      }
+
+      updateInterestUpper(nextValue);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!activeInterestHandle) {
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      setInterestValueFromClientX(event.clientX, activeInterestHandle);
+    };
+
+    const handlePointerUp = () => {
+      setActiveInterestHandle(null);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [activeInterestHandle, setInterestValueFromClientX]);
 
   const handleTrackerExport = (format: "json" | "csv") => {
     const content =
@@ -522,7 +620,7 @@ const Dashboard = () => {
   const clearAllFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
-    setInterestFilter("all");
+    setInterestRange({ lower: INTEREST_MIN, upper: INTEREST_MAX });
     setSelectedSkills([]);
   };
 
@@ -757,20 +855,38 @@ const Dashboard = () => {
 
           <section className="deco-frame mt-4 border-border-gold bg-deco-surface p-4 shadow-sm">
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
-              Summary
+              {activeSection === "scout" ? "Scout Summary" : "Summary"}
             </p>
-            <div className="mt-2">
-              <span className="font-heading text-3xl leading-none">
-                {applications.length}
-              </span>
-              <p className="mt-1 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
-                Total Applications
-              </p>
-            </div>
-            <div className="mt-3 space-y-1 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
-              <p>{profileStats.interviewRate}% interview rate</p>
-              <p>{profileStats.offerRate}% offer rate</p>
-            </div>
+            {activeSection === "scout" ? (
+              <div className="mt-2 grid gap-2 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
+                <div>
+                  <span className="font-heading text-3xl leading-none text-deco-foreground">
+                    {scoutSummary.total}
+                  </span>
+                  <p className="mt-1 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
+                    Total Scout Jobs
+                  </p>
+                </div>
+                <p>{scoutSummary.toEvaluate} to evaluate</p>
+                <p>{scoutSummary.toApply} to apply</p>
+                <p>{scoutSummary.discarded} discarded</p>
+              </div>
+            ) : (
+              <>
+                <div className="mt-2">
+                  <span className="font-heading text-3xl leading-none">
+                    {applications.length}
+                  </span>
+                  <p className="mt-1 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
+                    Total Applications
+                  </p>
+                </div>
+                <div className="mt-3 space-y-1 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
+                  <p>{profileStats.interviewRate}% interview rate</p>
+                  <p>{profileStats.offerRate}% offer rate</p>
+                </div>
+              </>
+            )}
           </section>
 
           <div className="mt-4 flex w-full flex-col gap-3">
@@ -844,10 +960,39 @@ const Dashboard = () => {
                   }}
                   type="button"
                   variant={themeButtonVariant}
+                  >
+                    <ArrowUpDown className="mr-2 h-4 w-4" />
+                    {sortOrder === "newest" ? "Newest first" : "Oldest first"}
+                  </Button>
+              </div>
+
+              <div className="flex flex-wrap items-stretch gap-2">
+                <Button
+                  aria-expanded={isFilterOpen}
+                  aria-controls="tracker-filter-accordion"
+                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
+                  onClick={() => setIsFilterOpen((current) => !current)}
+                  type="button"
+                  variant={themeButtonVariant}
                 >
-                  <ArrowUpDown className="mr-2 h-4 w-4" />
-                  {sortOrder === "newest" ? "Newest first" : "Oldest first"}
+                  <Filter className="mr-2 h-4 w-4" />
+                  Filters
+                  <ChevronDown
+                    className={`ml-2 h-4 w-4 transition-transform ${
+                      isFilterOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </Button>
+                <Button
+                  aria-pressed={showStatusSankey}
+                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
+                  onClick={() => setShowStatusSankey((current) => !current)}
+                  type="button"
+                  variant={themeButtonVariant}
+                  >
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    {showStatusSankey ? "Board" : "Diagram"}
+                  </Button>
                 <Button
                   className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
                   onClick={() => setIsExportDialogOpen(true)}
@@ -857,34 +1002,7 @@ const Dashboard = () => {
                   <Download className="mr-2 h-4 w-4" />
                   Export
                 </Button>
-                <Button
-                  aria-pressed={showStatusSankey}
-                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
-                  onClick={() => setShowStatusSankey((current) => !current)}
-                  type="button"
-                  variant={themeButtonVariant}
-                >
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  {showStatusSankey ? "Board" : "Diagram"}
-                </Button>
               </div>
-
-              <Button
-                aria-expanded={isFilterOpen}
-                aria-controls="tracker-filter-accordion"
-                className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
-                onClick={() => setIsFilterOpen((current) => !current)}
-                type="button"
-                variant={themeButtonVariant}
-              >
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-                <ChevronDown
-                  className={`ml-2 h-4 w-4 transition-transform ${
-                    isFilterOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </Button>
             </div>
 
             {isFilterOpen ? (
@@ -956,28 +1074,96 @@ const Dashboard = () => {
                   </label>
 
                   <label className="grid gap-2">
-                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                      Interest
+                    <span className="flex items-center justify-between gap-3 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+                      <span>Interest</span>
+                      <span className="text-[0.58rem] tracking-[0.14em] text-primary-gold">
+                        {formatInterestRangeLabel(
+                          interestRange.lower,
+                          interestRange.upper,
+                        )}
+                      </span>
                     </span>
-                    <select
-                      aria-label="Filter interest level"
-                      className="deco-frame h-10 border-border-gold-muted bg-deco-surface px-3 py-2 text-sm outline-none transition-colors focus:border-primary-gold focus:ring-2 focus:ring-primary-gold-muted"
-                      value={interestFilter}
-                      onChange={(event) =>
-                        setInterestFilter(
-                          event.target.value === "all"
-                            ? "all"
-                            : Number(event.target.value),
-                        )
-                      }
-                    >
-                      <option value="all">Any interest</option>
-                      {interestLevelOptions.map((level) => (
-                        <option key={level} value={level}>
-                          {level}/5
-                        </option>
-                      ))}
-                    </select>
+                    <div className="deco-frame h-10 border-border-gold-muted bg-deco-surface px-3 py-2">
+                      <div
+                        ref={interestRangeRef}
+                        className="relative h-6 select-none"
+                        onPointerDown={(event) => {
+                          const rect =
+                            interestRangeRef.current?.getBoundingClientRect();
+                          if (!rect) {
+                            return;
+                          }
+
+                          const ratio = Math.min(
+                            1,
+                            Math.max(0, (event.clientX - rect.left) / rect.width),
+                          );
+                          const nextValue =
+                            INTEREST_MIN +
+                            Math.round(ratio * (INTEREST_MAX - INTEREST_MIN));
+                          const lowerDistance = Math.abs(
+                            nextValue - interestRange.lower,
+                          );
+                          const upperDistance = Math.abs(
+                            nextValue - interestRange.upper,
+                          );
+                          const nextHandle =
+                            lowerDistance <= upperDistance ? "lower" : "upper";
+
+                          setActiveInterestHandle(nextHandle);
+                          setInterestValueFromClientX(event.clientX, nextHandle);
+                        }}
+                      >
+                        <div className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-deco-card" />
+                        <div
+                          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-primary-gold"
+                          style={{
+                            left: `${((interestRange.lower - INTEREST_MIN) /
+                              (INTEREST_MAX - INTEREST_MIN)) *
+                              100}%`,
+                            right: `${((INTEREST_MAX - interestRange.upper) /
+                              (INTEREST_MAX - INTEREST_MIN)) *
+                              100}%`,
+                          }}
+                        />
+                        <button
+                          aria-label="Interest lower limit"
+                          className={`absolute top-1/2 z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-deco-bg bg-primary-gold shadow-sm transition-transform ${
+                            activeInterestHandle === "lower" ? "scale-110" : ""
+                          }`}
+                          onPointerDown={(event) => {
+                            event.stopPropagation();
+                            setActiveInterestHandle("lower");
+                          }}
+                          style={{
+                            left: `${
+                              ((interestRange.lower - INTEREST_MIN) /
+                                (INTEREST_MAX - INTEREST_MIN)) *
+                              100
+                            }%`,
+                          }}
+                          type="button"
+                        />
+                        <button
+                          aria-label="Interest upper limit"
+                          className={`absolute top-1/2 z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-deco-bg bg-primary-gold shadow-sm transition-transform ${
+                            activeInterestHandle === "upper" ? "scale-110" : ""
+                          }`}
+                          onPointerDown={(event) => {
+                            event.stopPropagation();
+                            setActiveInterestHandle("upper");
+                          }}
+                          style={{
+                            left: `${
+                              ((interestRange.upper - INTEREST_MIN) /
+                                (INTEREST_MAX - INTEREST_MIN)) *
+                              100
+                            }%`,
+                          }}
+                          type="button"
+                        />
+                      </div>
+                    </div>
                   </label>
                 </div>
 
@@ -1084,7 +1270,9 @@ const Dashboard = () => {
 
           {!isLoading && filteredApplications.length > 0 ? (
             showStatusSankey ? (
-              <TrackerStatusSankey applications={filteredApplications} />
+              <div data-tour-id="tracker-diagram">
+                <TrackerStatusSankey applications={filteredApplications} />
+              </div>
             ) : (
               <>
                 <div className="w-full space-y-4 md:hidden">
@@ -1500,13 +1688,14 @@ const Dashboard = () => {
             </Sheet>
           </div>
           <div className={activeSection === "scout" ? "contents" : "hidden"}>
-            <ScoutSection
-              isActive={activeSection === "scout"}
-              onApplicationCreated={(application) =>
-                setApplications((current) => [application, ...current])
-              }
-            />
-          </div>
+          <ScoutSection
+            isActive={activeSection === "scout"}
+            onSummaryChange={setScoutSummary}
+            onApplicationCreated={(application) =>
+              setApplications((current) => [application, ...current])
+            }
+          />
+        </div>
         </section>
       </div>
       <div className="mt-auto pt-3">
@@ -1519,6 +1708,11 @@ const Dashboard = () => {
         }}
         onGoTracker={() => {
           switchSection("tracker");
+          setShowStatusSankey(false);
+        }}
+        onGoDiagram={() => {
+          switchSection("tracker");
+          setShowStatusSankey(true);
         }}
         onAdvancePhase={advanceMissionPhase}
       />

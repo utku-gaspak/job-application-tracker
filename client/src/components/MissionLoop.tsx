@@ -18,6 +18,7 @@ interface MissionLoopProps {
   open: boolean;
   onGoScout: () => void;
   onGoTracker: () => void;
+  onGoDiagram: () => void;
   onAdvancePhase: () => void;
 }
 
@@ -63,6 +64,14 @@ const missionSteps: readonly MissionStep[] = [
     title: "Move cards through the board",
     icon: BadgeCheck,
     body: "Drag applications between Applied, Interviewing, Rejected, and Offer.",
+  },
+  {
+    id: "tracker-diagram",
+    anchorId: "tracker-diagram",
+    section: "tracker" as const,
+    title: "Switch to the diagram",
+    icon: Sparkles,
+    body: "Use the diagram to review how your applications are spread across the board.",
   },
   {
     id: "scout-header",
@@ -124,6 +133,7 @@ const MissionLoop = ({
   open,
   onGoScout,
   onGoTracker,
+  onGoDiagram,
   onAdvancePhase,
 }: MissionLoopProps) => {
   const {
@@ -160,6 +170,9 @@ const MissionLoop = ({
 
     if (currentStep.section === "tracker") {
       onGoTracker();
+      if (currentStep.id === "tracker-diagram") {
+        onGoDiagram();
+      }
       return;
     }
 
@@ -168,7 +181,7 @@ const MissionLoop = ({
     if ("scoutView" in currentStep && currentStep.scoutView && scoutTourView !== currentStep.scoutView) {
       setScoutTourView(currentStep.scoutView);
     }
-  }, [currentStep, open, onGoScout, onGoTracker, scoutTourView, setScoutTourView]);
+  }, [currentStep, open, onGoDiagram, onGoScout, onGoTracker, scoutTourView, setScoutTourView]);
 
   useLayoutEffect(() => {
     if (!open) {
