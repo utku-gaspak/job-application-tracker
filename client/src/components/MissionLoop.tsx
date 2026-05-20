@@ -95,7 +95,6 @@ type MissionStep = (typeof missionSteps)[number];
 
 const TOUR_WIDTH = 500;
 const TOUR_GAP = 14;
-
 type AnchorStyle = {
   top: number;
   left: number;
