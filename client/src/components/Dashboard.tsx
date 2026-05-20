@@ -1704,7 +1704,11 @@ const Dashboard = () => {
           switchSection("tracker");
           setShowStatusSankey(true);
         }}
-        onAdvancePhase={advanceMissionPhase}
+        onAdvancePhase={() => {
+          advanceMissionPhase();
+          switchSection("tracker");
+          setShowStatusSankey(false);
+        }}
       />
     </main>
   );

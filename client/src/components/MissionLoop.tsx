@@ -1,12 +1,16 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
-  BadgeCheck,
   Binoculars,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
-  Route,
-  Sparkles,
+  BarChart3,
+  FileUp,
+  Filter,
+  LayoutGrid,
+  Plus,
+  Eye,
+  ListChecks,
   X,
 } from "lucide-react";
 import { useWorkflow } from "../context/WorkflowContext";
@@ -39,39 +43,39 @@ const missionSteps: readonly MissionStep[] = [
     section: "tracker" as const,
     title: "Welcome to Traxr",
     icon: CircleHelp,
-    body: "This is a tour to get you on with the tool. It will show the tracker, scout, and the main actions in the order you will use them.",
+    body: "Quick tour of the main tracker and scout actions.",
   },
   {
     id: "tracker-add-new",
     anchorId: "tracker-add-new",
     section: "tracker" as const,
     title: "Add new applications",
-    icon: BadgeCheck,
-    body: "Use this button when you want to log a role straight into the tracker.",
+    icon: Plus,
+    body: "Add a role straight into the tracker.",
   },
   {
     id: "tracker-filters",
     anchorId: "tracker-filters",
     section: "tracker" as const,
     title: "Filter the board",
-    icon: Sparkles,
-    body: "Search, status, interest, and skills live together in the filter bar.",
+    icon: Filter,
+    body: "Search, status, interest, and skills are here.",
   },
   {
     id: "tracker-board",
     anchorId: "tracker-board",
     section: "tracker" as const,
     title: "Move cards through the board",
-    icon: BadgeCheck,
-    body: "Drag applications between Applied, Interviewing, Rejected, and Offer.",
+    icon: LayoutGrid,
+    body: "Drag applications between board columns.",
   },
   {
     id: "tracker-diagram",
     anchorId: "tracker-diagram",
     section: "tracker" as const,
     title: "Switch to the diagram",
-    icon: Sparkles,
-    body: "Use the diagram to review how your applications are spread across the board.",
+    icon: BarChart3,
+    body: "Use the diagram to review your board status.",
   },
   {
     id: "scout-header",
@@ -79,7 +83,7 @@ const missionSteps: readonly MissionStep[] = [
     section: "scout" as const,
     title: "Open Scout",
     icon: Binoculars,
-    body: "Scout is the queue for imported jobs before they reach the tracker.",
+    body: "Scout holds jobs before they reach the tracker.",
   },
   {
     id: "scout-upload-panel",
@@ -87,8 +91,8 @@ const missionSteps: readonly MissionStep[] = [
     section: "scout" as const,
     scoutView: "upload" as const,
     title: "Upload jobs",
-    icon: Sparkles,
-    body: "Import a jobs.json file or add a scout job manually to start.",
+    icon: FileUp,
+    body: "Import jobs.json or add one manually.",
   },
   {
     id: "scout-evaluate-panel",
@@ -96,8 +100,8 @@ const missionSteps: readonly MissionStep[] = [
     section: "scout" as const,
     scoutView: "evaluate" as const,
     title: "Evaluate jobs",
-    icon: Binoculars,
-    body: "Review each job and decide whether to save it or discard it.",
+    icon: Eye,
+    body: "Save jobs for later or discard them.",
   },
   {
     id: "scout-to-apply-panel",
@@ -105,13 +109,14 @@ const missionSteps: readonly MissionStep[] = [
     section: "scout" as const,
     scoutView: "to-apply" as const,
     title: "To Apply list",
-    icon: Route,
-    body: "Saved jobs stay here until they are moved into the tracker.",
+    icon: ListChecks,
+    body: "Saved jobs stay here until applied.",
   },
 ] as const;
 
-const TOUR_WIDTH = 500;
+const TOUR_WIDTH = 620;
 const TOUR_GAP = 14;
+const MOBILE_BREAKPOINT = 768;
 type AnchorStyle = {
   top: number;
   left: number;
@@ -147,6 +152,7 @@ const MissionLoop = ({
   } =
     useWorkflow();
   const [anchorStyle, setAnchorStyle] = useState<AnchorStyle | null>(null);
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
   const currentTargetRef = useRef<HTMLElement | null>(null);
   const currentStep = useMemo(
     () => missionSteps[missionStepIndex],
@@ -158,6 +164,7 @@ const MissionLoop = ({
     if (!open) {
       setMissionStepIndex(0);
       setAnchorStyle(null);
+      setIsMobileLayout(false);
       restoreTargetStyle(currentTargetRef.current);
       currentTargetRef.current = null;
     }
@@ -185,6 +192,18 @@ const MissionLoop = ({
 
   useLayoutEffect(() => {
     if (!open) {
+      return;
+    }
+
+    const mobileMode = window.innerWidth < MOBILE_BREAKPOINT;
+    setIsMobileLayout(mobileMode);
+
+    if (mobileMode) {
+      setAnchorStyle({
+        top: Math.max(12, window.innerHeight - 252),
+        left: 6,
+        width: window.innerWidth - 12,
+      });
       return;
     }
 
@@ -315,6 +334,7 @@ const MissionLoop = ({
 
   const goNext = () => {
     if (missionStepIndex === missionSteps.length - 1) {
+      onGoTracker();
       closeMissionLoop();
       return;
     }
@@ -339,21 +359,28 @@ const MissionLoop = ({
       <Card
         className={cn(
           "deco-frame-thick fixed z-[71] border-border-gold bg-deco-bg/78 shadow-deco-panel backdrop-blur-md",
+          isMobileLayout && "rounded-none bg-deco-bg/95 backdrop-blur-sm",
         )}
         style={{
           top: anchorStyle.top,
           left: anchorStyle.left,
           width: anchorStyle.width,
+          maxHeight: isMobileLayout ? "calc(100dvh - 24px)" : undefined,
         }}
       >
-        <CardContent className="grid gap-3 p-4">
+        <CardContent
+          className={cn(
+            "grid gap-3 p-4",
+            isMobileLayout && "max-h-[calc(100dvh-24px)] overflow-y-auto p-3",
+          )}
+        >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
                 Step {missionStepIndex + 1} of {missionSteps.length}
               </p>
               <h3 className="mt-1 flex items-center gap-2 font-heading text-xl text-deco-foreground">
-                <CurrentIcon className="h-5 w-5 text-primary-gold" />
+                <CurrentIcon className="h-5 w-5 shrink-0 text-primary-gold" />
                 {currentStep.title}
               </h3>
             </div>
@@ -368,15 +395,34 @@ const MissionLoop = ({
             </Button>
           </div>
 
-          <p className="text-sm leading-6 text-deco-muted">{currentStep.body}</p>
+          <p
+            className={cn(
+              "text-sm leading-6 text-deco-muted",
+              isMobileLayout && "text-[0.8rem] leading-5",
+            )}
+          >
+            {currentStep.body}
+          </p>
 
-          <div className="flex items-center justify-between gap-3 border-t border-primary-gold-muted pt-3">
-            <Button type="button" variant="outline" onClick={goBack}>
+          <div
+            className={cn(
+              "grid items-center gap-3 border-t border-primary-gold-muted pt-3",
+              isMobileLayout
+                ? "grid-cols-1"
+                : "grid-cols-[auto_1fr_auto]",
+            )}
+          >
+            <Button
+              className={cn("justify-center", isMobileLayout ? "w-full" : "ml-2")}
+              type="button"
+              variant="outline"
+              onClick={goBack}
+            >
               <ChevronLeft className="h-4 w-4" />
               Back
             </Button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               {missionSteps.map((step, index) => (
                 <span
                   aria-hidden="true"
@@ -391,7 +437,11 @@ const MissionLoop = ({
               ))}
             </div>
 
-            <Button type="button" onClick={goNext}>
+            <Button
+              className={cn("justify-center", isMobileLayout ? "w-full" : "mr-2")}
+              type="button"
+              onClick={goNext}
+            >
               {missionStepIndex === missionSteps.length - 1 ? "Finish" : "Next"}
               <ChevronRight className="h-4 w-4" />
             </Button>

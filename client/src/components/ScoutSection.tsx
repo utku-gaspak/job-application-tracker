@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Binoculars,
   Download,
   FileDigit,
   ExternalLink,
   FileUp,
+  Eye,
   Plus,
+  ListChecks,
   RefreshCcw,
   Save,
   Trash2,
@@ -867,9 +868,9 @@ const ScoutSection = ({
             >
               <span className="inline-flex items-center gap-2">
                 {toApplyViewMode === "detailed" ? (
-                  <Binoculars className="h-4 w-4" />
+                  <Eye className="h-4 w-4" />
                 ) : (
-                  <FileDigit className="h-4 w-4" />
+                  <ListChecks className="h-4 w-4" />
                 )}
                 {toApplyViewMode === "detailed" ? "List view" : "Detail view"}
               </span>
