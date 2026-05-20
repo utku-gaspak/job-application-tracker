@@ -10,6 +10,7 @@ import {
   ArrowUpDown,
   Binoculars,
   ChevronDown,
+  BarChart3,
   Diamond,
   CircleHelp,
   ExternalLink,
@@ -33,6 +34,7 @@ import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
 import Footer from "./Footer";
 import MissionLoop from "./MissionLoop";
+import TrackerStatusSankey from "./TrackerStatusSankey";
 import {
   createJobApplication,
   deleteJobApplication,
@@ -373,6 +375,7 @@ const Dashboard = () => {
   const [isDetailEditing, setIsDetailEditing] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [showStatusSankey, setShowStatusSankey] = useState(false);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -933,6 +936,16 @@ const Dashboard = () => {
                   Export
                 </Button>
                 <Button
+                  aria-pressed={showStatusSankey}
+                  className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
+                  onClick={() => setShowStatusSankey((current) => !current)}
+                  type="button"
+                  variant={themeButtonVariant}
+                >
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  {showStatusSankey ? "Board" : "Diagram"}
+                </Button>
+                <Button
                   aria-expanded={isFilterOpen}
                   className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
                   onClick={() => setIsFilterOpen((current) => !current)}
@@ -1063,75 +1076,26 @@ const Dashboard = () => {
           ) : null}
 
           {!isLoading && filteredApplications.length > 0 ? (
-            <div className="w-full space-y-4 md:hidden">
-              {boardColumns.map((column) => {
-                const isExpanded = mobileExpandedColumns[column.status];
+            showStatusSankey ? (
+              <TrackerStatusSankey applications={filteredApplications} />
+            ) : (
+              <>
+                <div className="w-full space-y-4 md:hidden">
+                  {boardColumns.map((column) => {
+                    const isExpanded = mobileExpandedColumns[column.status];
 
-                return (
-                  <section
-                    className={`kanban-column w-full ${column.frameClass} bg-deco-surface-soft p-4`}
-                    id={`column-${column.title.toLowerCase()}`}
-                    key={column.status}
-                  >
-                    <button
-                      aria-expanded={isExpanded}
-                      className="flex w-full items-start justify-between gap-3 text-left"
-                      onClick={() => toggleMobileColumn(column.status)}
-                      type="button"
-                    >
-                      <div>
-                        <h3 className="text-2xl text-deco-foreground">
-                          {column.title}
-                        </h3>
-                        <p className="mt-1 text-sm text-deco-muted">
-                          {column.subtitle}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={column.accentClass}>
-                          {columns[column.status].length}
-                        </span>
-                        <ChevronDown
-                          className={`h-4 w-4 text-deco-muted transition-transform ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
-                        />
-                      </div>
-                    </button>
-
-                    {isExpanded ? (
-                      <div className="mt-4 flex flex-col gap-2">
-                        {columns[column.status].map((application) => (
-                          <article
-                            className={`application-card ${column.borderClass} deco-frame cursor-default select-none border-border-gold-muted bg-deco-card px-3 py-2 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow`}
-                            key={application.id}
-                            onClick={() => openDetails(application)}
-                          >
-                            {renderApplicationCardContent(application)}
-                          </article>
-                        ))}
-                      </div>
-                    ) : null}
-                  </section>
-                );
-              })}
-            </div>
-          ) : null}
-
-          {!isLoading && filteredApplications.length > 0 ? (
-            <div className="hidden md:block" data-tour-id="tracker-board">
-              <DragDropContext
-                onDragEnd={(result) => void handleDragEnd(result)}
-              >
-                <div className="grid min-h-0 flex-1 gap-5 md:grid-cols-4">
-                  {boardColumns.map((column) => (
-                    <section
-                      className={`kanban-column w-full ${column.frameClass} bg-deco-surface-soft p-4`}
-                      id={`column-${column.title.toLowerCase()}`}
-                      key={column.status}
-                    >
-                      <div className="border-b border-primary-gold pb-3">
-                        <div className="flex items-end justify-between gap-3">
+                    return (
+                      <section
+                        className={`kanban-column w-full ${column.frameClass} bg-deco-surface-soft p-4`}
+                        id={`column-${column.title.toLowerCase()}`}
+                        key={column.status}
+                      >
+                        <button
+                          aria-expanded={isExpanded}
+                          className="flex w-full items-start justify-between gap-3 text-left"
+                          onClick={() => toggleMobileColumn(column.status)}
+                          type="button"
+                        >
                           <div>
                             <h3 className="text-2xl text-deco-foreground">
                               {column.title}
@@ -1140,77 +1104,130 @@ const Dashboard = () => {
                               {column.subtitle}
                             </p>
                           </div>
-                          <span className={column.accentClass}>
-                            {columns[column.status].length}
-                          </span>
-                        </div>
-                      </div>
-
-                      <Droppable droppableId={String(column.status)}>
-                        {(droppableProvided, droppableSnapshot) => (
-                          <div
-                            className={`mt-4 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-2 transition-colors ${
-                              droppableSnapshot.isDraggingOver
-                                ? "bg-primary-gold-muted"
-                                : ""
-                            }`}
-                            ref={droppableProvided.innerRef}
-                            {...droppableProvided.droppableProps}
-                          >
-                            {columns[column.status].map(
-                              (application, index) => (
-                                <Draggable
-                                  draggableId={application.id}
-                                  index={index}
-                                  key={application.id}
-                                >
-                                  {(draggableProvided, draggableSnapshot) => {
-                                    const { style, ...draggableProps } =
-                                      draggableProvided.draggableProps;
-                                    const draggableCard = (
-                                      <article
-                                        className={`application-card ${column.borderClass} deco-frame cursor-grab select-none border-border-gold-muted bg-deco-card px-3 py-2 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow active:cursor-grabbing ${
-                                          draggableSnapshot.isDragging
-                                            ? "shadow-deco-glow"
-                                            : ""
-                                        }`}
-                                        key={application.id}
-                                        ref={draggableProvided.innerRef}
-                                        {...draggableProps}
-                                        {...draggableProvided.dragHandleProps}
-                                        style={style}
-                                        onClick={() => openDetails(application)}
-                                      >
-                                        {renderApplicationCardContent(
-                                          application,
-                                        )}
-                                      </article>
-                                    );
-
-                                    if (
-                                      draggableSnapshot.isDragging &&
-                                      typeof document !== "undefined"
-                                    ) {
-                                      return createPortal(
-                                        draggableCard,
-                                        document.body,
-                                      );
-                                    }
-
-                                    return draggableCard;
-                                  }}
-                                </Draggable>
-                              ),
-                            )}
-                            {droppableProvided.placeholder}
+                          <div className="flex items-center gap-2">
+                            <span className={column.accentClass}>
+                              {columns[column.status].length}
+                            </span>
+                            <ChevronDown
+                              className={`h-4 w-4 text-deco-muted transition-transform ${
+                                isExpanded ? "rotate-180" : ""
+                              }`}
+                            />
                           </div>
-                        )}
-                      </Droppable>
-                    </section>
-                  ))}
+                        </button>
+
+                        {isExpanded ? (
+                          <div className="mt-4 flex flex-col gap-2">
+                            {columns[column.status].map((application) => (
+                              <article
+                                className={`application-card ${column.borderClass} deco-frame cursor-default select-none border-border-gold-muted bg-deco-card px-3 py-2 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow`}
+                                key={application.id}
+                                onClick={() => openDetails(application)}
+                              >
+                                {renderApplicationCardContent(application)}
+                              </article>
+                            ))}
+                          </div>
+                        ) : null}
+                      </section>
+                    );
+                  })}
                 </div>
-              </DragDropContext>
-            </div>
+
+                <div className="hidden md:block" data-tour-id="tracker-board">
+                  <DragDropContext
+                    onDragEnd={(result) => void handleDragEnd(result)}
+                  >
+                    <div className="grid min-h-0 flex-1 gap-5 md:grid-cols-4">
+                      {boardColumns.map((column) => (
+                        <section
+                          className={`kanban-column w-full ${column.frameClass} bg-deco-surface-soft p-4`}
+                          id={`column-${column.title.toLowerCase()}`}
+                          key={column.status}
+                        >
+                          <div className="border-b border-primary-gold pb-3">
+                            <div className="flex items-end justify-between gap-3">
+                              <div>
+                                <h3 className="text-2xl text-deco-foreground">
+                                  {column.title}
+                                </h3>
+                                <p className="mt-1 text-sm text-deco-muted">
+                                  {column.subtitle}
+                                </p>
+                              </div>
+                              <span className={column.accentClass}>
+                                {columns[column.status].length}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Droppable droppableId={String(column.status)}>
+                            {(droppableProvided, droppableSnapshot) => (
+                              <div
+                                className={`mt-4 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-2 transition-colors ${
+                                  droppableSnapshot.isDraggingOver
+                                    ? "bg-primary-gold-muted"
+                                    : ""
+                                }`}
+                                ref={droppableProvided.innerRef}
+                                {...droppableProvided.droppableProps}
+                              >
+                                {columns[column.status].map(
+                                  (application, index) => (
+                                    <Draggable
+                                      draggableId={application.id}
+                                      index={index}
+                                      key={application.id}
+                                    >
+                                      {(draggableProvided, draggableSnapshot) => {
+                                        const { style, ...draggableProps } =
+                                          draggableProvided.draggableProps;
+                                        const draggableCard = (
+                                          <article
+                                            className={`application-card ${column.borderClass} deco-frame cursor-grab select-none border-border-gold-muted bg-deco-card px-3 py-2 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow active:cursor-grabbing ${
+                                              draggableSnapshot.isDragging
+                                                ? "shadow-deco-glow"
+                                                : ""
+                                            }`}
+                                            key={application.id}
+                                            ref={draggableProvided.innerRef}
+                                            {...draggableProps}
+                                            {...draggableProvided.dragHandleProps}
+                                            style={style}
+                                            onClick={() => openDetails(application)}
+                                          >
+                                            {renderApplicationCardContent(
+                                              application,
+                                            )}
+                                          </article>
+                                        );
+
+                                        if (
+                                          draggableSnapshot.isDragging &&
+                                          typeof document !== "undefined"
+                                        ) {
+                                          return createPortal(
+                                            draggableCard,
+                                            document.body,
+                                          );
+                                        }
+
+                                        return draggableCard;
+                                      }}
+                                    </Draggable>
+                                  ),
+                                )}
+                                {droppableProvided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </section>
+                      ))}
+                    </div>
+                  </DragDropContext>
+                </div>
+              </>
+            )
           ) : null}
 
           <Dialog
