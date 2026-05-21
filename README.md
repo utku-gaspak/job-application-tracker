@@ -17,6 +17,7 @@ Live site: https://traxr.xyz
 
 ### Job Scout
 - Upload jobs.json output from [hiring-cafe-scout](https://github.com/utku-gaspak/hiring-cafe-scout) directly into the app
+- Start a HiringCafe scrape from the app, track live progress, handle verification when needed, and import completed results into Scout
 - Swipe-based evaluation UI - right to save, left to discard, keyboard shortcuts supported
 - To Apply queue with direct company apply links
 - JSON or CSV export for the Scout queue
