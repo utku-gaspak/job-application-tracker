@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 {
     public DbSet<JobApplication> JobApplications { get; set; } = null!;
     public DbSet<ScoutJob> ScoutJobs { get; set; } = null!;
+    public DbSet<ScrapeJob> ScrapeJobs { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -22,5 +23,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
         builder.Entity<ScoutJob>()
             .HasIndex(scoutJob => scoutJob.JobUrl);
+
+        builder.Entity<ScrapeJob>()
+            .HasIndex(scrapeJob => scrapeJob.Status);
     }
 }

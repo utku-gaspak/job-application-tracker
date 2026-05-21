@@ -520,6 +520,189 @@
           }
         ]
       }
+    },
+    "/api/scrape": {
+      "post": {
+        "tags": [
+          "Scrape"
+        ],
+        "operationId": "Scrape_Create",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScrapeJobCreateDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapeJobStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/scrape/{jobId}/verification-complete": {
+      "post": {
+        "tags": [
+          "Scrape"
+        ],
+        "operationId": "Scrape_MarkVerificationComplete",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapeJobStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/scrape/{jobId}": {
+      "get": {
+        "tags": [
+          "Scrape"
+        ],
+        "operationId": "Scrape_Get",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapeJobStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/scrape/{jobId}/jobs.json": {
+      "get": {
+        "tags": [
+          "Scrape"
+        ],
+        "operationId": "Scrape_DownloadJson",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/scrape/{jobId}/jobs.md": {
+      "get": {
+        "tags": [
+          "Scrape"
+        ],
+        "operationId": "Scrape_DownloadMarkdown",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -990,6 +1173,121 @@
           "skipped": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ScrapeJobStatusDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "verificationUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "jsonUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "markdownUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "resultCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "progress": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ScrapeProgressDto"
+              }
+            ]
+          }
+        }
+      },
+      "ScrapeProgressDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "pagesScraped": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "visibleJobsScraped": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "matchedJobs": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "estimatedTotalJobs": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "totalIsEstimate": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "progressPercent": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "currentPageListings": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "currentPageMatched": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "skippedSeen": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ScrapeJobCreateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "includeSeen": {
+            "type": "boolean"
           }
         }
       }

@@ -14,4 +14,27 @@ public static class RequiredConfiguration
 
         return defaultConnection;
     }
+
+    public static string GetScraperRootDirectory(IConfiguration configuration) =>
+        GetOptionalValue(configuration, "Scraper:RootDirectory", "/srv/hiring-cafe/scraper");
+
+    public static string GetScraperRunsDirectory(IConfiguration configuration) =>
+        GetOptionalValue(configuration, "Scraper:RunsDirectory", "/srv/hiring-cafe/runs");
+
+    public static string GetScraperProfilesDirectory(IConfiguration configuration) =>
+        GetOptionalValue(
+            configuration,
+            "Scraper:ProfilesDirectory",
+            "/srv/hiring-cafe/browser-profiles"
+        );
+
+    public static string GetScraperDataDirectory(IConfiguration configuration) =>
+        GetOptionalValue(configuration, "Scraper:DataDirectory", "/srv/hiring-cafe/data");
+
+    private static string GetOptionalValue(
+        IConfiguration configuration,
+        string key,
+        string fallback
+    ) =>
+        string.IsNullOrWhiteSpace(configuration[key]) ? fallback : configuration[key]!;
 }

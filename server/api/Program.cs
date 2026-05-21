@@ -52,6 +52,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
+builder.Services.AddSingleton<ScrapeJobQueue>();
+builder.Services.AddSingleton<IScrapeJobQueue>(provider => provider.GetRequiredService<ScrapeJobQueue>());
+builder.Services.AddHostedService<ScrapeJobWorker>();
 
 builder.Services.AddOpenApiDocument(config =>
 {
