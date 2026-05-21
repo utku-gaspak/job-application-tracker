@@ -6,13 +6,6 @@ It covers the full pipeline: scrape job postings with [hiring-cafe-scout](https:
 
 Live site: https://traxr.xyz
 
-## Screenshots
-
-![Login screen](docs/screenshots/login1.png)
-![Dashboard](docs/screenshots/dashboard1.png)
-![Application details](docs/screenshots/details.png)
-![Edit application](docs/screenshots/edit.png)
-
 ## Core Features
 
 ### Job Scout
