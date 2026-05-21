@@ -30,6 +30,7 @@ import {
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
 import Footer from "./Footer";
@@ -374,6 +375,7 @@ const mobileAccordionDefaults: Record<JobApplicationStatus, boolean> = {
 
 const Dashboard = () => {
   const { logout, username } = useAuth();
+  const navigate = useNavigate();
   const {
     activeSection,
     setActiveSection: setWorkflowSection,
@@ -881,6 +883,18 @@ const Dashboard = () => {
 
           <div className="mt-4 flex w-full flex-col gap-3">
             <div className="grid grid-cols-1 gap-2">
+              <Button
+                aria-label="Open Scrape"
+                className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
+                onClick={() => navigate("/scrape")}
+                type="button"
+                variant={themeButtonVariant}
+              >
+                <span className="flex w-full items-center justify-center gap-2">
+                  <Search className="h-4 w-4 shrink-0" />
+                  <span>Scrape</span>
+                </span>
+              </Button>
               <Button
                 aria-label="Open Tracker"
                 className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"

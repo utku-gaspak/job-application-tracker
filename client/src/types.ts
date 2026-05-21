@@ -91,6 +91,49 @@ export interface ScoutUploadResult {
   skipped: number;
 }
 
+export const ScrapeJobStatus = {
+  Queued: "queued",
+  Running: "running",
+  NeedsVerification: "needs_verification",
+  Done: "done",
+  Failed: "failed",
+  Cancelled: "cancelled",
+} as const;
+
+export type ScrapeJobStatus =
+  (typeof ScrapeJobStatus)[keyof typeof ScrapeJobStatus];
+
+export interface ScrapeJobStatusResponse {
+  jobId: string;
+  status: ScrapeJobStatus;
+  message?: string | null;
+  verificationUrl?: string | null;
+  jsonUrl?: string | null;
+  markdownUrl?: string | null;
+  error?: string | null;
+  resultCount?: number | null;
+  progress?: ScrapeProgress | null;
+}
+
+export interface ScrapeProgress {
+  status?: string | null;
+  pagesScraped?: number | null;
+  visibleJobsScraped?: number | null;
+  matchedJobs?: number | null;
+  estimatedTotalJobs?: number | null;
+  totalIsEstimate?: boolean | null;
+  progressPercent?: number | null;
+  currentPageListings?: number | null;
+  currentPageMatched?: number | null;
+  skippedSeen?: number | null;
+  message?: string | null;
+}
+
+export interface ScrapeJobCreateInput {
+  url: string;
+  includeSeen: boolean;
+}
+
 export const jobApplicationStatusLabels: Record<JobApplicationStatus, string> = {
   [JobApplicationStatus.Applied]: "Applied",
   [JobApplicationStatus.Interviewing]: "Interviewing",

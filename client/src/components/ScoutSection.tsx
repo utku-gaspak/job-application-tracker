@@ -579,10 +579,10 @@ const ScoutSection = ({
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
+          <div className="flex flex-col gap-2 lg:flex-row lg:flex-nowrap lg:items-center">
             <Button
               data-tour-id="scout-upload"
-              className="w-full justify-center"
+              className="w-full justify-center lg:w-auto"
               onClick={() => setActiveView("upload")}
               type="button"
               variant={activeView === "upload" ? "default" : "outline"}
@@ -591,7 +591,7 @@ const ScoutSection = ({
             </Button>
             <Button
               data-tour-id="scout-evaluate"
-              className="w-full justify-center"
+              className="w-full justify-center lg:w-auto"
               onClick={() => setActiveView("evaluate")}
               type="button"
               variant={activeView === "evaluate" ? "default" : "outline"}
@@ -600,7 +600,7 @@ const ScoutSection = ({
             </Button>
             <Button
               data-tour-id="scout-to-apply"
-              className="w-full justify-center"
+              className="w-full justify-center lg:w-auto"
               onClick={() => setActiveView("to-apply")}
               type="button"
               variant={activeView === "to-apply" ? "default" : "outline"}
@@ -608,7 +608,7 @@ const ScoutSection = ({
               To Apply
             </Button>
             <Button
-              className="w-full justify-center"
+              className="w-full justify-center lg:w-auto"
               onClick={() => void loadJobs()}
               type="button"
               variant="outline"
@@ -617,7 +617,7 @@ const ScoutSection = ({
               Refresh
             </Button>
             <Button
-              className="w-full justify-center"
+              className="w-full justify-center lg:w-auto"
               onClick={() => setIsExportDialogOpen(true)}
               type="button"
               variant="outline"
@@ -626,7 +626,7 @@ const ScoutSection = ({
               Export
             </Button>
             <Button
-              className="w-full justify-center"
+              className="w-full justify-center lg:w-auto"
               onClick={openManualDialog}
               type="button"
               variant="outline"

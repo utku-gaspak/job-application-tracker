@@ -6,6 +6,9 @@ import { WorkflowProvider } from "./context/WorkflowContext";
 
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ScrapePage = lazy(() => import("./pages/ScrapePage"));
+const ScrapeStatusPage = lazy(() => import("./pages/ScrapeStatusPage"));
+const ScrapeVerifyPage = lazy(() => import("./pages/ScrapeVerifyPage"));
 const Dashboard = lazy(() => import("./components/Dashboard"));
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
@@ -36,6 +39,30 @@ function App() {
             <div className="flex-1">
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route
+                  path="/scrape"
+                  element={
+                    <ProtectedRoute>
+                      <ScrapePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/scrape/:jobId"
+                  element={
+                    <ProtectedRoute>
+                      <ScrapeStatusPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/verify/:jobId"
+                  element={
+                    <ProtectedRoute>
+                      <ScrapeVerifyPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/"
                   element={
