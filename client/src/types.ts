@@ -116,6 +116,31 @@ export interface ScrapeJobStatusResponse {
   progress?: ScrapeProgress | null;
 }
 
+export interface ScrapeHistoryJob {
+  jobId: string;
+  status: string;
+  createdAt: string;
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  resultCount?: number | null;
+  importedCount?: number | null;
+}
+
+export interface ScrapeHistorySummary {
+  totalJobs: number;
+  completedJobs: number;
+  failedJobs: number;
+  runningJobs: number;
+  queuedJobs: number;
+  lastScrapedAt?: string | null;
+  lastSuccessfulScrapedAt?: string | null;
+  lastSuccessfulResultCount?: number | null;
+  lastSuccessfulImportedCount?: number | null;
+  totalResultsFound: number;
+  totalImportedJobs: number;
+  recentJobs: ScrapeHistoryJob[];
+}
+
 export interface ScrapeProgress {
   status?: string | null;
   pagesScraped?: number | null;

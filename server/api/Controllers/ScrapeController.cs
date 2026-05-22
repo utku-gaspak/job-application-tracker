@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using api;
 using api.Data;
 using api.Dto;
@@ -9,6 +10,7 @@ using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers;
 
@@ -164,6 +166,128 @@ public class ScrapeController(
         }
 
         return Ok(await ToStatusDtoAsync(job, cancellationToken));
+    }
+
+    [HttpGet("history")]
+    public async Task<ActionResult<ScrapeHistorySummaryDto>> GetHistory(
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        var jobs = await dbContext
+            .ScrapeJobs.AsNoTracking()
+            .Where(job => job.UserId == userId)
+            .OrderByDescending(job => job.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var totalJobs = jobs.Count;
+        var completedJobs = 0;
+        var failedJobs = 0;
+        var runningJobs = 0;
+        var queuedJobs = 0;
+        var totalResultsFound = 0;
+        var totalImportedJobs = 0;
+        DateTime? lastScrapedAt = null;
+        DateTime? lastSuccessfulScrapedAt = null;
+        int? lastSuccessfulResultCount = null;
+        int? lastSuccessfulImportedCount = null;
+        var recentJobs = new List<ScrapeHistoryJobDto>();
+
+        foreach (var job in jobs)
+        {
+            var status = job.Status?.Trim() ?? string.Empty;
+            var isDone = status.Equals("done", StringComparison.OrdinalIgnoreCase);
+            var isFailed = status.Equals("failed", StringComparison.OrdinalIgnoreCase);
+            var isRunning = status.Equals("running", StringComparison.OrdinalIgnoreCase);
+            var isQueued = status.Equals("queued", StringComparison.OrdinalIgnoreCase);
+
+            if (isDone)
+            {
+                completedJobs++;
+            }
+            else if (isFailed)
+            {
+                failedJobs++;
+            }
+            else if (isRunning)
+            {
+                runningJobs++;
+            }
+            else if (isQueued)
+            {
+                queuedJobs++;
+            }
+
+            var scrapedAt = GetScrapedAt(job);
+            if (lastScrapedAt is null || scrapedAt > lastScrapedAt)
+            {
+                lastScrapedAt = scrapedAt;
+            }
+
+            int? resultCount = null;
+            if (isDone)
+            {
+                resultCount = await TryReadResultCountAsync(job, cancellationToken);
+                if (resultCount.HasValue)
+                {
+                    totalResultsFound += resultCount.Value;
+                }
+            }
+
+            var importedCount = TryReadImportedCount(job.Message);
+            if (importedCount.HasValue)
+            {
+                totalImportedJobs += importedCount.Value;
+            }
+
+            if (
+                lastSuccessfulScrapedAt is null
+                && isDone
+                && job.FinishedAt is not null
+            )
+            {
+                lastSuccessfulScrapedAt = scrapedAt;
+                lastSuccessfulResultCount = resultCount;
+                lastSuccessfulImportedCount = importedCount;
+            }
+
+            if (recentJobs.Count < 5)
+            {
+                recentJobs.Add(
+                    new ScrapeHistoryJobDto(
+                        job.JobId,
+                        status,
+                        job.CreatedAt,
+                        job.StartedAt,
+                        job.FinishedAt,
+                        resultCount,
+                        importedCount
+                    )
+                );
+            }
+        }
+
+        return Ok(
+            new ScrapeHistorySummaryDto(
+                totalJobs,
+                completedJobs,
+                failedJobs,
+                runningJobs,
+                queuedJobs,
+                lastScrapedAt,
+                lastSuccessfulScrapedAt,
+                lastSuccessfulResultCount,
+                lastSuccessfulImportedCount,
+                totalResultsFound,
+                totalImportedJobs,
+                recentJobs
+            )
+        );
     }
 
     [HttpGet("{jobId}/jobs.json")]
@@ -558,6 +682,47 @@ public class ScrapeController(
         return null;
     }
 
+    private static int? TryReadImportedCount(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return null;
+        }
+
+        if (
+            message.Contains(
+                "No new Scout jobs were added",
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+        {
+            return 0;
+        }
+
+        var match = Regex.Match(
+            message,
+            @"Imported\s+(?<count>\d+)\s+new jobs",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant
+        );
+
+        if (!match.Success)
+        {
+            return null;
+        }
+
+        return int.TryParse(
+            match.Groups["count"].Value,
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out var importedCount
+        )
+            ? importedCount
+            : null;
+    }
+
     private static bool CanDownload(ScrapeJob job) =>
         job.Status.Equals("done", StringComparison.OrdinalIgnoreCase);
+
+    private static DateTime GetScrapedAt(ScrapeJob job) =>
+        job.FinishedAt ?? job.StartedAt ?? (DateTime?)job.UpdatedAt ?? job.CreatedAt;
 }

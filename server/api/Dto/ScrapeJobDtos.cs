@@ -48,3 +48,28 @@ public record ScrapeJobStatusDto(
     int? ResultCount,
     ScrapeProgressDto? Progress
 );
+
+public record ScrapeHistoryJobDto(
+    string JobId,
+    string Status,
+    DateTime CreatedAt,
+    DateTime? StartedAt,
+    DateTime? FinishedAt,
+    int? ResultCount,
+    int? ImportedCount
+);
+
+public record ScrapeHistorySummaryDto(
+    int TotalJobs,
+    int CompletedJobs,
+    int FailedJobs,
+    int RunningJobs,
+    int QueuedJobs,
+    DateTime? LastScrapedAt,
+    DateTime? LastSuccessfulScrapedAt,
+    int? LastSuccessfulResultCount,
+    int? LastSuccessfulImportedCount,
+    int TotalResultsFound,
+    int TotalImportedJobs,
+    IReadOnlyList<ScrapeHistoryJobDto> RecentJobs
+);

@@ -7,7 +7,6 @@ import { WorkflowProvider } from "./context/WorkflowContext";
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ScrapePage = lazy(() => import("./pages/ScrapePage"));
-const ScrapeStatusPage = lazy(() => import("./pages/ScrapeStatusPage"));
 const ScrapeVerifyPage = lazy(() => import("./pages/ScrapeVerifyPage"));
 const Dashboard = lazy(() => import("./components/Dashboard"));
 
@@ -51,7 +50,7 @@ function App() {
                   path="/scrape/:jobId"
                   element={
                     <ProtectedRoute>
-                      <ScrapeStatusPage />
+                      <ScrapePage />
                     </ProtectedRoute>
                   }
                 />

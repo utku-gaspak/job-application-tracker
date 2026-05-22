@@ -4,6 +4,7 @@ import { notifyAuthTokenCleared } from "../authEvents";
 import { finalUrl } from "../baseUrl";
 import type {
   ScrapeJobCreateInput,
+  ScrapeHistorySummary,
   ScrapeJobStatusResponse,
 } from "../types";
 
@@ -57,6 +58,11 @@ export const createScrapeJob = async (input: ScrapeJobCreateInput) => {
 
 export const getScrapeJob = async (jobId: string) => {
   const response = await scrapeApi.get<ScrapeJobStatusResponse>(`/${jobId}`);
+  return response.data;
+};
+
+export const getScrapeHistorySummary = async () => {
+  const response = await scrapeApi.get<ScrapeHistorySummary>("/history");
   return response.data;
 };
 

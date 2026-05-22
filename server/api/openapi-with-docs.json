@@ -594,6 +594,42 @@
         ]
       }
     },
+    "/api/scrape/{jobId}/verification-started": {
+      "post": {
+        "tags": [
+          "Scrape"
+        ],
+        "operationId": "Scrape_MarkVerificationStarted",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapeJobStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/scrape/{jobId}": {
       "get": {
         "tags": [
@@ -618,6 +654,31 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ScrapeJobStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/scrape/history": {
+      "get": {
+        "tags": [
+          "Scrape"
+        ],
+        "operationId": "Scrape_GetHistory",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapeHistorySummaryDto"
                 }
               }
             }
@@ -1288,6 +1349,102 @@
           },
           "includeSeen": {
             "type": "boolean"
+          }
+        }
+      },
+      "ScrapeHistorySummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "totalJobs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedJobs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failedJobs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "runningJobs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "queuedJobs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastScrapedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSuccessfulScrapedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSuccessfulResultCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "lastSuccessfulImportedCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "totalResultsFound": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalImportedJobs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "recentJobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScrapeHistoryJobDto"
+            }
+          }
+        }
+      },
+      "ScrapeHistoryJobDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resultCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "importedCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       }

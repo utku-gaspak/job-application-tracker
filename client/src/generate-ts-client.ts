@@ -670,6 +670,42 @@ export class ScrapeClient {
         return Promise.resolve<ScrapeJobStatusDto>(null as any);
     }
 
+    markVerificationStarted(jobId: string): Promise<ScrapeJobStatusDto> {
+        let url_ = this.baseUrl + "/api/scrape/{jobId}/verification-started";
+        if (jobId === undefined || jobId === null)
+            throw new globalThis.Error("The parameter 'jobId' must be defined.");
+        url_ = url_.replace("{jobId}", encodeURIComponent("" + jobId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMarkVerificationStarted(_response);
+        });
+    }
+
+    protected processMarkVerificationStarted(response: Response): Promise<ScrapeJobStatusDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ScrapeJobStatusDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ScrapeJobStatusDto>(null as any);
+    }
+
     get(jobId: string): Promise<ScrapeJobStatusDto> {
         let url_ = this.baseUrl + "/api/scrape/{jobId}";
         if (jobId === undefined || jobId === null)
@@ -704,6 +740,39 @@ export class ScrapeClient {
             });
         }
         return Promise.resolve<ScrapeJobStatusDto>(null as any);
+    }
+
+    getHistory(): Promise<ScrapeHistorySummaryDto> {
+        let url_ = this.baseUrl + "/api/scrape/history";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetHistory(_response);
+        });
+    }
+
+    protected processGetHistory(response: Response): Promise<ScrapeHistorySummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ScrapeHistorySummaryDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ScrapeHistorySummaryDto>(null as any);
     }
 
     downloadJson(jobId: string): Promise<FileResponse> {
@@ -951,6 +1020,31 @@ export interface ScrapeProgressDto {
 export interface ScrapeJobCreateDto {
     url?: string;
     includeSeen?: boolean;
+}
+
+export interface ScrapeHistorySummaryDto {
+    totalJobs?: number;
+    completedJobs?: number;
+    failedJobs?: number;
+    runningJobs?: number;
+    queuedJobs?: number;
+    lastScrapedAt?: string | undefined;
+    lastSuccessfulScrapedAt?: string | undefined;
+    lastSuccessfulResultCount?: number | undefined;
+    lastSuccessfulImportedCount?: number | undefined;
+    totalResultsFound?: number;
+    totalImportedJobs?: number;
+    recentJobs?: ScrapeHistoryJobDto[];
+}
+
+export interface ScrapeHistoryJobDto {
+    jobId?: string;
+    status?: string;
+    createdAt?: string;
+    startedAt?: string | undefined;
+    finishedAt?: string | undefined;
+    resultCount?: number | undefined;
+    importedCount?: number | undefined;
 }
 
 export interface FileResponse {
