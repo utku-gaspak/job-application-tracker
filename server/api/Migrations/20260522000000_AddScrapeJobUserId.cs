@@ -1,9 +1,15 @@
+using System;
+using api.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace api.Migrations
 {
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20260522000000_AddScrapeJobUserId")]
     public partial class AddScrapeJobUserId : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
