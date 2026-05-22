@@ -23,12 +23,12 @@ services:
       JWT__SigningKey: ${JWT__SigningKey}
       Cors__AllowedOrigins__0: ${Cors__AllowedOrigins__0}
       Cors__AllowedOrigins__1: ${Cors__AllowedOrigins__1}
-      Scraper__RootDirectory: ${Scraper__RootDirectory:-/srv/hiring-cafe/scraper}
+      Scraper__RootDirectory: ${Scraper__RootDirectory:-/root/code/hiring-cafe-scout}
       Scraper__RunsDirectory: ${Scraper__RunsDirectory:-/srv/hiring-cafe/runs}
       Scraper__ProfilesDirectory: ${Scraper__ProfilesDirectory:-/srv/hiring-cafe/browser-profiles}
       Scraper__DataDirectory: ${Scraper__DataDirectory:-/srv/hiring-cafe/data}
     volumes:
-      - ${Scraper__RootDirectory:-/srv/hiring-cafe/scraper}:${Scraper__RootDirectory:-/srv/hiring-cafe/scraper}:ro
+      - ${Scraper__RootDirectory:-/root/code/hiring-cafe-scout}:${Scraper__RootDirectory:-/root/code/hiring-cafe-scout}
       - ${Scraper__RunsDirectory:-/srv/hiring-cafe/runs}:${Scraper__RunsDirectory:-/srv/hiring-cafe/runs}
       - ${Scraper__ProfilesDirectory:-/srv/hiring-cafe/browser-profiles}:${Scraper__ProfilesDirectory:-/srv/hiring-cafe/browser-profiles}
       - ${Scraper__DataDirectory:-/srv/hiring-cafe/data}:${Scraper__DataDirectory:-/srv/hiring-cafe/data}

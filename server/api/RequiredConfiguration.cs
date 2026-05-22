@@ -16,7 +16,7 @@ public static class RequiredConfiguration
     }
 
     public static string GetScraperRootDirectory(IConfiguration configuration) =>
-        GetOptionalValue(configuration, "Scraper:RootDirectory", "/srv/hiring-cafe/scraper");
+        GetOptionalValue(configuration, "Scraper:RootDirectory", "/root/code/hiring-cafe-scout");
 
     public static string GetScraperRunsDirectory(IConfiguration configuration) =>
         GetOptionalValue(configuration, "Scraper:RunsDirectory", "/srv/hiring-cafe/runs");
