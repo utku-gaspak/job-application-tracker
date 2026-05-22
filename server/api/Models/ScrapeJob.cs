@@ -11,6 +11,9 @@ public class ScrapeJob
     [Required]
     public string SourceUrl { get; set; } = string.Empty;
 
+    [Column(TypeName = "text")]
+    public string? UserId { get; set; }
+
     public bool IncludeSeen { get; set; } = false;
 
     [Required]

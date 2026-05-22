@@ -95,6 +95,7 @@ export const ScrapeJobStatus = {
   Queued: "queued",
   Running: "running",
   NeedsVerification: "needs_verification",
+  Verifying: "verifying",
   Done: "done",
   Failed: "failed",
   Cancelled: "cancelled",

@@ -4,6 +4,7 @@ import { ExternalLink, LoaderCircle, ArrowLeft, CircleCheck } from "lucide-react
 import {
   completeScrapeVerification,
   getScrapeJob,
+  startScrapeVerification,
 } from "../api/scrapeApi";
 import { ScrapeJobStatus as ScrapeStatus, type ScrapeJobStatusResponse } from "../types";
 import { Button } from "../components/ui/button";
@@ -67,10 +68,22 @@ const ScrapeVerifyPage = () => {
     };
   }, [jobId]);
 
-  const handleOpenSession = () => {
+  const handleOpenSession = async () => {
     if (!sessionUrl) {
       setErrorMessage("No verification browser URL is configured.");
       return;
+    }
+
+    if (jobId && job?.status === ScrapeStatus.NeedsVerification) {
+      try {
+        const nextJob = await startScrapeVerification(jobId);
+        setJob(nextJob);
+        setErrorMessage(null);
+      } catch (startError) {
+        console.error("Could not mark verification started:", startError);
+        setErrorMessage("Could not start the verification session.");
+        return;
+      }
     }
 
     window.open(sessionUrl, "_blank", "noopener,noreferrer");
@@ -145,7 +158,7 @@ const ScrapeVerifyPage = () => {
                 <Button
                   className="w-full sm:w-auto"
                   disabled={!sessionUrl}
-                  onClick={handleOpenSession}
+                  onClick={() => void handleOpenSession()}
                   type="button"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -153,7 +166,13 @@ const ScrapeVerifyPage = () => {
                 </Button>
                 <Button
                   className="w-full sm:w-auto"
-                  disabled={saving || job.status !== ScrapeStatus.NeedsVerification}
+                  disabled={
+                    saving
+                    || (
+                      job.status !== ScrapeStatus.NeedsVerification
+                      && job.status !== ScrapeStatus.Verifying
+                    )
+                  }
                   onClick={() => void handleCompleteVerification()}
                   type="button"
                   variant="outline"

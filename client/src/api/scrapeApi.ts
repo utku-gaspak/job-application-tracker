@@ -67,6 +67,13 @@ export const completeScrapeVerification = async (jobId: string) => {
   return response.data;
 };
 
+export const startScrapeVerification = async (jobId: string) => {
+  const response = await scrapeApi.post<ScrapeJobStatusResponse>(
+    `/${jobId}/verification-started`,
+  );
+  return response.data;
+};
+
 export const downloadScrapeJson = async (jobId: string) => {
   const response = await scrapeApi.get<Blob>(`/${jobId}/jobs.json`, {
     responseType: "blob",

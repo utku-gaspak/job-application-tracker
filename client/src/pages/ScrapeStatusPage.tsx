@@ -4,12 +4,14 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  CircleCheck,
   Download,
   ExternalLink,
   LoaderCircle,
   FileText,
 } from "lucide-react";
 import {
+  completeScrapeVerification,
   downloadScrapeJson,
   downloadScrapeMarkdown,
   getScrapeJob,
@@ -71,6 +73,7 @@ const ScrapeStatusPage = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [working, setWorking] = useState<"json" | "markdown" | null>(null);
+  const [verificationSaving, setVerificationSaving] = useState(false);
   const progress = job?.progress ?? null;
   const progressPercent = job?.status === ScrapeStatus.Done ? 100 : progress?.progressPercent ?? null;
   const showProgressCard =
@@ -121,7 +124,9 @@ const ScrapeStatusPage = () => {
       case ScrapeStatus.Running:
         return "Collecting jobs";
       case ScrapeStatus.NeedsVerification:
-        return "Verification needed";
+        return "HiringCafe needs browser verification";
+      case ScrapeStatus.Verifying:
+        return "Waiting for verification";
       case ScrapeStatus.Done:
         return "Scrape complete";
       case ScrapeStatus.Failed:
@@ -200,6 +205,25 @@ const ScrapeStatusPage = () => {
       setErrorMessage("Could not download the scrape result.");
     } finally {
       setWorking(null);
+    }
+  };
+
+  const handleCompleteVerification = async () => {
+    if (!jobId) {
+      return;
+    }
+
+    setVerificationSaving(true);
+
+    try {
+      const nextJob = await completeScrapeVerification(jobId);
+      setJob(nextJob);
+      setErrorMessage(null);
+    } catch (completeError) {
+      console.error("Could not complete verification:", completeError);
+      setErrorMessage("Could not mark verification complete.");
+    } finally {
+      setVerificationSaving(false);
     }
   };
 
@@ -303,28 +327,39 @@ const ScrapeStatusPage = () => {
                 </div>
               ) : null}
 
-              {job.status === ScrapeStatus.NeedsVerification ? (
+              {job.status === ScrapeStatus.NeedsVerification || job.status === ScrapeStatus.Verifying ? (
                 <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-4 py-3">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-sm text-deco-foreground">
-                        Open the verification browser session, clear the challenge, then return here.
+                        Open the verification browser session, clear the challenge, then mark it complete.
                       </p>
                       <p className="mt-1 text-xs uppercase tracking-[0.14em] text-deco-muted">
                         The same browser profile stays attached to this scrape job.
                       </p>
                     </div>
-                    <Button
-                      asChild
-                      className="w-full sm:w-auto"
-                      type="button"
-                      variant="outline"
-                    >
-                      <Link to={`/verify/${job.jobId}`}>
-                        <ExternalLink className="h-4 w-4" />
-                        Open verification session
-                      </Link>
-                    </Button>
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                      <Button
+                        asChild
+                        className="w-full sm:w-auto"
+                        type="button"
+                        variant="outline"
+                      >
+                        <Link to={`/verify/${job.jobId}`}>
+                          <ExternalLink className="h-4 w-4" />
+                          Open verification session
+                        </Link>
+                      </Button>
+                      <Button
+                        className="w-full sm:w-auto"
+                        disabled={verificationSaving}
+                        onClick={() => void handleCompleteVerification()}
+                        type="button"
+                      >
+                        <CircleCheck className="h-4 w-4" />
+                        {verificationSaving ? "Saving..." : "I completed verification"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : null}

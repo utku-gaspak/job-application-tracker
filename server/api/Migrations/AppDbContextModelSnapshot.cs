@@ -377,12 +377,17 @@ namespace api.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
                     b.Property<string>("VerificationUrl")
                         .HasColumnType("text");
 
                     b.HasKey("JobId");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ScrapeJobs");
                 });

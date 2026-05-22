@@ -91,6 +91,11 @@ public sealed class ScrapeJobWorker(
             CreateNoWindow = true,
         };
 
+        startInfo.Environment["CAFE_SCOUT_HEADLESS"] = "1";
+        startInfo.Environment["CAFE_SCOUT_BROWSER_BINARY"] =
+            Environment.GetEnvironmentVariable("CAFE_SCOUT_BROWSER_BINARY") ?? "/usr/bin/chromium-browser";
+        startInfo.Environment["UV_LINK_MODE"] = "copy";
+
         startInfo.ArgumentList.Add("run");
         startInfo.ArgumentList.Add("cafe-scout");
         startInfo.ArgumentList.Add("--url");
@@ -113,6 +118,7 @@ public sealed class ScrapeJobWorker(
         string stderr;
         int exitCode;
         var completedFromArtifacts = false;
+        var needsVerificationFromProgress = false;
 
         try
         {
@@ -136,6 +142,23 @@ public sealed class ScrapeJobWorker(
 
                 if (completedTask == waitForExitTask)
                 {
+                    break;
+                }
+
+                if (await HasVerificationProgressAsync(job, cancellationToken))
+                {
+                    needsVerificationFromProgress = true;
+
+                    try
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Process already exited between the progress check and kill request.
+                    }
+
+                    await waitForExitTask;
                     break;
                 }
 
@@ -175,10 +198,14 @@ public sealed class ScrapeJobWorker(
         await File.WriteAllTextAsync(job.StdoutLogPath!, stdout, cancellationToken);
         await File.WriteAllTextAsync(job.StderrLogPath!, stderr, cancellationToken);
 
-        if (NeedsVerification(stdout, stderr, exitCode))
+        if (
+            needsVerificationFromProgress
+            || await HasVerificationProgressAsync(job, cancellationToken)
+            || NeedsVerification(stdout, stderr, exitCode)
+        )
         {
             job.Status = "needs_verification";
-            job.Message = "Cloudflare verification is required.";
+            job.Message = "HiringCafe requires manual verification.";
             job.Error = null;
             job.VerificationUrl ??= $"/verify/{job.JobId}";
             job.FinishedAt = null;
@@ -371,6 +398,55 @@ public sealed class ScrapeJobWorker(
         }
 
         return false;
+    }
+
+    private static async Task<bool> HasVerificationProgressAsync(
+        ScrapeJob job,
+        CancellationToken cancellationToken
+    )
+    {
+        var progressStatus = await TryReadProgressStatusAsync(job, cancellationToken);
+
+        return progressStatus?.Equals("needs_verification", StringComparison.OrdinalIgnoreCase) == true
+            || progressStatus?.Equals("verification_required", StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    private static async Task<string?> TryReadProgressStatusAsync(
+        ScrapeJob job,
+        CancellationToken cancellationToken
+    )
+    {
+        var progressPath = Path.Combine(job.RunDirectory, "progress.json");
+        if (!File.Exists(progressPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var progressStream = File.OpenRead(progressPath);
+            using var document = await JsonDocument.ParseAsync(
+                progressStream,
+                cancellationToken: cancellationToken
+            );
+
+            return document.RootElement.TryGetProperty("status", out var statusElement)
+                && statusElement.ValueKind == JsonValueKind.String
+                    ? statusElement.GetString()
+                    : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     private static async Task<ScoutUploadResult?> TryImportIntoScoutAsync(

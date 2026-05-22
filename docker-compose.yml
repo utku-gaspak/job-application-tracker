@@ -4,6 +4,7 @@ services:
       context: ./client
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_SCRAPER_VERIFY_BASE_URL: ${VITE_SCRAPER_VERIFY_BASE_URL}
     restart: unless-stopped
     depends_on:
       - backend
@@ -27,6 +28,9 @@ services:
       Scraper__RunsDirectory: ${Scraper__RunsDirectory:-/srv/hiring-cafe/runs}
       Scraper__ProfilesDirectory: ${Scraper__ProfilesDirectory:-/srv/hiring-cafe/browser-profiles}
       Scraper__DataDirectory: ${Scraper__DataDirectory:-/srv/hiring-cafe/data}
+      CAFE_SCOUT_BROWSER_BINARY: ${CAFE_SCOUT_BROWSER_BINARY:-/usr/bin/chromium-browser}
+      UV_LINK_MODE: copy
+      DISPLAY: ${DISPLAY:-:99}
     volumes:
       - ${Scraper__RootDirectory:-/root/code/hiring-cafe-scout}:${Scraper__RootDirectory:-/root/code/hiring-cafe-scout}
       - ${Scraper__RunsDirectory:-/srv/hiring-cafe/runs}:${Scraper__RunsDirectory:-/srv/hiring-cafe/runs}

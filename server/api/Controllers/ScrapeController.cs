@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Globalization;
+using System.Security.Claims;
 using System.Text.Json;
 using api;
 using api.Data;
@@ -16,7 +18,8 @@ namespace api.Controllers;
 public class ScrapeController(
     AppDbContext dbContext,
     IScrapeJobQueue scrapeJobQueue,
-    IConfiguration configuration
+    IConfiguration configuration,
+    ILogger<ScrapeController> logger
 ) : ControllerBase
 {
     private const string HiringCafeHost = "hiring.cafe";
@@ -37,20 +40,19 @@ public class ScrapeController(
             return BadRequest(validationError);
         }
 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var jobId = CreateJobId();
         var runDirectory = Path.Combine(
             RequiredConfiguration.GetScraperRunsDirectory(configuration),
             jobId
         );
-        var profileDirectory = Path.Combine(
-            RequiredConfiguration.GetScraperProfilesDirectory(configuration),
-            jobId
-        );
+        var profileDirectory = GetProfileDirectory(userId);
 
         var entity = new ScrapeJob
         {
             JobId = jobId,
             SourceUrl = normalizedUrl,
+            UserId = userId,
             IncludeSeen = request.IncludeSeen,
             Status = "queued",
             Message = "Scrape job queued.",
@@ -84,7 +86,15 @@ public class ScrapeController(
             return NotFound();
         }
 
-        if (!job.Status.Equals("needs_verification", StringComparison.OrdinalIgnoreCase))
+        if (!CanAccessJob(job))
+        {
+            return NotFound();
+        }
+
+        if (
+            !job.Status.Equals("needs_verification", StringComparison.OrdinalIgnoreCase)
+            && !job.Status.Equals("verifying", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return Conflict("Verification can only be completed for a job that needs verification.");
         }
@@ -95,8 +105,43 @@ public class ScrapeController(
         job.UpdatedAt = DateTime.UtcNow;
         job.FinishedAt = null;
 
+        StopVisibleVerificationBrowser(job);
+
         await dbContext.SaveChangesAsync(cancellationToken);
         await scrapeJobQueue.QueueAsync(job.JobId, cancellationToken);
+
+        return Ok(await ToStatusDtoAsync(job, cancellationToken));
+    }
+
+    [HttpPost("{jobId}/verification-started")]
+    public async Task<ActionResult<ScrapeJobStatusDto>> MarkVerificationStarted(
+        [FromRoute] string jobId,
+        CancellationToken cancellationToken
+    )
+    {
+        var job = await dbContext.ScrapeJobs.FindAsync([jobId], cancellationToken);
+        if (job is null)
+        {
+            return NotFound();
+        }
+
+        if (!CanAccessJob(job))
+        {
+            return NotFound();
+        }
+
+        if (!job.Status.Equals("needs_verification", StringComparison.OrdinalIgnoreCase))
+        {
+            return Conflict("Verification can only be started for a job that needs verification.");
+        }
+
+        job.Status = "verifying";
+        job.Message = "Waiting for manual HiringCafe verification.";
+        job.Error = null;
+        job.UpdatedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        StartVisibleVerificationBrowser(job);
 
         return Ok(await ToStatusDtoAsync(job, cancellationToken));
     }
@@ -113,6 +158,11 @@ public class ScrapeController(
             return NotFound();
         }
 
+        if (!CanAccessJob(job))
+        {
+            return NotFound();
+        }
+
         return Ok(await ToStatusDtoAsync(job, cancellationToken));
     }
 
@@ -124,6 +174,11 @@ public class ScrapeController(
     {
         var job = await dbContext.ScrapeJobs.FindAsync([jobId], cancellationToken);
         if (job is null)
+        {
+            return NotFound();
+        }
+
+        if (!CanAccessJob(job))
         {
             return NotFound();
         }
@@ -150,6 +205,11 @@ public class ScrapeController(
     {
         var job = await dbContext.ScrapeJobs.FindAsync([jobId], cancellationToken);
         if (job is null)
+        {
+            return NotFound();
+        }
+
+        if (!CanAccessJob(job))
         {
             return NotFound();
         }
@@ -225,13 +285,153 @@ public class ScrapeController(
         return $"job_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}_{shortId}";
     }
 
+    private string GetProfileDirectory(string? userId)
+    {
+        var profileOwner = string.IsNullOrWhiteSpace(userId) ? "default" : userId;
+        var safeProfileOwner = string.Concat(
+            profileOwner.Select(character =>
+                char.IsLetterOrDigit(character) || character is '-' or '_'
+                    ? character
+                    : '_'
+            )
+        );
+
+        return Path.Combine(
+            RequiredConfiguration.GetScraperProfilesDirectory(configuration),
+            safeProfileOwner
+        );
+    }
+
+    private bool CanAccessJob(ScrapeJob job)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        return string.IsNullOrWhiteSpace(job.UserId)
+            || (!string.IsNullOrWhiteSpace(userId) && job.UserId == userId);
+    }
+
+    private void StartVisibleVerificationBrowser(ScrapeJob job)
+    {
+        StopVisibleVerificationBrowser(job);
+        Directory.CreateDirectory(job.ProfileDirectory);
+        Directory.CreateDirectory(job.RunDirectory);
+
+        var browserBinary =
+            Environment.GetEnvironmentVariable("CAFE_SCOUT_BROWSER_BINARY")
+            ?? "/usr/bin/chromium-browser";
+        var display = Environment.GetEnvironmentVariable("DISPLAY");
+
+        if (string.IsNullOrWhiteSpace(display))
+        {
+            display = ":99";
+        }
+
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = browserBinary,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            startInfo.Environment["DISPLAY"] = display;
+            startInfo.ArgumentList.Add("--user-data-dir=" + job.ProfileDirectory);
+            startInfo.ArgumentList.Add("--no-sandbox");
+            startInfo.ArgumentList.Add("--disable-dev-shm-usage");
+            startInfo.ArgumentList.Add("--window-size=1920,1080");
+            startInfo.ArgumentList.Add(job.SourceUrl);
+
+            var process = Process.Start(startInfo);
+            if (process is not null)
+            {
+                System.IO.File.WriteAllText(
+                    GetVerificationBrowserPidPath(job),
+                    process.Id.ToString(CultureInfo.InvariantCulture)
+                );
+            }
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException
+            or System.ComponentModel.Win32Exception
+            or IOException
+            or UnauthorizedAccessException
+        )
+        {
+            logger.LogWarning(
+                exception,
+                "Failed to start visible verification browser for scrape job {JobId}.",
+                job.JobId
+            );
+        }
+    }
+
+    private void StopVisibleVerificationBrowser(ScrapeJob job)
+    {
+        var pidPath = GetVerificationBrowserPidPath(job);
+        if (!System.IO.File.Exists(pidPath))
+        {
+            return;
+        }
+
+        try
+        {
+            var rawPid = System.IO.File.ReadAllText(pidPath);
+            if (
+                int.TryParse(rawPid, NumberStyles.Integer, CultureInfo.InvariantCulture, out var pid)
+                && pid > 0
+            )
+            {
+                using var process = Process.GetProcessById(pid);
+                if (!process.HasExited)
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+            }
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException
+            or InvalidOperationException
+            or System.ComponentModel.Win32Exception
+            or IOException
+            or UnauthorizedAccessException
+        )
+        {
+            logger.LogDebug(
+                exception,
+                "Could not stop visible verification browser for scrape job {JobId}.",
+                job.JobId
+            );
+        }
+        finally
+        {
+            try
+            {
+                System.IO.File.Delete(pidPath);
+            }
+            catch (IOException)
+            {
+                // The next verification attempt can overwrite or ignore this stale pid file.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // The next verification attempt can overwrite or ignore this stale pid file.
+            }
+        }
+    }
+
+    private static string GetVerificationBrowserPidPath(ScrapeJob job) =>
+        Path.Combine(job.RunDirectory, "verification-browser.pid");
+
     private async Task<ScrapeJobStatusDto> ToStatusDtoAsync(
         ScrapeJob job,
         CancellationToken cancellationToken
     )
     {
         var isDone = job.Status.Equals("done", StringComparison.OrdinalIgnoreCase);
-        var needsVerification = job.Status.Equals("needs_verification", StringComparison.OrdinalIgnoreCase);
+        var needsVerification =
+            job.Status.Equals("needs_verification", StringComparison.OrdinalIgnoreCase)
+            || job.Status.Equals("verifying", StringComparison.OrdinalIgnoreCase);
         var progress = await TryReadProgressAsync(job, cancellationToken);
         var resultCount = isDone
             ? await TryReadResultCountAsync(job, cancellationToken)

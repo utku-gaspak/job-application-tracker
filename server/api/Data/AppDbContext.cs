@@ -26,5 +26,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
         builder.Entity<ScrapeJob>()
             .HasIndex(scrapeJob => scrapeJob.Status);
+
+        builder.Entity<ScrapeJob>()
+            .HasIndex(scrapeJob => scrapeJob.UserId);
     }
 }
