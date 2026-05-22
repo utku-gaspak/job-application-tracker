@@ -287,12 +287,12 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
         </Button>
       </div>
 
-      <div className="mt-4 overflow-hidden sm:overflow-x-auto">
+      <div className="mt-4 overflow-x-auto">
         <svg
           ref={svgRef}
           role="img"
           aria-label="Application status Sankey diagram"
-          className="block h-auto w-full max-w-full"
+          className="mx-auto block h-auto w-[86vw] max-w-[760px] sm:w-full sm:max-w-none"
           viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
           xmlns="http://www.w3.org/2000/svg"
         >
