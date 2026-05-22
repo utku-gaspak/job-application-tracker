@@ -267,17 +267,17 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
 
   return (
     <section className="deco-frame border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
             Status flow
           </p>
-          <h2 className="mt-1 font-heading text-2xl text-deco-foreground">
+          <h2 className="mt-1 font-heading text-xl text-deco-foreground sm:text-2xl">
             Applications by board status
           </h2>
         </div>
         <Button
-          className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
+          className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
           onClick={() => void handleDownloadPng()}
           type="button"
           variant="outline"
@@ -287,12 +287,12 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
         </Button>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
+      <div className="mt-4 overflow-hidden sm:overflow-x-auto">
         <svg
           ref={svgRef}
           role="img"
           aria-label="Application status Sankey diagram"
-          className="h-auto min-w-[900px] w-full"
+          className="block h-auto w-full max-w-full"
           viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -410,7 +410,7 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
         </svg>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3 text-[0.65rem] uppercase tracking-[0.16em] text-deco-muted">
+      <div className="mt-4 flex flex-wrap gap-3 text-[0.58rem] uppercase tracking-[0.14em] text-deco-muted sm:text-[0.65rem] sm:tracking-[0.16em]">
         {statusPalette.map((status) => (
           <div className="inline-flex items-center gap-2" key={status.status}>
             <span
