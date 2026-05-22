@@ -383,14 +383,14 @@ const ScrapeStatusPage = () => {
                     <FileText className="h-4 w-4" />
                     {working === "markdown" ? "Downloading..." : "Download jobs.md"}
                   </Button>
-                  <Button
-                    onClick={() => {
-                      setActiveSection("scout");
-                      navigate("/");
-                    }}
-                    type="button"
-                    variant="outline"
-                  >
+                    <Button
+                      onClick={() => {
+                        setActiveSection("scout");
+                        navigate("/#scout");
+                      }}
+                      type="button"
+                      variant="outline"
+                    >
                     <ArrowRight className="h-4 w-4" />
                     Open Scout queue
                   </Button>
