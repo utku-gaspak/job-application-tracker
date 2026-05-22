@@ -10,6 +10,8 @@ RUN dotnet publish "api/api.csproj" \
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine
 WORKDIR /app
+RUN apk add --no-cache ca-certificates
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 EXPOSE 8080
