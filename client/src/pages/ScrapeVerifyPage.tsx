@@ -27,8 +27,7 @@ const ScrapeVerifyPage = () => {
       return null;
     }
 
-    return new URL(jobId, verifyBaseUrl.endsWith("/") ? verifyBaseUrl : `${verifyBaseUrl}/`)
-      .toString();
+    return verifyBaseUrl;
   }, [jobId]);
 
   useEffect(() => {

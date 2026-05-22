@@ -58,6 +58,9 @@ services:
     depends_on:
       - frontend
       - backend
+    environment:
+      VERIFY_BASIC_AUTH_USER: ${VERIFY_BASIC_AUTH_USER}
+      VERIFY_BASIC_AUTH_HASH: ${VERIFY_BASIC_AUTH_HASH}
     ports:
       - "80:80"
       - "443:443"
