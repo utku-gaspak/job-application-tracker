@@ -93,8 +93,12 @@ public sealed class ScrapeJobWorker(
 
         startInfo.Environment["CAFE_SCOUT_HEADLESS"] = "1";
         startInfo.Environment["CAFE_SCOUT_BROWSER_BINARY"] =
-            Environment.GetEnvironmentVariable("CAFE_SCOUT_BROWSER_BINARY") ?? "/usr/bin/chromium-browser";
+            RequiredConfiguration.GetScraperBrowserBinary();
+        startInfo.Environment["PLAYWRIGHT_BROWSERS_PATH"] = "/root/.cache/ms-playwright";
         startInfo.Environment["UV_LINK_MODE"] = "copy";
+        startInfo.Environment["HOME"] = "/root";
+        startInfo.Environment["XDG_CACHE_HOME"] = "/root/.cache";
+        startInfo.Environment["XDG_CONFIG_HOME"] = "/root/.config";
 
         startInfo.ArgumentList.Add("run");
         startInfo.ArgumentList.Add("cafe-scout");
