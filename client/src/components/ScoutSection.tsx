@@ -61,6 +61,13 @@ const splitTools = (value?: string | null) =>
     .map((tool) => tool.trim())
     .filter(Boolean) ?? [];
 
+const SCOUT_AUTH_TOKEN_KEY = "token";
+
+const readScoutAuthSignature = () =>
+  typeof window === "undefined"
+    ? ""
+    : window.localStorage.getItem(SCOUT_AUTH_TOKEN_KEY) ?? "";
+
 const formatPostedDate = (value?: string | null) => {
   if (!value) {
     return "Not provided";
@@ -190,6 +197,7 @@ const ScoutSection = ({
   const [uploadResult, setUploadResult] = useState<ScoutUploadResult | null>(null);
   const [jobs, setJobs] = useState<ScoutJob[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [authSignature, setAuthSignature] = useState(() => readScoutAuthSignature());
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isActing, setIsActing] = useState(false);
@@ -213,6 +221,17 @@ const ScoutSection = ({
       setActiveView(scoutTourView);
     }
   }, [scoutTourView]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setAuthSignature((current) => {
+        const next = readScoutAuthSignature();
+        return current === next ? current : next;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   const evaluateJobs = useMemo(
     () => jobs.filter((job) => !job.savedForApply && !job.isDiscarded),
@@ -268,8 +287,12 @@ const ScoutSection = ({
   }, [jobs]);
 
   useEffect(() => {
+    setSelectedFile(null);
+    setUploadResult(null);
+    setJobs([]);
+    setCurrentIndex(0);
     void loadJobs();
-  }, [loadJobs]);
+  }, [authSignature, loadJobs]);
 
   useEffect(() => {
     if (evaluateJobs.length === 0) {
