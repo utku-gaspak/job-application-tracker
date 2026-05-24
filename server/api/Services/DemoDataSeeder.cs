@@ -55,9 +55,14 @@ public static class DemoDataSeeder
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        if (!await dbContext.ScoutJobs.AnyAsync(cancellationToken))
+        if (
+            !await dbContext.ScoutJobs.AnyAsync(
+                scoutJob => scoutJob.UserId == demoUser.Id,
+                cancellationToken
+            )
+        )
         {
-            dbContext.ScoutJobs.AddRange(CreateDemoScoutJobs());
+            dbContext.ScoutJobs.AddRange(CreateDemoScoutJobs(demoUser.Id));
             await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
@@ -231,7 +236,7 @@ public static class DemoDataSeeder
         ];
     }
 
-    private static List<ScoutJob> CreateDemoScoutJobs()
+    private static List<ScoutJob> CreateDemoScoutJobs(string userId)
     {
         var now = DateTime.UtcNow;
 
@@ -253,6 +258,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddHours(-8),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -270,6 +276,7 @@ public static class DemoDataSeeder
                 SavedForApply = true,
                 IsDiscarded = false,
                 CreatedAt = now.AddHours(-16),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -287,6 +294,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddHours(-22),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -304,6 +312,7 @@ public static class DemoDataSeeder
                 SavedForApply = true,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-1),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -321,6 +330,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-2),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -338,6 +348,7 @@ public static class DemoDataSeeder
                 SavedForApply = true,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-3),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -355,6 +366,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-4),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -372,6 +384,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-5),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -389,6 +402,7 @@ public static class DemoDataSeeder
                 SavedForApply = true,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-6),
+                UserId = userId,
             },
             new ScoutJob
             {
@@ -406,6 +420,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-7),
+                UserId = userId,
             },
         ];
     }

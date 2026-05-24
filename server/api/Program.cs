@@ -162,6 +162,14 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "ScoutJobs"
         ADD COLUMN IF NOT EXISTS "IsDiscarded" boolean NOT NULL DEFAULT false;
         """);
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "ScoutJobs"
+        ADD COLUMN IF NOT EXISTS "UserId" text NULL;
+        """);
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        CREATE INDEX IF NOT EXISTS "IX_ScoutJobs_UserId"
+        ON "ScoutJobs" ("UserId");
+        """);
     await DemoDataSeeder.SeedAsync(scope.ServiceProvider);
 }
 

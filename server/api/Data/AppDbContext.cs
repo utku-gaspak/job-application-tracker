@@ -21,8 +21,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .HasForeignKey(jobApplication => jobApplication.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<AppUser>()
+            .HasMany(user => user.ScoutJobs)
+            .WithOne(scoutJob => scoutJob.User)
+            .HasForeignKey(scoutJob => scoutJob.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<ScoutJob>()
             .HasIndex(scoutJob => scoutJob.JobUrl);
+
+        builder.Entity<ScoutJob>()
+            .HasIndex(scoutJob => scoutJob.UserId);
 
         builder.Entity<ScrapeJob>()
             .HasIndex(scrapeJob => scrapeJob.Status);

@@ -480,7 +480,7 @@ public sealed class ScrapeJobWorker(
 
             var existingJobUrls = new HashSet<string>(
                 await dbContext
-                    .ScoutJobs.Where(current => current.JobUrl != null)
+                    .ScoutJobs.Where(current => current.UserId == job.UserId && current.JobUrl != null)
                     .Select(current => current.JobUrl!)
                     .ToListAsync(cancellationToken),
                 StringComparer.OrdinalIgnoreCase
@@ -500,6 +500,7 @@ public sealed class ScrapeJobWorker(
                     continue;
                 }
 
+                scoutJob.UserId = job.UserId;
                 jobsToImport.Add(scoutJob);
             }
 

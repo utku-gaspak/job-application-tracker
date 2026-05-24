@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text;
 using api.Data;
@@ -23,7 +24,16 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var job = await dbContext.ScoutJobs.FindAsync([id], cancellationToken);
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        var job = await dbContext.ScoutJobs.FirstOrDefaultAsync(
+            current => current.Id == id && current.UserId == userId,
+            cancellationToken
+        );
         if (job is null)
         {
             return NotFound();
@@ -42,6 +52,12 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
         CancellationToken cancellationToken
     )
     {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
         if (string.IsNullOrWhiteSpace(scoutJob.Title) || string.IsNullOrWhiteSpace(scoutJob.Company))
         {
             return BadRequest("Title and company are required.");
@@ -54,7 +70,7 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
         if (
             normalizedJobUrl is not null
             && await dbContext.ScoutJobs.AnyAsync(
-                job => job.JobUrl == normalizedJobUrl,
+                job => job.UserId == userId && job.JobUrl == normalizedJobUrl,
                 cancellationToken
             )
         )
@@ -76,6 +92,7 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
             RequirementsSummary = TrimToNull(scoutJob.RequirementsSummary),
             SavedForApply = false,
             IsDiscarded = false,
+            UserId = userId,
         };
 
         dbContext.ScoutJobs.Add(entity);
@@ -91,6 +108,12 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
         CancellationToken cancellationToken
     )
     {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
         if (file is null || file.Length == 0)
         {
             return BadRequest("Upload a non-empty jobs.json file.");
@@ -111,7 +134,7 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
 
         var existingJobUrls = new HashSet<string>(
             await dbContext
-                .ScoutJobs.Where(job => job.JobUrl != null)
+                .ScoutJobs.Where(job => job.UserId == userId && job.JobUrl != null)
                 .Select(job => job.JobUrl!)
                 .ToListAsync(cancellationToken),
             StringComparer.OrdinalIgnoreCase
@@ -131,6 +154,7 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
                 continue;
             }
 
+            job.UserId = userId;
             jobsToImport.Add(job);
         }
 
@@ -143,8 +167,15 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
     [HttpGet("jobs")]
     public async Task<ActionResult<List<ScoutJob>>> GetJobs(CancellationToken cancellationToken)
     {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
         var jobs = await dbContext
-            .ScoutJobs.OrderBy(job => job.PostedAt == null)
+            .ScoutJobs.Where(job => job.UserId == userId)
+            .OrderBy(job => job.PostedAt == null)
             .ThenByDescending(job => job.PostedAt)
             .ThenByDescending(job => job.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -160,8 +191,15 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
         var jobs = await dbContext
-            .ScoutJobs.OrderBy(job => job.PostedAt == null)
+            .ScoutJobs.Where(job => job.UserId == userId)
+            .OrderBy(job => job.PostedAt == null)
             .ThenByDescending(job => job.PostedAt)
             .ThenByDescending(job => job.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -219,7 +257,16 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
     [HttpDelete("jobs/{id:guid}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var job = await dbContext.ScoutJobs.FindAsync([id], cancellationToken);
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        var job = await dbContext.ScoutJobs.FirstOrDefaultAsync(
+            current => current.Id == id && current.UserId == userId,
+            cancellationToken
+        );
         if (job is null)
         {
             return NotFound();
@@ -233,9 +280,19 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
     [HttpDelete("jobs")]
     public async Task<IActionResult> DeleteAll(CancellationToken cancellationToken)
     {
-        await dbContext.ScoutJobs.ExecuteDeleteAsync(cancellationToken);
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        await dbContext
+            .ScoutJobs.Where(job => job.UserId == userId)
+            .ExecuteDeleteAsync(cancellationToken);
         return NoContent();
     }
+
+    private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     private static string? TrimToNull(string? value)
     {

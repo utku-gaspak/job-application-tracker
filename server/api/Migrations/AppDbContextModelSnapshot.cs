@@ -313,12 +313,17 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
                     b.Property<string>("WorkplaceType")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("JobUrl");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ScoutJobs");
                 });
@@ -454,9 +459,21 @@ namespace api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("api.Models.ScoutJob", b =>
+                {
+                    b.HasOne("api.Models.AppUser", "User")
+                        .WithMany("ScoutJobs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("api.Models.AppUser", b =>
                 {
                     b.Navigation("JobApplications");
+
+                    b.Navigation("ScoutJobs");
                 });
 #pragma warning restore 612, 618
         }
