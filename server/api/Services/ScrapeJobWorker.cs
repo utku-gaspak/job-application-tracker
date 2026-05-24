@@ -67,6 +67,15 @@ public sealed class ScrapeJobWorker(
 
         Directory.CreateDirectory(job.RunDirectory);
         Directory.CreateDirectory(job.ProfileDirectory);
+        var removedProfileLocks = ChromiumProfileLocks.ClearStaleLocks(job.ProfileDirectory);
+        if (removedProfileLocks.Count > 0)
+        {
+            logger.LogInformation(
+                "Cleared {Count} stale Chromium profile locks for scrape job {JobId}.",
+                removedProfileLocks.Count,
+                job.JobId
+            );
+        }
 
         var scraperRoot = RequiredConfiguration.GetScraperRootDirectory(configuration);
 

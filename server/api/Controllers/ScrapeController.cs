@@ -439,6 +439,15 @@ public class ScrapeController(
         StopVisibleVerificationBrowser(job);
         Directory.CreateDirectory(job.ProfileDirectory);
         Directory.CreateDirectory(job.RunDirectory);
+        var removedProfileLocks = ChromiumProfileLocks.ClearStaleLocks(job.ProfileDirectory);
+        if (removedProfileLocks.Count > 0)
+        {
+            logger.LogInformation(
+                "Cleared {Count} stale Chromium profile locks before verification for scrape job {JobId}.",
+                removedProfileLocks.Count,
+                job.JobId
+            );
+        }
 
         var browserBinary =
             Environment.GetEnvironmentVariable("CAFE_SCOUT_BROWSER_BINARY")
