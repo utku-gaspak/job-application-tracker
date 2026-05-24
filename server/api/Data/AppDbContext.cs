@@ -33,6 +33,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.Entity<ScoutJob>()
             .HasIndex(scoutJob => scoutJob.UserId);
 
+        builder.Entity<ScoutJob>()
+            .HasIndex(scoutJob => scoutJob.SourceOrder);
+
         builder.Entity<ScrapeJob>()
             .HasIndex(scrapeJob => scrapeJob.Status);
 

@@ -175,7 +175,9 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
 
         var jobs = await dbContext
             .ScoutJobs.Where(job => job.UserId == userId)
-            .OrderBy(job => job.PostedAt == null)
+            .OrderBy(job => job.SourceOrder == null)
+            .ThenBy(job => job.SourceOrder)
+            .ThenBy(job => job.PostedAt == null)
             .ThenByDescending(job => job.PostedAt)
             .ThenByDescending(job => job.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -199,7 +201,9 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
 
         var jobs = await dbContext
             .ScoutJobs.Where(job => job.UserId == userId)
-            .OrderBy(job => job.PostedAt == null)
+            .OrderBy(job => job.SourceOrder == null)
+            .ThenBy(job => job.SourceOrder)
+            .ThenBy(job => job.PostedAt == null)
             .ThenByDescending(job => job.PostedAt)
             .ThenByDescending(job => job.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -333,6 +337,7 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
                     "posted_at",
                     "job_url",
                     "apply_url",
+                    "source_order",
                     "technical_tools",
                     "requirements_summary",
                     "saved_for_apply",
@@ -356,6 +361,7 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
                         CsvEscape(job.PostedAt?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)),
                         CsvEscape(job.JobUrl),
                         CsvEscape(job.ApplyUrl),
+                        CsvEscape(job.SourceOrder?.ToString(CultureInfo.InvariantCulture)),
                         CsvEscape(job.TechnicalTools),
                         CsvEscape(job.RequirementsSummary),
                         CsvEscape(job.SavedForApply ? "true" : "false"),

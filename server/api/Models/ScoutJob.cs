@@ -36,6 +36,8 @@ public class ScoutJob
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public int? SourceOrder { get; set; }
+
     public string? UserId { get; set; }
 
     public AppUser? User { get; set; }

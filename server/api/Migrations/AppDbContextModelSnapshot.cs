@@ -306,6 +306,9 @@ namespace api.Migrations
                     b.Property<bool>("SavedForApply")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("SourceOrder")
+                        .HasColumnType("integer");
+
                     b.Property<string>("TechnicalTools")
                         .HasColumnType("text");
 
@@ -322,6 +325,8 @@ namespace api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("JobUrl");
+
+                    b.HasIndex("SourceOrder");
 
                     b.HasIndex("UserId");
 

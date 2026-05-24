@@ -790,6 +790,17 @@ const ScoutSection = ({
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-3">
+                  {currentJob.jobUrl ? (
+                    <a
+                      className="inline-flex items-center gap-2 text-sm text-deco-foreground underline decoration-primary-gold underline-offset-4 hover:text-primary-gold"
+                      href={currentJob.jobUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Job page
+                    </a>
+                  ) : null}
                   {currentJob.applyUrl ? (
                     <a
                       className="inline-flex items-center gap-2 text-sm text-deco-foreground underline decoration-primary-gold underline-offset-4 hover:text-primary-gold"

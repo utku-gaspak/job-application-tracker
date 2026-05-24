@@ -26,6 +26,7 @@ public static class ScoutJobUploadParser
         var jobs = new List<ScoutJob>();
         var skipped = 0;
 
+        var sourceOrder = 0;
         foreach (var item in results.EnumerateArray())
         {
             var title = NormalizeOptionalText(ReadString(item, "title"));
@@ -65,6 +66,7 @@ public static class ScoutJobUploadParser
                 SavedForApply = ReadBoolean(item, "saved_for_apply", "savedForApply") ?? false,
                 IsDiscarded = ReadBoolean(item, "is_discarded", "isDiscarded") ?? false,
                 CreatedAt = ReadDate(item, "created_at", "createdAt") ?? DateTime.UtcNow,
+                SourceOrder = sourceOrder++,
             };
 
             ScoutJobLinkNormalizer.Normalize(job);

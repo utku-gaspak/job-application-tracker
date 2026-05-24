@@ -258,6 +258,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddHours(-8),
+                SourceOrder = 0,
                 UserId = userId,
             },
             new ScoutJob
@@ -276,6 +277,7 @@ public static class DemoDataSeeder
                 SavedForApply = true,
                 IsDiscarded = false,
                 CreatedAt = now.AddHours(-16),
+                SourceOrder = 1,
                 UserId = userId,
             },
             new ScoutJob
@@ -294,6 +296,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddHours(-22),
+                SourceOrder = 2,
                 UserId = userId,
             },
             new ScoutJob
@@ -312,6 +315,7 @@ public static class DemoDataSeeder
                 SavedForApply = true,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-1),
+                SourceOrder = 3,
                 UserId = userId,
             },
             new ScoutJob
@@ -330,6 +334,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-2),
+                SourceOrder = 4,
                 UserId = userId,
             },
             new ScoutJob
@@ -348,6 +353,7 @@ public static class DemoDataSeeder
                 SavedForApply = true,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-3),
+                SourceOrder = 5,
                 UserId = userId,
             },
             new ScoutJob
@@ -366,6 +372,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-4),
+                SourceOrder = 6,
                 UserId = userId,
             },
             new ScoutJob
@@ -384,6 +391,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-5),
+                SourceOrder = 7,
                 UserId = userId,
             },
             new ScoutJob
@@ -402,6 +410,7 @@ public static class DemoDataSeeder
                 SavedForApply = true,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-6),
+                SourceOrder = 8,
                 UserId = userId,
             },
             new ScoutJob
@@ -420,6 +429,7 @@ public static class DemoDataSeeder
                 SavedForApply = false,
                 IsDiscarded = false,
                 CreatedAt = now.AddDays(-7),
+                SourceOrder = 9,
                 UserId = userId,
             },
         ];

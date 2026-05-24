@@ -167,8 +167,16 @@ using (var scope = app.Services.CreateScope())
         ADD COLUMN IF NOT EXISTS "UserId" text NULL;
         """);
     await dbContext.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "ScoutJobs"
+        ADD COLUMN IF NOT EXISTS "SourceOrder" integer NULL;
+        """);
+    await dbContext.Database.ExecuteSqlRawAsync("""
         CREATE INDEX IF NOT EXISTS "IX_ScoutJobs_UserId"
         ON "ScoutJobs" ("UserId");
+        """);
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        CREATE INDEX IF NOT EXISTS "IX_ScoutJobs_SourceOrder"
+        ON "ScoutJobs" ("SourceOrder");
         """);
     await DemoDataSeeder.SeedAsync(scope.ServiceProvider);
 }
