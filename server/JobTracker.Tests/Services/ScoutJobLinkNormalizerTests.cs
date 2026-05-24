@@ -27,15 +27,15 @@ public class ScoutJobLinkNormalizerTests
     }
 
     [Fact]
-    public void Normalize_WhenOnlyExternalUrlIsInJobUrl_TreatsItAsApplyUrl()
+    public void Normalize_WhenOnlyExternalUrlIsInJobUrl_KeepsItAsJobUrl()
     {
         var result = ScoutJobLinkNormalizer.Normalize(
             "https://company.example/jobs/123",
             null
         );
 
-        result.JobUrl.Should().BeNull();
-        result.ApplyUrl.Should().Be("https://company.example/jobs/123");
+        result.JobUrl.Should().Be("https://company.example/jobs/123");
+        result.ApplyUrl.Should().BeNull();
     }
 
     [Fact]

@@ -29,11 +29,6 @@ public static class ScoutJobLinkNormalizer
             return (applyUrl, jobUrl);
         }
 
-        if (jobUrl is not null && !jobUrlIsHiringCafe && applyUrl is null)
-        {
-            return (null, jobUrl);
-        }
-
         if (applyUrl is not null && applyUrlIsHiringCafe && jobUrl is null)
         {
             return (applyUrl, null);

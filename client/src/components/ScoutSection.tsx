@@ -448,7 +448,7 @@ const ScoutSection = ({
         const createdApplication = await createJobApplication({
           companyName: job.company,
           position: job.title,
-          jobUrl: job.applyUrl ?? job.jobUrl ?? undefined,
+          jobUrl: job.applyUrl ?? undefined,
           location: job.location ?? undefined,
           notes: notes || undefined,
           technicalStack: job.technicalTools ?? undefined,
@@ -790,17 +790,6 @@ const ScoutSection = ({
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-3">
-                  {currentJob.jobUrl ? (
-                    <a
-                      className="inline-flex items-center gap-2 text-sm text-deco-foreground underline decoration-primary-gold underline-offset-4 hover:text-primary-gold"
-                      href={currentJob.jobUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Job page
-                    </a>
-                  ) : null}
                   {currentJob.applyUrl ? (
                     <a
                       className="inline-flex items-center gap-2 text-sm text-deco-foreground underline decoration-primary-gold underline-offset-4 hover:text-primary-gold"
@@ -923,7 +912,7 @@ const ScoutSection = ({
                 {toApplyJobs.map((job) => {
                   const jobTools = splitTools(job.technicalTools);
                   const listTools = compactTools(job);
-                  const applyHref = job.applyUrl ?? job.jobUrl ?? null;
+                  const applyHref = job.applyUrl ?? null;
 
                   return (
                     <article
