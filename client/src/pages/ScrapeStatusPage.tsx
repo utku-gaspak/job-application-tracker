@@ -68,7 +68,7 @@ const getVisibleJobsSummary = (progress: ScrapeProgress) => {
 const ScrapeStatusPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
-  const { setActiveSection } = useWorkflow();
+  const { setActiveSection, setScoutTourView } = useWorkflow();
   const [job, setJob] = useState<ScrapeJobStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -386,6 +386,7 @@ const ScrapeStatusPage = () => {
                     <Button
                       onClick={() => {
                         setActiveSection("scout");
+                        setScoutTourView("evaluate");
                         navigate("/#scout");
                       }}
                       type="button"

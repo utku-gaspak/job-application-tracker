@@ -96,7 +96,7 @@ const ScrapePage = () => {
   const [historySummary, setHistorySummary] = useState<ScrapeHistorySummary | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
   const navigate = useNavigate();
-  const { setActiveSection } = useWorkflow();
+  const { setActiveSection, setScoutTourView } = useWorkflow();
 
   useEffect(() => {
     let active = true;
@@ -589,6 +589,7 @@ const ScrapePage = () => {
                       <Button
                         onClick={() => {
                           setActiveSection("scout");
+                          setScoutTourView("evaluate");
                           navigate("/#scout");
                         }}
                           type="button"
