@@ -448,7 +448,7 @@ const ScoutSection = ({
         const createdApplication = await createJobApplication({
           companyName: job.company,
           position: job.title,
-          jobUrl: job.applyUrl ?? job.jobUrl ?? undefined,
+          jobUrl: job.jobUrl ?? job.applyUrl ?? undefined,
           location: job.location ?? undefined,
           notes: notes || undefined,
           technicalStack: job.technicalTools ?? undefined,
