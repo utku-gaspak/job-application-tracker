@@ -105,9 +105,12 @@ public sealed class ScrapeJobWorker(
             RequiredConfiguration.GetScraperBrowserBinary();
         startInfo.Environment["PLAYWRIGHT_BROWSERS_PATH"] = "/root/.cache/ms-playwright";
         startInfo.Environment["UV_LINK_MODE"] = "copy";
-        startInfo.Environment["HOME"] = "/root";
-        startInfo.Environment["XDG_CACHE_HOME"] = "/root/.cache";
-        startInfo.Environment["XDG_CONFIG_HOME"] = "/root/.config";
+        var userStateDirectory = GetUserStateDirectory(job.UserId);
+        Directory.CreateDirectory(userStateDirectory);
+        startInfo.Environment["HOME"] = userStateDirectory;
+        startInfo.Environment["XDG_CACHE_HOME"] = Path.Combine(userStateDirectory, ".cache");
+        startInfo.Environment["XDG_CONFIG_HOME"] = Path.Combine(userStateDirectory, ".config");
+        startInfo.Environment["XDG_DATA_HOME"] = Path.Combine(userStateDirectory, ".local", "share");
 
         startInfo.ArgumentList.Add("run");
         startInfo.ArgumentList.Add("cafe-scout");
@@ -460,6 +463,24 @@ public sealed class ScrapeJobWorker(
         {
             return null;
         }
+    }
+
+    private string GetUserStateDirectory(string? userId)
+    {
+        var profileOwner = string.IsNullOrWhiteSpace(userId) ? "default" : userId;
+        var safeProfileOwner = string.Concat(
+            profileOwner.Select(character =>
+                char.IsLetterOrDigit(character) || character is '-' or '_'
+                    ? character
+                    : '_'
+            )
+        );
+
+        return Path.Combine(
+            RequiredConfiguration.GetScraperDataDirectory(configuration),
+            "users",
+            safeProfileOwner
+        );
     }
 
     private static async Task<ScoutUploadResult?> TryImportIntoScoutAsync(
