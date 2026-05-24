@@ -37,7 +37,7 @@ public static class ScoutJobUploadParser
                 continue;
             }
 
-            jobs.Add(new ScoutJob
+            var job = new ScoutJob
             {
                 Id = Guid.NewGuid(),
                 Title = title,
@@ -65,7 +65,10 @@ public static class ScoutJobUploadParser
                 SavedForApply = ReadBoolean(item, "saved_for_apply", "savedForApply") ?? false,
                 IsDiscarded = ReadBoolean(item, "is_discarded", "isDiscarded") ?? false,
                 CreatedAt = ReadDate(item, "created_at", "createdAt") ?? DateTime.UtcNow,
-            });
+            };
+
+            ScoutJobLinkNormalizer.Normalize(job);
+            jobs.Add(job);
         }
 
         return new ScoutUploadParseResult(jobs, skipped);

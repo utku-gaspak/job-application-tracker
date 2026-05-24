@@ -47,9 +47,10 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
             return BadRequest("Title and company are required.");
         }
 
-        var normalizedJobUrl = string.IsNullOrWhiteSpace(scoutJob.JobUrl)
-            ? null
-            : scoutJob.JobUrl.Trim();
+        var (normalizedJobUrl, normalizedApplyUrl) = ScoutJobLinkNormalizer.Normalize(
+            scoutJob.JobUrl,
+            scoutJob.ApplyUrl
+        );
         if (
             normalizedJobUrl is not null
             && await dbContext.ScoutJobs.AnyAsync(
@@ -70,7 +71,7 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
             Commitment = TrimToNull(scoutJob.Commitment),
             PostedAt = scoutJob.PostedAt,
             JobUrl = normalizedJobUrl,
-            ApplyUrl = TrimToNull(scoutJob.ApplyUrl),
+            ApplyUrl = normalizedApplyUrl,
             TechnicalTools = TrimToNull(scoutJob.TechnicalTools),
             RequirementsSummary = TrimToNull(scoutJob.RequirementsSummary),
             SavedForApply = false,
@@ -148,6 +149,8 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
             .ThenByDescending(job => job.CreatedAt)
             .ToListAsync(cancellationToken);
 
+        await NormalizeScoutJobLinksAsync(jobs, cancellationToken);
+
         return Ok(jobs);
     }
 
@@ -162,6 +165,8 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
             .ThenByDescending(job => job.PostedAt)
             .ThenByDescending(job => job.CreatedAt)
             .ToListAsync(cancellationToken);
+
+        await NormalizeScoutJobLinksAsync(jobs, cancellationToken);
 
         if (format.Equals("csv", StringComparison.OrdinalIgnoreCase))
         {
@@ -236,6 +241,23 @@ public class ScoutJobsController(AppDbContext dbContext) : ControllerBase
     {
         var trimmed = value?.Trim();
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+    }
+
+    private async Task NormalizeScoutJobLinksAsync(
+        IEnumerable<ScoutJob> jobs,
+        CancellationToken cancellationToken
+    )
+    {
+        var changed = false;
+        foreach (var job in jobs)
+        {
+            changed |= ScoutJobLinkNormalizer.Normalize(job);
+        }
+
+        if (changed)
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 
     private static string BuildCsv(IEnumerable<ScoutJob> jobs)
