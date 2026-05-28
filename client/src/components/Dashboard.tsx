@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   BadgePlus,
   CircleHelp,
@@ -12,7 +11,8 @@ import {
   SunMedium,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useAsync } from "../hooks/useAsync";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
@@ -187,21 +187,6 @@ const matchesFilters = (
 const INTEREST_MIN = 1;
 const INTEREST_MAX = 5;
 
-const getLoadApplicationsErrorMessage = (error: unknown) => {
-  // Keep server-side failures and connectivity failures distinct so the UI can suggest the right next step.
-  if (axios.isAxiosError(error)) {
-    if (!error.response) {
-      return "Could not reach the server. Check your connection and try again.";
-    }
-
-    if (error.response.status >= 500) {
-      return "Something went wrong. Please try again.";
-    }
-  }
-
-  return "Could not load job applications.";
-};
-
 const buildColumns = (applications: JobApplication[]) =>
   jobApplicationStatusOrder.reduce<
     Record<JobApplicationStatus, JobApplication[]>
@@ -296,8 +281,29 @@ const Dashboard = () => {
   const { theme, toggleTheme } = useTheme();
   const themeButtonVariant = theme === "dark" ? "outline" : "default";
   const [applications, setApplications] = useState<JobApplication[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { isLoading, error: errorMessage } = useAsync(
+    () => listJobApplications().then((items) => { setApplications(items); return items; }),
+    [],
+    {
+      mapError: (err) => {
+        if (
+          err &&
+          typeof err === "object" &&
+          "isAxiosError" in err &&
+          (err as { isAxiosError: boolean }).isAxiosError
+        ) {
+          const axiosErr = err as { response?: { status: number } };
+          if (!axiosErr.response) {
+            return "Could not reach the server. Check your connection and try again.";
+          }
+          if (axiosErr.response.status >= 500) {
+            return "Something went wrong. Please try again.";
+          }
+        }
+        return "Could not load job applications.";
+      },
+    },
+  );
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] =
     useState<JobApplication | null>(null);
@@ -387,23 +393,6 @@ const Dashboard = () => {
       offerRate: formatRate(offerCount),
     };
   }, [applications]);
-
-  useEffect(() => {
-    const loadApplications = async () => {
-      try {
-        setErrorMessage(null);
-        const items = await listJobApplications();
-        setApplications(items);
-      } catch (error) {
-        console.error("Load job applications failed:", error);
-        setErrorMessage(getLoadApplicationsErrorMessage(error));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void loadApplications();
-  }, []);
 
   const switchSection = (section: WorkflowSection) => {
     setWorkflowSection(section);

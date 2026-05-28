@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAsync } from "../hooks/useAsync";
 import { Download, FileDigit, Plus, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -137,12 +138,16 @@ const ScoutSection = ({
   const [jobs, setJobs] = useState<ScoutJob[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [authSignature, setAuthSignature] = useState(() => readScoutAuthSignature());
-  const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isActing, setIsActing] = useState(false);
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const { isLoading, reload: reloadJobs } = useAsync(
+    () => listScoutJobs().then((items) => { setJobs(items); setCurrentIndex(0); return items; }),
+    [authSignature],
+  );
 
   const {
     isMissionLoopOpen,
@@ -187,20 +192,15 @@ const ScoutSection = ({
     });
   }, [evaluateJobs.length, jobs, onSummaryChange, toApplyJobs.length]);
 
-  const loadJobs = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setErrorMessage(null);
-      const items = await listScoutJobs();
-      setJobs(items);
-      setCurrentIndex(0);
-    } catch (error) {
-      console.error("Load scout jobs failed:", error);
-      setErrorMessage("Could not load scout jobs.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const loadJobs = useCallback(() => {
+    setErrorMessage(null);
+    reloadJobs();
+  }, [reloadJobs]);
+
+  useEffect(() => {
+    setSelectedFile(null);
+    setUploadResult(null);
+  }, [authSignature]);
 
   const handleExport = useCallback(async (format: "json" | "csv") => {
     try {
@@ -216,14 +216,6 @@ const ScoutSection = ({
       setErrorMessage("Could not export scout jobs.");
     }
   }, [jobs]);
-
-  useEffect(() => {
-    setSelectedFile(null);
-    setUploadResult(null);
-    setJobs([]);
-    setCurrentIndex(0);
-    void loadJobs();
-  }, [authSignature, loadJobs]);
 
   useEffect(() => {
     if (evaluateJobs.length === 0) {
