@@ -1,38 +1,40 @@
 # Traxr
 
-A job application tracker I built for myself and kept extending. Scrape job listings, swipe through them, track applications on a Kanban board.
+A job application tracker I built to organize my own search and kept extending as the feature set grew.
 
-Live at **[traxr.xyz](https://traxr.xyz)** — demo account: `demo` / `demo123`
+**[traxr.xyz](https://traxr.xyz)** — demo: `demo` / `demo123`
 
 ## What it does
 
-**Scout** — Import job postings from [hiring.cafe](https://hiring.cafe) (or a JSON file), swipe right to save, left to discard. Saved jobs go into a To Apply queue with direct links to company application pages.
+**Scout** — Import job listings (from [hiring.cafe](https://hiring.cafe) or a JSON file), evaluate with a swipe UI, queue the ones worth applying to.
 
-**Tracker** — Kanban board with Applied, Interviewing, Rejected, and Offer columns. Drag cards between columns, filter by status, interest level, or tech stack, export to CSV or JSON.
+**Tracker** — Kanban board (Applied / Interviewing / Rejected / Offer) with drag-and-drop, filters, and CSV/JSON export.
 
-**Scrape** — Paste a hiring.cafe search URL, the backend scrapes results into your Scout queue automatically.
+**Scrape** — Runs a headless browser against a hiring.cafe search URL and imports results into your Scout queue.
 
-## Tech
+Per-user data isolation, JWT auth, light/dark mode.
 
-Backend: .NET 10 / ASP.NET Core / PostgreSQL  
-Frontend: React / TypeScript / Tailwind  
-Deployment: Docker Compose + Caddy  
+## Stack
+
+.NET 10, ASP.NET Core, PostgreSQL, Entity Framework Core — backend  
+React, TypeScript, Tailwind, Vite — frontend  
+Docker Compose, Caddy — deployment  
 
 ## Running locally
 
-You need .NET 10 SDK and PostgreSQL running. Copy `.env.example` to `.env`, fill in the database password and a JWT signing key (64+ chars).
+Needs .NET 10 SDK and PostgreSQL. Copy `.env.example` to `.env` and set a database password and JWT signing key.
 
 ```bash
 dotnet tool restore
-dotnet run --project server/api     # API on :5075
-cd client && bun install && bun run dev   # Frontend on :5173
+dotnet run --project server/api
+cd client && bun install && bun run dev
 ```
 
-The backend auto-runs migrations on startup and seeds a demo account (`demo` / `demo123`).
+Migrations run on startup. A demo account (`demo` / `demo123`) is seeded automatically.
 
 ## Tests
 
 ```bash
-dotnet test server/server.slnx      # 71 tests
-cd client && bun run test -- --run   # 22 tests
+dotnet test server/server.slnx       # 71
+cd client && bun run test -- --run    # 22
 ```
