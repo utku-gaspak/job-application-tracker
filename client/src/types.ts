@@ -160,12 +160,20 @@ export interface ScrapeJobCreateInput {
   includeSeen: boolean;
 }
 
-export const jobApplicationStatusLabels: Record<JobApplicationStatus, string> = {
+export const jobApplicationStatusLabels = {
   [JobApplicationStatus.Applied]: "Applied",
   [JobApplicationStatus.Interviewing]: "Interviewing",
   [JobApplicationStatus.Rejected]: "Rejected",
   [JobApplicationStatus.Offer]: "Offer",
-};
+} as const satisfies Record<JobApplicationStatus, string>;
+
+/** Every status value must appear exactly once — TS errors if a status is added but missed here. */
+type AssertAllStatuses<T extends readonly JobApplicationStatus[]> =
+  JobApplicationStatus extends T[number]
+    ? Exclude<JobApplicationStatus, T[number]> extends never
+      ? T
+      : never
+    : never;
 
 export const jobApplicationStatusOrder = [
   JobApplicationStatus.Applied,
@@ -173,3 +181,4 @@ export const jobApplicationStatusOrder = [
   JobApplicationStatus.Rejected,
   JobApplicationStatus.Offer,
 ] as const;
+type _OrderCheck = AssertAllStatuses<typeof jobApplicationStatusOrder>;
