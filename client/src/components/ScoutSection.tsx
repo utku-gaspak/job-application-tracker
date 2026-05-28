@@ -1,21 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Download,
-  FileDigit,
-  ExternalLink,
-  FileUp,
-  Eye,
-  Plus,
-  ListChecks,
-  RefreshCcw,
-  Save,
-  Trash2,
-} from "lucide-react";
+import { Download, FileDigit, Plus, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import {
-  createScoutJob,
   deleteAllScoutJobs,
   deleteScoutJob,
   listScoutJobs,
@@ -24,17 +10,14 @@ import {
 } from "../api/scoutJobsApi";
 import { createJobApplication } from "../api/jobApplicationsApi";
 import { useWorkflow } from "../context/WorkflowContext";
-import { downloadBlob, escapeCsvField, formatDateDe, splitTechStack } from "../lib/utils";
+import { downloadBlob, escapeCsvField } from "../lib/utils";
 import {
   JobApplicationStatus,
   type JobApplication,
-  type ScoutJobCreateInput,
   type ScoutJob,
   type ScoutUploadResult,
 } from "../types";
-import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import {
   Dialog,
   DialogContent,
@@ -42,8 +25,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
+import { ScoutUploadPanel } from "./ScoutUploadPanel";
+import { ScoutEvaluatePanel } from "./ScoutEvaluatePanel";
+import { ScoutToApplyPanel } from "./ScoutToApplyPanel";
+import { ScoutManualDialog } from "./ScoutManualDialog";
 
 interface ScoutSectionProps {
   onApplicationCreated: (application: JobApplication) => void;
@@ -139,19 +124,6 @@ const buildExportCsv = (jobs: ScoutJob[]) => {
   return rows.join("\n");
 };
 
-const emptyManualScoutForm = {
-  title: "",
-  company: "",
-  location: "",
-  workplaceType: "",
-  commitment: "",
-  postedAt: "",
-  jobUrl: "",
-  applyUrl: "",
-  technicalTools: "",
-  requirementsSummary: "",
-};
-
 const ScoutSection = ({
   onApplicationCreated,
   onSummaryChange,
@@ -170,12 +142,8 @@ const ScoutSection = ({
   const [isActing, setIsActing] = useState(false);
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [manualForm, setManualForm] = useState(emptyManualScoutForm);
-
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [toApplyViewMode, setToApplyViewMode] = useState<"detailed" | "list">(
-    "list",
-  );
+
   const {
     isMissionLoopOpen,
     missionPhase,
@@ -209,10 +177,6 @@ const ScoutSection = ({
     [jobs],
   );
   const currentJob = evaluateJobs[currentIndex] ?? null;
-  const currentTools = useMemo(
-    () => splitTechStack(currentJob?.technicalTools),
-    [currentJob],
-  );
 
   useEffect(() => {
     onSummaryChange({
@@ -287,8 +251,6 @@ const ScoutSection = ({
     );
   };
 
-  const compactTools = (job: ScoutJob) => splitTechStack(job.technicalTools).slice(0, 2);
-
   const handleUpload = async () => {
     if (!selectedFile) {
       setErrorMessage("Choose a jobs.json file first.");
@@ -311,54 +273,6 @@ const ScoutSection = ({
     }
   };
 
-  const openManualDialog = () => {
-    setManualForm(emptyManualScoutForm);
-    setErrorMessage(null);
-    setIsManualDialogOpen(true);
-  };
-
-  const closeManualDialog = () => {
-    setIsManualDialogOpen(false);
-  };
-
-  const submitManualScoutJob = async () => {
-    const title = manualForm.title.trim();
-    const company = manualForm.company.trim();
-
-    if (!title || !company) {
-      setErrorMessage("Title and company are required for manual scout entries.");
-      return;
-    }
-
-    const payload: ScoutJobCreateInput = {
-      title,
-      company,
-      location: manualForm.location.trim() || null,
-      workplaceType: manualForm.workplaceType.trim() || null,
-      commitment: manualForm.commitment.trim() || null,
-      postedAt: manualForm.postedAt || null,
-      jobUrl: manualForm.jobUrl.trim() || null,
-      applyUrl: manualForm.applyUrl.trim() || null,
-      technicalTools: manualForm.technicalTools.trim() || null,
-      requirementsSummary: manualForm.requirementsSummary.trim() || null,
-    };
-
-    try {
-      setIsActing(true);
-      setErrorMessage(null);
-      await createScoutJob(payload);
-      toast.success("Scout job added manually.");
-      setIsManualDialogOpen(false);
-      await loadJobs();
-      setActiveView("evaluate");
-    } catch (error) {
-      console.error("Create manual scout job failed:", error);
-      setErrorMessage("Could not add the scout job manually.");
-    } finally {
-      setIsActing(false);
-    }
-  };
-
   const handleSaveForLater = useCallback(async () => {
     if (!currentJob || isActing) {
       return;
@@ -372,10 +286,8 @@ const ScoutSection = ({
         isDiscarded: false,
       });
       updateJobInQueue(updatedJob);
-      if (isMissionLoopOpen) {
-        if (missionPhase === "triage") {
-          setMissionPhase("action");
-        }
+      if (isMissionLoopOpen && missionPhase === "triage") {
+        setMissionPhase("action");
       }
       toast.success("Scout job moved to To Apply.");
     } catch (error) {
@@ -384,13 +296,7 @@ const ScoutSection = ({
     } finally {
       setIsActing(false);
     }
-  }, [
-    currentJob,
-    isActing,
-    isMissionLoopOpen,
-    missionPhase,
-    setMissionPhase,
-  ]);
+  }, [currentJob, isActing, isMissionLoopOpen, missionPhase, setMissionPhase]);
 
   const handleDiscard = useCallback(async () => {
     if (!currentJob || isActing) {
@@ -405,10 +311,8 @@ const ScoutSection = ({
         isDiscarded: true,
       });
       updateJobInQueue(updatedJob);
-      if (isMissionLoopOpen) {
-        if (missionPhase === "triage") {
-          setMissionPhase("action");
-        }
+      if (isMissionLoopOpen && missionPhase === "triage") {
+        setMissionPhase("action");
       }
       toast.success("Scout job discarded.");
     } catch (error) {
@@ -417,13 +321,7 @@ const ScoutSection = ({
     } finally {
       setIsActing(false);
     }
-  }, [
-    currentJob,
-    isActing,
-    isMissionLoopOpen,
-    missionPhase,
-    setMissionPhase,
-  ]);
+  }, [currentJob, isActing, isMissionLoopOpen, missionPhase, setMissionPhase]);
 
   const handleMarkAsApplied = useCallback(
     async (job: ScoutJob) => {
@@ -459,13 +357,7 @@ const ScoutSection = ({
         setIsActing(false);
       }
     },
-    [
-      isActing,
-      isMissionLoopOpen,
-      onApplicationCreated,
-      jobs.length,
-      setMissionPhase,
-    ],
+    [isActing, isMissionLoopOpen, onApplicationCreated, setMissionPhase],
   );
 
   const handleRemoveScoutJob = useCallback(
@@ -487,7 +379,7 @@ const ScoutSection = ({
         setIsActing(false);
       }
     },
-    [isActing, jobs.length],
+    [isActing],
   );
 
   const handleSkip = useCallback(() => {
@@ -499,43 +391,6 @@ const ScoutSection = ({
       Math.min(index + 1, Math.max(0, evaluateJobs.length - 1)),
     );
   }, [currentJob, evaluateJobs.length, isActing]);
-
-  useEffect(() => {
-    if (!isActive || activeView !== "evaluate") {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const isEditableTarget =
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        target instanceof HTMLSelectElement ||
-        target?.isContentEditable === true;
-
-      if (isEditableTarget) {
-        return;
-      }
-
-      if (event.key === "ArrowRight" || event.key.toLowerCase() === "l") {
-        event.preventDefault();
-        void handleSaveForLater();
-      }
-
-      if (event.key === "ArrowLeft" || event.key.toLowerCase() === "h") {
-        event.preventDefault();
-        void handleDiscard();
-      }
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        handleSkip();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeView, handleDiscard, handleSaveForLater, handleSkip, isActive]);
 
   const handleDeleteAll = async () => {
     try {
@@ -617,7 +472,10 @@ const ScoutSection = ({
             </Button>
             <Button
               className="w-full justify-center lg:w-auto"
-              onClick={openManualDialog}
+              onClick={() => {
+                setErrorMessage(null);
+                setIsManualDialogOpen(true);
+              }}
               type="button"
               variant="outline"
             >
@@ -635,689 +493,49 @@ const ScoutSection = ({
       ) : null}
 
       {activeView === "upload" ? (
-        <Card data-tour-id="scout-upload-panel">
-          <CardHeader>
-            <CardTitle>Upload jobs.json</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <label className="deco-frame flex min-h-[8.5rem] cursor-pointer flex-col items-center justify-center gap-3 border-border-gold-muted bg-deco-surface-soft p-4 text-center transition-colors hover:bg-primary-gold-muted sm:min-h-[10rem] sm:p-6">
-              <FileUp className="h-8 w-8 text-primary-gold" />
-              <span className="text-sm text-deco-foreground">
-                {selectedFile?.name ?? "Choose a hiring-cafe-scout jobs.json file"}
-              </span>
-              <input
-                accept="application/json,.json"
-                className="sr-only"
-                onChange={(event) =>
-                  setSelectedFile(event.target.files?.[0] ?? null)
-                }
-                type="file"
-              />
-            </label>
-
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <Button
-                disabled={isUploading}
-                onClick={() => void handleUpload()}
-                type="button"
-              >
-                <FileUp className="h-4 w-4" />
-                {isUploading ? "Uploading..." : "Upload Scout File"}
-              </Button>
-
-              {uploadResult ? (
-                <p className="text-sm text-deco-muted">
-                  {uploadResult.imported} imported, {uploadResult.skipped} skipped
-                </p>
-              ) : null}
-            </div>
-          </CardContent>
-        </Card>
+        <ScoutUploadPanel
+          selectedFile={selectedFile}
+          onFileSelect={setSelectedFile}
+          isUploading={isUploading}
+          uploadResult={uploadResult}
+          onUpload={handleUpload}
+        />
       ) : null}
 
       {activeView === "evaluate" ? (
-        <Card className="min-h-0 flex-1 overflow-hidden" data-tour-id="scout-evaluate-panel">
-          <CardHeader className="flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
-            <div className="min-w-0">
-              <CardTitle>Evaluate</CardTitle>
-              <p className="mt-1 text-sm text-deco-muted">
-                {currentJob
-                  ? `${Math.min(currentIndex + 1, evaluateJobs.length)} of ${evaluateJobs.length} remaining`
-                  : "No scout jobs waiting."}
-              </p>
-            </div>
-            <Button
-              disabled={isActing || jobs.length === 0}
-              className="w-full sm:w-auto"
-              onClick={() => void handleDeleteAll()}
-              type="button"
-              variant="ghost"
-            >
-              <Trash2 className="h-4 w-4" />
-              Clear Scout Queue
-            </Button>
-          </CardHeader>
-
-          <CardContent>
-            {isLoading ? (
-              <p className="text-sm text-deco-muted">Loading scout jobs...</p>
-            ) : null}
-
-            {!isLoading && currentJob ? (
-              <article className="deco-frame border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel">
-                <div
-                  className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
-                  data-tour-id="scout-evaluate-card"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
-                      {currentJob.company}
-                    </p>
-                    <h3 className="mt-2 font-heading text-2xl text-deco-foreground sm:text-3xl">
-                      {currentJob.title}
-                    </h3>
-                  </div>
-                  <Badge>{formatDateDe(currentJob.postedAt)}</Badge>
-                </div>
-
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="deco-frame border-border-gold-muted bg-deco-surface px-3 py-2">
-                    <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
-                      Location
-                    </p>
-                    <p className="mt-1 text-sm text-deco-foreground">
-                      {currentJob.location ?? "Not provided"}
-                    </p>
-                  </div>
-                  <div className="deco-frame border-border-gold-muted bg-deco-surface px-3 py-2">
-                    <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
-                      Workplace
-                    </p>
-                    <p className="mt-1 text-sm text-deco-foreground">
-                      {currentJob.workplaceType ?? "Not provided"}
-                    </p>
-                  </div>
-                  <div className="deco-frame border-border-gold-muted bg-deco-surface px-3 py-2">
-                    <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
-                      Commitment
-                    </p>
-                    <p className="mt-1 text-sm text-deco-foreground">
-                      {currentJob.commitment ?? "Not provided"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
-                    Tech Stack
-                  </p>
-                  {currentTools.length > 0 ? (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {currentTools.map((tool) => (
-                        <span
-                          className="deco-frame border-border-gold-muted bg-deco-card px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-deco-foreground"
-                          key={tool}
-                        >
-                          {tool}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-2 text-sm text-deco-muted">Not provided</p>
-                  )}
-                </div>
-
-                <div className="mt-5 grid gap-3">
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
-                    Requirements Summary
-                  </p>
-                  <div className="deco-frame max-h-48 overflow-y-auto border-border-gold-muted bg-deco-surface p-3">
-                    <pre className="whitespace-pre-wrap break-words font-mono text-[0.75rem] leading-5 text-deco-foreground">
-                      {currentJob.requirementsSummary?.trim() ||
-                        "No requirements summary provided."}
-                    </pre>
-                  </div>
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-3">
-                  {currentJob.jobUrl ? (
-                    <a
-                      className="inline-flex items-center gap-2 text-sm text-deco-foreground underline decoration-primary-gold underline-offset-4 hover:text-primary-gold"
-                      href={currentJob.jobUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Job page
-                    </a>
-                  ) : null}
-                  {currentJob.applyUrl ? (
-                    <a
-                      className="inline-flex items-center gap-2 text-sm text-deco-foreground underline decoration-primary-gold underline-offset-4 hover:text-primary-gold"
-                      href={currentJob.applyUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Apply page
-                    </a>
-                  ) : null}
-                </div>
-
-                <div className="mt-6 grid gap-3 border-t border-primary-gold-muted pt-4 sm:grid-cols-3">
-                  <Button
-                    disabled={isActing}
-                    className="w-full justify-center"
-                    onClick={() => void handleDiscard()}
-                    type="button"
-                    variant="outline"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Discard
-                  </Button>
-                  <Button
-                    disabled={isActing}
-                    className="w-full justify-center"
-                    onClick={handleSkip}
-                    type="button"
-                    variant="ghost"
-                  >
-                    Skip for now
-                  </Button>
-                  <Button
-                    disabled={isActing}
-                    className="w-full justify-center"
-                    onClick={() => void handleSaveForLater()}
-                    type="button"
-                  >
-                    <Save className="h-4 w-4" />
-                    Save for later
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <p className="mt-4 hidden text-xs uppercase tracking-[0.16em] text-deco-muted md:block">
-                  Shortcuts: H or Left = discard, L or Right = save for later, Escape = skip
-                </p>
-              </article>
-            ) : null}
-
-            {!isLoading && !currentJob ? (
-              <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-5 py-10 text-center">
-                <p className="font-heading text-2xl text-deco-foreground">
-                  No scout jobs in this pass.
-                </p>
-                <p className="mt-3 text-sm text-deco-muted">
-                  Upload a new jobs.json file or refresh the queue.
-                </p>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
+        <ScoutEvaluatePanel
+          isLoading={isLoading}
+          currentJob={currentJob}
+          currentIndex={currentIndex}
+          evaluateCount={evaluateJobs.length}
+          isActing={isActing}
+          jobsLength={jobs.length}
+          onDiscard={() => void handleDiscard()}
+          onSkip={handleSkip}
+          onSaveForLater={() => void handleSaveForLater()}
+          onDeleteAll={handleDeleteAll}
+          isActive={isActive}
+        />
       ) : null}
 
       {activeView === "to-apply" ? (
-        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden" data-tour-id="scout-to-apply-panel">
-          <CardHeader className="shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <CardTitle>To Apply</CardTitle>
-              <p className="mt-1 text-sm text-deco-muted">
-                {toApplyJobs.length > 0
-                  ? `${toApplyJobs.length} jobs saved for later.`
-                  : "No saved jobs yet."}
-              </p>
-            </div>
-            <Button
-              aria-pressed={toApplyViewMode === "list"}
-              className="h-9 w-full justify-center px-3 sm:w-auto"
-              onClick={() =>
-                setToApplyViewMode((current) =>
-                  current === "detailed" ? "list" : "detailed",
-                )
-              }
-              type="button"
-              variant="outline"
-            >
-              <span className="inline-flex items-center gap-2">
-                {toApplyViewMode === "detailed" ? (
-                  <Eye className="h-4 w-4" />
-                ) : (
-                  <ListChecks className="h-4 w-4" />
-                )}
-                {toApplyViewMode === "detailed" ? "List view" : "Detail view"}
-              </span>
-            </Button>
-            <Button
-              disabled={isActing || jobs.length === 0}
-              className="w-full justify-center sm:w-auto"
-              onClick={() => void handleDeleteAll()}
-              type="button"
-              variant="ghost"
-            >
-              <Trash2 className="h-4 w-4" />
-              Clear Scout Queue
-            </Button>
-          </CardHeader>
-
-          <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            {isLoading ? (
-              <p className="text-sm text-deco-muted">Loading scout jobs...</p>
-            ) : null}
-
-            {!isLoading && toApplyJobs.length > 0 ? (
-              <div
-                className={`mt-3 flex-1 overflow-y-auto pr-1 ${
-                  toApplyViewMode === "list" ? "space-y-2" : "space-y-3"
-                }`}
-              >
-                {toApplyJobs.map((job) => {
-                  const jobTools = splitTechStack(job.technicalTools);
-                  const listTools = compactTools(job);
-                  const applyHref = job.applyUrl ?? null;
-
-                  return (
-                    <article
-                      className={`deco-frame border-border-gold bg-deco-surface-soft shadow-deco-panel ${
-                        toApplyViewMode === "list" ? "px-3 py-2" : "p-3"
-                      }`}
-                      key={job.id}
-                    >
-                      <div className={toApplyViewMode === "list" ? "md:hidden" : "hidden"}>
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex min-w-0 flex-col gap-1">
-                              <p className="truncate text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
-                                {job.company}
-                              </p>
-                              <h3 className="truncate font-heading text-[0.95rem] text-deco-foreground">
-                                {job.title}
-                              </h3>
-                            </div>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-2">
-                            <Button
-                              disabled={isActing}
-                              className="h-9 w-9 shrink-0 p-0"
-                              onClick={() => void handleMarkAsApplied(job)}
-                              type="button"
-                              title="Mark as Applied"
-                            >
-                              <Save className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              disabled={isActing}
-                              className="h-9 w-9 shrink-0 p-0"
-                              onClick={() => void handleRemoveScoutJob(job)}
-                              type="button"
-                              variant="outline"
-                              title="Remove"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                            {applyHref ? (
-                              <Button
-                                asChild
-                                className="h-9 w-9 shrink-0 p-0"
-                                size="sm"
-                                variant="outline"
-                                title="Open apply link"
-                              >
-                                <a href={applyHref} rel="noreferrer" target="_blank">
-                                  <ExternalLink className="h-4 w-4" />
-                                </a>
-                              </Button>
-                            ) : null}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="hidden md:block">
-                        <div
-                          className={`flex ${
-                            toApplyViewMode === "list"
-                              ? "flex-col gap-2 xl:flex-row xl:items-center xl:justify-between"
-                              : "flex-col gap-2 lg:flex-row lg:items-start lg:justify-between"
-                          }`}
-                        >
-                          <div className="min-w-0">
-                            {toApplyViewMode === "list" ? (
-                              <>
-                                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] text-deco-muted">
-                                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
-                                    {job.company}
-                                  </p>
-                                  <span className="text-deco-muted">—</span>
-                                  <h3 className="truncate font-heading text-[0.95rem] text-deco-foreground">
-                                    {job.title}
-                                  </h3>
-                                  {listTools.length > 0 ? (
-                                    <>
-                                      <span className="text-deco-muted">—</span>
-                                      <span className="truncate">
-                                        {listTools.join(", ")}
-                                      </span>
-                                    </>
-                                  ) : null}
-                                  <span className="text-deco-muted">—</span>
-                                  <span>
-                                    {job.workplaceType ?? "Not provided"}
-                                    {job.location ? `, ${job.location}` : ""}
-                                  </span>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-                                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
-                                    {job.company}
-                                  </p>
-                                  <span className="text-sm text-deco-muted">—</span>
-                                  <h3 className="font-heading text-xl text-deco-foreground">
-                                    {job.title}
-                                  </h3>
-                                </div>
-                                <div className="mt-2 flex flex-wrap gap-2 text-[0.72rem] text-deco-muted">
-                                  <span>{job.location ?? "Not provided"}</span>
-                                  {job.workplaceType ? <span>• {job.workplaceType}</span> : null}
-                                  {job.commitment ? <span>• {job.commitment}</span> : null}
-                                  <span>• {formatDateDe(job.postedAt)}</span>
-                                </div>
-                              </>
-                            )}
-                          </div>
-
-                          {toApplyViewMode === "list" ? (
-                            <div className="flex shrink-0 items-center gap-2">
-                              <Button
-                                disabled={isActing}
-                                className="h-9 px-3"
-                                onClick={() => void handleMarkAsApplied(job)}
-                                type="button"
-                                title="Mark as Applied"
-                              >
-                                <Save className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                disabled={isActing}
-                                className="h-9 px-3"
-                                onClick={() => void handleRemoveScoutJob(job)}
-                                type="button"
-                                variant="outline"
-                                title="Remove"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                              {applyHref ? (
-                                <Button
-                                  asChild
-                                  className="h-9 shrink-0"
-                                  size="sm"
-                                  variant="outline"
-                                >
-                                  <a href={applyHref} rel="noreferrer" target="_blank">
-                                    <ExternalLink className="h-4 w-4" />
-                                    Open
-                                  </a>
-                                </Button>
-                              ) : null}
-                            </div>
-                          ) : applyHref ? (
-                            <Button asChild className="h-9 shrink-0" size="sm" variant="outline">
-                              <a href={applyHref} rel="noreferrer" target="_blank">
-                                <ExternalLink className="h-4 w-4" />
-                                Open apply link
-                              </a>
-                            </Button>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      {toApplyViewMode === "detailed" && jobTools.length > 0 ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {jobTools.map((tool) => (
-                            <span
-                              className="deco-frame border-border-gold-muted bg-deco-card px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-deco-foreground"
-                              key={tool}
-                            >
-                              {tool}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-
-                      {toApplyViewMode === "detailed" ? (
-                        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                          <Button
-                            disabled={isActing}
-                            className="h-9 w-full justify-center px-3 sm:w-auto"
-                            onClick={() => void handleMarkAsApplied(job)}
-                            type="button"
-                          >
-                            <Save className="h-4 w-4" />
-                            Mark as Applied
-                          </Button>
-                          <Button
-                            disabled={isActing}
-                            className="h-9 w-full justify-center px-3 sm:w-auto"
-                            onClick={() => void handleRemoveScoutJob(job)}
-                            type="button"
-                            variant="outline"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Remove
-                          </Button>
-                        </div>
-                      ) : null}
-                    </article>
-                  );
-                })}
-              </div>
-            ) : null}
-
-            {!isLoading && toApplyJobs.length === 0 ? (
-              <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-5 py-10 text-center">
-                <p className="font-heading text-2xl text-deco-foreground">
-                  No saved Scout jobs yet.
-                </p>
-                <p className="mt-3 text-sm text-deco-muted">
-                  Save jobs from Evaluate to build your To Apply list.
-                </p>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
+        <ScoutToApplyPanel
+          isLoading={isLoading}
+          toApplyJobs={toApplyJobs}
+          isActing={isActing}
+          jobsLength={jobs.length}
+          onMarkAsApplied={(job) => void handleMarkAsApplied(job)}
+          onRemove={(job) => void handleRemoveScoutJob(job)}
+          onDeleteAll={handleDeleteAll}
+        />
       ) : null}
 
-      <Dialog open={isManualDialogOpen} onOpenChange={setIsManualDialogOpen}>
-        <DialogContent className="max-h-[92vh] w-[min(96vw,65rem)] overflow-y-auto lg:overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Manually add scout job</DialogTitle>
-          </DialogHeader>
-
-          <div className="px-4 pb-4 pt-4">
-            <div className="grid gap-3 lg:grid-cols-2">
-              <div className="grid gap-1">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Title *
-                </label>
-                <Input
-                  value={manualForm.title}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      title: event.target.value,
-                    }))
-                  }
-                  placeholder="Senior Backend Engineer"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Company *
-                </label>
-                <Input
-                  value={manualForm.company}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      company: event.target.value,
-                    }))
-                  }
-                  placeholder="Acme GmbH"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Location
-                </label>
-                <Input
-                  value={manualForm.location}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      location: event.target.value,
-                    }))
-                  }
-                  placeholder="Remote / Berlin"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Workplace type
-                </label>
-                <Input
-                  value={manualForm.workplaceType}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      workplaceType: event.target.value,
-                    }))
-                  }
-                  placeholder="Hybrid"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Commitment
-                </label>
-                <Input
-                  value={manualForm.commitment}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      commitment: event.target.value,
-                    }))
-                  }
-                  placeholder="Full-time"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Posted date
-                </label>
-                <Input
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      postedAt: event.target.value,
-                    }))
-                  }
-                  value={manualForm.postedAt}
-                  type="date"
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Job URL
-                </label>
-                <Input
-                  value={manualForm.jobUrl}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      jobUrl: event.target.value,
-                    }))
-                  }
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div className="grid gap-1">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Apply URL
-                </label>
-                <Input
-                  value={manualForm.applyUrl}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      applyUrl: event.target.value,
-                    }))
-                  }
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div className="grid gap-1 lg:col-span-2">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Technical tools
-                </label>
-                <Input
-                  value={manualForm.technicalTools}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      technicalTools: event.target.value,
-                    }))
-                  }
-                  placeholder="React, .NET, PostgreSQL"
-                />
-              </div>
-
-              <div className="grid gap-1 lg:col-span-2">
-                <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
-                  Requirements summary
-                </label>
-                <Textarea
-                  className="min-h-32"
-                  value={manualForm.requirementsSummary}
-                  onChange={(event) =>
-                    setManualForm((current) => ({
-                      ...current,
-                      requirementsSummary: event.target.value,
-                    }))
-                  }
-                  placeholder="Notes, requirements, or scout observations..."
-                />
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap justify-end gap-3">
-              <Button
-                onClick={closeManualDialog}
-                type="button"
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button
-                disabled={isActing}
-                onClick={() => void submitManualScoutJob()}
-                type="button"
-              >
-                <Plus className="h-4 w-4" />
-                Add scout job
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ScoutManualDialog
+        open={isManualDialogOpen}
+        onOpenChange={setIsManualDialogOpen}
+        onJobsReload={loadJobs}
+        onViewSwitch={setActiveView}
+      />
 
       <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
         <DialogContent className="deco-frame-thick w-[min(96vw,30rem)] border-border-gold bg-deco-bg shadow-deco-panel">
