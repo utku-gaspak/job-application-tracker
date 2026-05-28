@@ -66,10 +66,8 @@ const LoginPage = () => {
     await submitCredentials(username, password);
   };
 
-  const handleDemoLogin = async () => {
-    setUsername("demo");
-    setPassword("demo123");
-    await submitCredentials("demo", "demo123");
+  const handleDemoLogin = () => {
+    void submitCredentials("demo", "demo123");
   };
 
   return (
