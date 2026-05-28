@@ -142,6 +142,10 @@ export const handlers = [
     return HttpResponse.json(null, { status: 204 })
   }),
 
+  http.get(`${finalUrl}/api/scout/jobs`, () => {
+    return HttpResponse.json([])
+  }),
+
   http.delete(`${finalUrl}/api/jobapplications/:id`, ({ params }) => {
     const id = String(params.id)
 

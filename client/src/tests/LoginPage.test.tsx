@@ -2,22 +2,33 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
+import { toast } from 'sonner'
 import LoginPage from '../pages/LoginPage'
 import { AuthProvider } from '../context/AuthContext'
+import { ThemeProvider } from '../context/ThemeContext'
 import { mockApiState } from './mocks/handlers'
 import { server } from './mocks/server'
 import { finalUrl } from '../baseUrl'
 
+vi.mock('sonner', () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}))
+
 const renderLoginPage = () => {
   render(
-    <AuthProvider>
-      <MemoryRouter initialEntries={['/login']}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<div>Dashboard Home</div>} />
-        </Routes>
-      </MemoryRouter>
-    </AuthProvider>,
+    <ThemeProvider>
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<div>Dashboard Home</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
+    </ThemeProvider>,
   )
 }
 
@@ -47,7 +58,6 @@ describe('LoginPage', () => {
   })
 
   it('LoginPage_SubmitUnauthorizedCredentials_ShowsErrorMessage', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
     server.use(
       http.post(`${finalUrl}/api/account/login`, () =>
         HttpResponse.json(
@@ -68,15 +78,12 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Invalid username or password.')
+      expect(toast.error).toHaveBeenCalledWith('Invalid username or password.')
     })
     expect(localStorage.getItem('token')).toBeNull()
-
-    alertSpy.mockRestore()
   })
 
   it('LoginPage_InvalidResponse_HandlesGracefully', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
     server.use(
       http.post(
         `${finalUrl}/api/account/login`,
@@ -99,10 +106,8 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Login failed.')
+      expect(toast.error).toHaveBeenCalledWith('Login failed.')
     })
     expect(localStorage.getItem('token')).toBeNull()
-
-    alertSpy.mockRestore()
   })
 })
