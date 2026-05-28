@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { useAuth } from "./context/AuthContext";
 import { WorkflowProvider } from "./context/WorkflowContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
@@ -34,9 +35,10 @@ function App() {
               descriptionClassName: "text-deco-muted",
             }}
           />
-          <Suspense fallback={<RouteFallback />}>
-            <div className="flex-1">
-              <Routes>
+          <ErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <div className="flex-1">
+                <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route
                   path="/scrape"
@@ -83,7 +85,8 @@ function App() {
                 <Route path="/register" element={<RegisterPage />} />
               </Routes>
             </div>
-          </Suspense>
+            </Suspense>
+          </ErrorBoundary>
         </WorkflowProvider>
       </BrowserRouter>
     </div>
