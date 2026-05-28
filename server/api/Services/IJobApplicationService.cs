@@ -5,9 +5,9 @@ namespace api.Services;
 
 public interface IJobApplicationService
 {
-    Task<JobApplication> CreateAsync(JobApplicationCreateDto dto, string userId);
-    Task<List<JobApplication>> GetAllAsync(string userId);
-    Task<JobApplication> GetByIdAsync(string id, string userId);
-    Task UpdateAsync(string id, JobApplicationUpdateDto dto, string userId);
-    Task<bool> DeleteAsync(string id, string userId);
+    Task<JobApplication> CreateAsync(JobApplicationCreateDto dto, string userId, CancellationToken cancellationToken = default);
+    Task<List<JobApplication>> GetAllAsync(string userId, CancellationToken cancellationToken = default);
+    Task<JobApplication> GetByIdAsync(string id, string userId, CancellationToken cancellationToken = default);
+    Task UpdateAsync(string id, JobApplicationUpdateDto dto, string userId, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(string id, string userId, CancellationToken cancellationToken = default);
 }

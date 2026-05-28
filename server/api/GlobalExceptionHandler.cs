@@ -37,13 +37,23 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             ),
         };
 
-        logger.LogError(
-            exception,
-            "Request failed with status code {StatusCode} for {Method} {Path}",
-            statusCode,
-            httpContext.Request.Method,
-            httpContext.Request.Path
-        );
+        if (exception is ValidationException)
+            logger.LogWarning(
+                exception,
+                "Client error {StatusCode} for {Method} {Path}: {Detail}",
+                statusCode,
+                httpContext.Request.Method,
+                httpContext.Request.Path,
+                detail
+            );
+        else
+            logger.LogError(
+                exception,
+                "Request failed with status code {StatusCode} for {Method} {Path}",
+                statusCode,
+                httpContext.Request.Method,
+                httpContext.Request.Path
+            );
 
         var problemDetails = new ProblemDetails
         {

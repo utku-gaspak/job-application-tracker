@@ -47,27 +47,27 @@ public class ApiApplicationFactory : WebApplicationFactory<Program>
 
     private sealed class EmptyJobApplicationService : IJobApplicationService
     {
-        public Task<JobApplication> CreateAsync(JobApplicationCreateDto dto, string userId)
+        public Task<JobApplication> CreateAsync(JobApplicationCreateDto dto, string userId, CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task<List<JobApplication>> GetAllAsync(string userId)
+        public Task<List<JobApplication>> GetAllAsync(string userId, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(new List<JobApplication>());
         }
 
-        public Task<JobApplication> GetByIdAsync(string id, string userId)
+        public Task<JobApplication> GetByIdAsync(string id, string userId, CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task UpdateAsync(string id, JobApplicationUpdateDto dto, string userId)
+        public Task UpdateAsync(string id, JobApplicationUpdateDto dto, string userId, CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task<bool> DeleteAsync(string id, string userId)
+        public Task<bool> DeleteAsync(string id, string userId, CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }

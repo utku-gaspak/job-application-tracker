@@ -1,7 +1,7 @@
 global using System.ComponentModel.DataAnnotations;
 global using System.Security.Claims;
 global using api.Dtos.Account;
-global using api.Interface;
+global using api.Services;
 global using api.Controllers;
 global using api.Data;
 global using api.Dto;

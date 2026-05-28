@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using api.Dto;
 using api.Models;
 using api.Services;
@@ -10,65 +9,65 @@ namespace api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class JobApplicationsController(IJobApplicationService service) : ControllerBase
+public class JobApplicationsController(IJobApplicationService service) : BaseApiController
 {
     [HttpGet]
-    public async Task<ActionResult<List<JobApplication>>> GetAll()
+    public async Task<ActionResult<List<JobApplication>>> GetAll(CancellationToken cancellationToken = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-            return Unauthorized();
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized();
 
-        var jobApplications = await service.GetAllAsync(userId);
+        var jobApplications = await service.GetAllAsync(userId, cancellationToken);
         return Ok(jobApplications);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<JobApplication>> GetById([FromRoute] string id)
+    public async Task<ActionResult<JobApplication>> GetById(
+        [FromRoute] string id,
+        CancellationToken cancellationToken = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-            return Unauthorized();
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized();
 
-        var jobApplication = await service.GetByIdAsync(id, userId);
+        var jobApplication = await service.GetByIdAsync(id, userId, cancellationToken);
         return Ok(jobApplication);
     }
 
     [HttpPost]
-    public async Task<ActionResult<JobApplication>> Create([FromBody] JobApplicationCreateDto dto)
+    public async Task<ActionResult<JobApplication>> Create(
+        [FromBody] JobApplicationCreateDto dto,
+        CancellationToken cancellationToken = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-            return Unauthorized();
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized();
 
-        var jobApplication = await service.CreateAsync(dto, userId);
+        var jobApplication = await service.CreateAsync(dto, userId, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = jobApplication.Id }, jobApplication);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(
         [FromRoute] string id,
-        [FromBody] JobApplicationUpdateDto dto
-    )
+        [FromBody] JobApplicationUpdateDto dto,
+        CancellationToken cancellationToken = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-            return Unauthorized();
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized();
 
-        await service.UpdateAsync(id, dto, userId);
+        await service.UpdateAsync(id, dto, userId, cancellationToken);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete([FromRoute] string id)
+    public async Task<IActionResult> Delete(
+        [FromRoute] string id,
+        CancellationToken cancellationToken = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-            return Unauthorized();
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized();
 
-        var deleted = await service.DeleteAsync(id, userId);
-        if (!deleted)
-            return NotFound();
+        var deleted = await service.DeleteAsync(id, userId, cancellationToken);
+        if (!deleted) return NotFound();
 
         return NoContent();
     }

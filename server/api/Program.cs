@@ -3,9 +3,8 @@ using System.IdentityModel.Tokens.Jwt;
 using api;
 using api.Data;
 using api.Etc;
-using api.Interface;
-using api.Models;
 using api.Services;
+using api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +51,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
+builder.Services.AddScoped<IScoutJobService, ScoutJobService>();
 builder.Services.AddSingleton<ScrapeJobQueue>();
 builder.Services.AddSingleton<IScrapeJobQueue>(provider => provider.GetRequiredService<ScrapeJobQueue>());
 builder.Services.AddHostedService<ScrapeJobWorker>();
