@@ -15,9 +15,5 @@ public class RegisterDto
 
     [Required]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters.")]
-    [RegularExpression(
-        @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$",
-        ErrorMessage = "Password must include uppercase, lowercase, number, and special character."
-    )]
     public string? Password { get; set; }
 }

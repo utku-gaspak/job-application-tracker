@@ -28,10 +28,6 @@ public class DtoValidationTests
 
     [Theory]
     [InlineData("short")]
-    [InlineData("password1!")]
-    [InlineData("PASSWORD1!")]
-    [InlineData("Password!")]
-    [InlineData("Password1")]
     public void RegisterDto_InvalidPassword_ShouldFailValidation(string password)
     {
         var dto = CreateValidRegisterDto();
@@ -58,7 +54,7 @@ public class DtoValidationTests
         {
             Username = "utku",
             Email = "utku@example.com",
-            Password = "Password1!",
+            Password = "password123",
         };
     }
 

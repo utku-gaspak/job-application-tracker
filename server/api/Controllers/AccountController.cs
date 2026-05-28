@@ -47,7 +47,7 @@ public class AccountController(
     [HttpPost("login")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(NewUserDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Login(LoginDto loginDto)
+    public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
