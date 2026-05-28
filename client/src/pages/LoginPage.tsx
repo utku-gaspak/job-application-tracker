@@ -80,7 +80,7 @@ const LoginPage = () => {
               <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Job Application Tracker
               </p>
-              <h1 className="max-w-[12ch] text-5xl leading-[0.95] text-deco-foreground md:text-6xl">
+              <h1 className="max-w-[12ch] text-4xl leading-[0.95] text-deco-foreground md:text-5xl">
                 Traxr
               </h1>
             </div>

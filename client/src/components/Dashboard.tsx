@@ -590,7 +590,7 @@ const Dashboard = () => {
 
   return (
     <main className="mx-auto flex min-h-[calc(100dvh/var(--ui-scale))] w-full max-w-[1600px] flex-col overflow-x-hidden px-3 py-3 lg:px-5">
-      <header className="deco-frame-thick mb-4 flex w-full flex-col gap-3 px-4 py-4 shadow-deco-panel bg-deco-surface-soft sm:px-6 md:flex-row md:items-center md:justify-between">
+      <header className="deco-frame-thick mb-3 flex w-full flex-col gap-3 px-3 py-3 shadow-deco-panel bg-deco-surface-soft sm:px-6 md:flex-row md:items-center md:justify-between">
         {" "}
         <div className="flex min-w-0 flex-col gap-2 md:flex-row md:items-center md:gap-4">
           <div className="min-w-0">

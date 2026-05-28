@@ -1,18 +1,18 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @config "../tailwind.config.js";
 @import "tailwindcss";
 
 :root {
   /* UI Scale — set below 1 for a compact layout on large screens */
-  --ui-scale: 1;
+  --ui-scale: 0.9;
 
-  /* Nordic Frost - High Contrast Light Theme */
+  /* Warm Stone - Light Theme */
   --color-background: #f1f5f9;
   --color-foreground: #1e293b;
-  --color-primary: #475569;
-  --color-primary-muted: rgba(71, 85, 105, 0.1);
+  --color-primary: #b8860b;
+  --color-primary-muted: rgba(184, 134, 11, 0.1);
   --color-primary-foreground: #ffffff;
-  --color-primary-soft: rgba(71, 85, 105, 0.05);
+  --color-primary-soft: rgba(184, 134, 11, 0.06);
 
   /* SURFACE: Consistent with Sidebar Panels */
   --color-surface: #ffffff; /* Matches Inner Panel Background */
@@ -94,7 +94,7 @@
 
 @theme inline {
   --font-sans: "Inter", sans-serif;
-  --font-heading: "Playfair Display", serif;
+  --font-heading: "Inter", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas;
 
   /* Tailwind Variable Mappings */

@@ -135,7 +135,7 @@ export const KanbanBoard = ({
                 <div className="mt-4 flex flex-col gap-2">
                   {columns[column.status].map((application) => (
                     <article
-                      className={`application-card ${column.borderClass} deco-frame cursor-default select-none border-border-gold-muted bg-deco-card px-3 py-2 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow`}
+                      className={`application-card ${column.borderClass} deco-frame cursor-default select-none border-border-gold-muted bg-deco-card px-2 py-1.5 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow`}
                       key={application.id}
                       onClick={() => onCardClick(application)}
                     >
@@ -197,7 +197,7 @@ export const KanbanBoard = ({
                                 draggableProvided.draggableProps;
                               const draggableCard = (
                                 <article
-                                  className={`application-card ${column.borderClass} deco-frame cursor-grab select-none border-border-gold-muted bg-deco-card px-3 py-2 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow active:cursor-grabbing ${
+                                  className={`application-card ${column.borderClass} deco-frame cursor-grab select-none border-border-gold-muted bg-deco-card px-2 py-1.5 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow active:cursor-grabbing ${
                                     draggableSnapshot.isDragging
                                       ? "shadow-deco-glow"
                                       : ""

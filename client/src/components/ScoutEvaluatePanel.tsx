@@ -110,7 +110,7 @@ export const ScoutEvaluatePanel = ({
         ) : null}
 
         {!isLoading && currentJob ? (
-          <article className="deco-frame border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel">
+          <article className="deco-frame border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel">
             <div
               className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
               data-tour-id="scout-evaluate-card"

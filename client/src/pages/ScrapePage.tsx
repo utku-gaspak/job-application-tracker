@@ -341,7 +341,7 @@ const ScrapePage = () => {
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden">
       <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-3 py-3 lg:px-5">
-        <header className="deco-frame-thick mb-4 flex w-full flex-col gap-3 bg-deco-surface-soft px-4 py-4 shadow-deco-panel sm:px-6 md:flex-row md:items-center md:justify-between">
+        <header className="deco-frame-thick mb-3 flex w-full flex-col gap-3 bg-deco-surface-soft px-3 py-3 shadow-deco-panel sm:px-6 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
               HiringCafe Scrape
@@ -360,7 +360,7 @@ const ScrapePage = () => {
         </header>
 
         <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-stretch md:min-h-0 md:flex-1">
-          <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel md:h-full md:overflow-hidden md:p-6">
+          <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel md:h-full md:overflow-hidden md:p-6">
             <section className="deco-frame border-border-gold bg-deco-surface p-4 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Scrape history
@@ -678,7 +678,7 @@ const ScrapePage = () => {
             </Card>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              <section className="deco-frame-thick border-border-gold bg-deco-bg/78 p-5 shadow-deco-panel backdrop-blur-md sm:p-6">
+              <section className="deco-frame-thick border-border-gold bg-deco-bg/78 p-4 shadow-deco-panel backdrop-blur-md sm:p-6">
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
@@ -710,7 +710,7 @@ const ScrapePage = () => {
                 </div>
               </section>
 
-              <section className="deco-frame-thick border-border-gold bg-deco-bg/78 p-5 shadow-deco-panel backdrop-blur-md sm:p-6">
+              <section className="deco-frame-thick border-border-gold bg-deco-bg/78 p-4 shadow-deco-panel backdrop-blur-md sm:p-6">
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">

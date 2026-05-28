@@ -41,7 +41,7 @@ export const DashboardSidebar = ({
   };
 
   return (
-    <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel md:h-full md:overflow-hidden md:p-6">
+    <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel md:h-full md:overflow-hidden md:p-6">
       <section className="deco-frame border-border-gold bg-deco-surface p-4 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
           Profile
