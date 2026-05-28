@@ -1,39 +1,24 @@
 import axios from "axios";
 import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  type DropResult,
-} from "@hello-pangea/dnd";
-import {
   BadgePlus,
-  ArrowUpDown,
-  Binoculars,
-  ChevronDown,
-  BarChart3,
-  Diamond,
   CircleHelp,
-  ExternalLink,
+  Diamond,
   Download,
-  FileText,
+  ExternalLink,
   FileDigit,
-  Filter,
-  LayoutDashboard,
+  FileText,
   LogOut,
   Moon,
-  Search,
   SunMedium,
   Trash2,
-  User,
-  X,
 } from "lucide-react";
-import { createPortal } from "react-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
-import { InterestRangeSlider } from "./InterestRangeSlider";
+import { FilterBar } from "./FilterBar";
+import { KanbanBoard } from "./KanbanBoard";
+import { DashboardSidebar } from "./DashboardSidebar";
 import Footer from "./Footer";
 import MissionLoop from "./MissionLoop";
 import TrackerStatusSankey from "./TrackerStatusSankey";
@@ -217,41 +202,6 @@ const getLoadApplicationsErrorMessage = (error: unknown) => {
   return "Could not load job applications.";
 };
 
-const boardColumns = [
-  {
-    status: JobApplicationStatus.Applied,
-    title: "Applied",
-    subtitle: "Fresh outreach",
-    borderClass: "border-l-column-applied",
-    accentClass: "text-column-applied",
-    frameClass: "deco-frame border-border-gold",
-  },
-  {
-    status: JobApplicationStatus.Interviewing,
-    title: "Interviewing",
-    subtitle: "Active conversations",
-    borderClass: "border-l-column-interviewing",
-    accentClass: "text-column-interviewing",
-    frameClass: "deco-frame border-border-gold",
-  },
-  {
-    status: JobApplicationStatus.Rejected,
-    title: "Rejected",
-    subtitle: "Closed loops",
-    borderClass: "border-l-column-rejected",
-    accentClass: "text-column-rejected",
-    frameClass: "deco-frame border-border-gold",
-  },
-  {
-    status: JobApplicationStatus.Offer,
-    title: "Offer",
-    subtitle: "Decision stage",
-    borderClass: "border-l-column-offer",
-    accentClass: "text-column-offer",
-    frameClass: "deco-frame border-border-gold",
-  },
-] as const;
-
 const buildColumns = (applications: JobApplication[]) =>
   jobApplicationStatusOrder.reduce<
     Record<JobApplicationStatus, JobApplication[]>
@@ -334,16 +284,8 @@ const detailRows = (application: JobApplication) =>
 
 const interestLevelOptions = [1, 2, 3, 4, 5] as const;
 
-const mobileAccordionDefaults: Record<JobApplicationStatus, boolean> = {
-  [JobApplicationStatus.Applied]: true,
-  [JobApplicationStatus.Interviewing]: false,
-  [JobApplicationStatus.Rejected]: false,
-  [JobApplicationStatus.Offer]: false,
-};
-
 const Dashboard = () => {
   const { logout, username } = useAuth();
-  const navigate = useNavigate();
   const {
     activeSection,
     setActiveSection: setWorkflowSection,
@@ -373,9 +315,6 @@ const Dashboard = () => {
     upper: INTEREST_MAX,
   });
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [mobileExpandedColumns, setMobileExpandedColumns] = useState<
-    Record<JobApplicationStatus, boolean>
-  >(mobileAccordionDefaults);
   const [scoutSummary, setScoutSummary] = useState({
     total: 0,
     toEvaluate: 0,
@@ -413,14 +352,6 @@ const Dashboard = () => {
     (skill) => !selectedSkillSet.has(skill.toLowerCase()),
   );
 
-  const toggleMobileColumn = (status: JobApplicationStatus) => {
-    setMobileExpandedColumns((current) => ({
-      ...current,
-      [status]: !current[status],
-    }));
-  };
-
-
   const handleTrackerExport = (format: "json" | "csv") => {
     const content =
       format === "csv"
@@ -456,22 +387,6 @@ const Dashboard = () => {
       offerRate: formatRate(offerCount),
     };
   }, [applications]);
-
-  const renderApplicationCardContent = (application: JobApplication) => (
-    <div className="grid min-w-0 gap-1">
-      <span className="truncate text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-deco-foreground">
-        {application.companyName}
-      </span>
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <span className="truncate text-left text-[0.72rem] tracking-[0.02em] text-deco-muted">
-          {application.position}
-        </span>
-        <span className="shrink-0 text-right text-[0.68rem] tabular-nums tracking-[0.04em] text-deco-muted">
-          {formatDateDe(application.dateApplied)}
-        </span>
-      </div>
-    </div>
-  );
 
   useEffect(() => {
     const loadApplications = async () => {
@@ -741,324 +656,57 @@ const Dashboard = () => {
         </div>
       </header>
       <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-stretch md:min-h-0 md:flex-1">
-        <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel md:h-full md:overflow-hidden md:p-6">
-          <section className="deco-frame border-border-gold bg-deco-surface p-4 shadow-sm">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
-              Profile
-            </p>
-            <div className="mt-2 flex items-center gap-2 text-sm text-deco-foreground">
-              <User className="h-4 w-4 text-primary-gold" />
-              <span className="truncate font-medium">{username ?? "User"}</span>
-            </div>
-          </section>
-
-          <section className="deco-frame mt-4 border-border-gold bg-deco-surface p-4 shadow-sm">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
-              {activeSection === "scout" ? "Scout Summary" : "Summary"}
-            </p>
-            {activeSection === "scout" ? (
-              <div className="mt-2 grid gap-2 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
-                <div>
-                  <span className="font-heading text-3xl leading-none text-deco-foreground">
-                    {scoutSummary.total}
-                  </span>
-                  <p className="mt-1 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
-                    Total Scout Jobs
-                  </p>
-                </div>
-                <p>{scoutSummary.toEvaluate} to evaluate</p>
-                <p>{scoutSummary.toApply} to apply</p>
-                <p>{scoutSummary.discarded} discarded</p>
-              </div>
-            ) : (
-              <>
-                <div className="mt-2">
-                  <span className="font-heading text-3xl leading-none">
-                    {applications.length}
-                  </span>
-                  <p className="mt-1 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
-                    Total Applications
-                  </p>
-                </div>
-                <div className="mt-3 space-y-1 text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
-                  <p>{profileStats.interviewRate}% interview rate</p>
-                  <p>{profileStats.offerRate}% offer rate</p>
-                </div>
-              </>
-            )}
-          </section>
-
-          <div className="mt-4 flex w-full flex-col gap-3">
-            <div className="grid grid-cols-1 gap-2">
-              <Button
-                aria-label="Open Scrape"
-                className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
-                onClick={() => navigate("/scrape")}
-                type="button"
-                variant={themeButtonVariant}
-              >
-                <span className="flex w-full items-center justify-center gap-2">
-                  <Search className="h-4 w-4 shrink-0" />
-                  <span>Scrape</span>
-                </span>
-              </Button>
-              <Button
-                aria-label="Open Tracker"
-                className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
-                onClick={() => switchSection("tracker")}
-                type="button"
-                variant={activeSection === "tracker" ? "default" : themeButtonVariant}
-              >
-                <span className="flex w-full items-center justify-center gap-2">
-                  <LayoutDashboard className="h-4 w-4 shrink-0" />
-                  <span>Tracker</span>
-                </span>
-              </Button>
-              <Button
-                aria-label="Open Scout"
-                className="h-10 px-2 text-[0.58rem] uppercase tracking-[0.16em]"
-                onClick={() => switchSection("scout")}
-                type="button"
-                variant={activeSection === "scout" ? "default" : themeButtonVariant}
-                data-tour-id="scout-nav"
-              >
-                <span className="flex w-full items-center justify-center gap-2">
-                  <Binoculars className="h-4 w-4 shrink-0" />
-                  <span>Scout</span>
-                </span>
-              </Button>
-              {activeSection === "tracker" ? (
-                <Button
-                  aria-label="New Application"
-                  className="h-10 w-full transition-all hover:opacity-90"
-                  onClick={openCreateDialog}
-                  data-tour-id="tracker-add-new"
-                >
-                  <span className="flex w-full items-center justify-center gap-2">
-                    <BadgePlus className="h-4 w-4 shrink-0" />
-                    <span>Add New</span>
-                  </span>
-                </Button>
-              ) : (
-                <div aria-hidden="true" className="h-10" />
-              )}
-            </div>
-
-            <p className="hidden items-center gap-2 px-1 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-deco-muted md:flex">
-              <span className="h-1 w-1 rounded-full bg-primary-gold" />
-              Drag to update status
-            </p>
-          </div>
-        </aside>
+        <DashboardSidebar
+          username={username}
+          applicationCount={applications.length}
+          interviewRate={profileStats.interviewRate}
+          offerRate={profileStats.offerRate}
+          scoutSummary={scoutSummary}
+          themeButtonVariant={themeButtonVariant}
+          onOpenCreate={openCreateDialog}
+        />
 
         <section className="flex min-h-0 flex-col gap-3 md:flex-1">
           <div className={activeSection === "tracker" ? "contents" : "hidden"}>
-          <section
-            className="deco-frame w-full border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel"
-            data-tour-id="tracker-filters"
-          >
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-wrap items-stretch gap-2">
-                <Button
-                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
-                  onClick={() => {
-                    const nextSortOrder =
-                      sortOrder === "newest" ? "oldest" : "newest";
-                    setSortOrder(nextSortOrder);
-                    setApplications((current) =>
-                      sortApplications(current, nextSortOrder),
-                    );
-                  }}
-                  type="button"
-                  variant={themeButtonVariant}
-                  >
-                    <ArrowUpDown className="mr-2 h-4 w-4" />
-                    {sortOrder === "newest" ? "Newest first" : "Oldest first"}
-                  </Button>
-              </div>
-
-              <div className="flex flex-wrap items-stretch gap-2">
-                <Button
-                  aria-expanded={isFilterOpen}
-                  aria-controls="tracker-filter-accordion"
-                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
-                  onClick={() => setIsFilterOpen((current) => !current)}
-                  type="button"
-                  variant={themeButtonVariant}
-                >
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filters
-                  <ChevronDown
-                    className={`ml-2 h-4 w-4 transition-transform ${
-                      isFilterOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </Button>
-                <Button
-                  aria-pressed={showStatusSankey}
-                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
-                  onClick={() => setShowStatusSankey((current) => !current)}
-                  type="button"
-                  variant={themeButtonVariant}
-                  >
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    {showStatusSankey ? "Board" : "Diagram"}
-                  </Button>
-                <Button
-                  className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
-                  onClick={() => setIsExportDialogOpen(true)}
-                  type="button"
-                  variant={themeButtonVariant}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Export
-                </Button>
-              </div>
-            </div>
-
-            {isFilterOpen ? (
-              <div
-                className="mt-4 grid gap-4 border-t border-border-gold-muted pt-4"
-                id="tracker-filter-accordion"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="grid gap-1">
-                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                      Filters
-                    </span>
-                    <span className="text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
-                      Search, status, interest, and skill transfer
-                    </span>
-                  </div>
-                  <Button
-                    className="h-9 px-4 text-[0.6rem] uppercase tracking-[0.18em]"
-                    onClick={clearAllFilters}
-                    type="button"
-                    variant={themeButtonVariant}
-                  >
-                    Clear All
-                  </Button>
-                </div>
-
-                <div className="grid gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(2,minmax(0,1fr))]">
-                  <label className="grid gap-2">
-                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                      Search
-                    </span>
-                    <div className="relative">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-deco-muted" />
-                      <Input
-                        aria-label="Search applications"
-                        className="h-10 border-border-gold-muted bg-deco-surface pl-9"
-                        placeholder="Company or position"
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                      />
-                    </div>
-                  </label>
-
-                  <label className="grid gap-2">
-                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                      Status
-                    </span>
-                    <select
-                      aria-label="Filter status"
-                      className="deco-frame h-10 border-border-gold-muted bg-deco-surface px-3 py-2 text-sm outline-none transition-colors focus:border-primary-gold focus:ring-2 focus:ring-primary-gold-muted"
-                      value={statusFilter}
-                      onChange={(event) =>
-                        setStatusFilter(
-                          event.target.value === "all"
-                            ? "all"
-                            : (Number(
-                                event.target.value,
-                              ) as JobApplicationStatus),
-                        )
-                      }
-                    >
-                      <option value="all">All statuses</option>
-                      {jobApplicationStatusOrder.map((status) => (
-                        <option key={status} value={status}>
-                          {jobApplicationStatusLabels[status]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <InterestRangeSlider
-                    lower={interestRange.lower}
-                    upper={interestRange.upper}
-                    min={INTEREST_MIN}
-                    max={INTEREST_MAX}
-                    onLowerChange={(value) =>
-                      setInterestRange((current) => ({
-                        lower: value,
-                        upper: current.upper,
-                      }))
-                    }
-                    onUpperChange={(value) =>
-                      setInterestRange((current) => ({
-                        lower: current.lower,
-                        upper: value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="grid gap-3 lg:grid-cols-2">
-                  <div className="deco-frame border-border-gold-muted bg-deco-surface-soft p-3">
-                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-primary-gold">
-                      Selected
-                    </p>
-                    {selectedSkills.length > 0 ? (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {selectedSkills.map((skill) => (
-                          <button
-                            className="deco-frame inline-flex items-center gap-2 border-border-gold-muted bg-deco-card px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-deco-foreground"
-                            aria-label={`Remove ${skill}`}
-                            key={skill}
-                            onClick={() => removeSkillFilter(skill)}
-                            type="button"
-                          >
-                            {skill}
-                            <X className="h-3 w-3 text-deco-muted" />
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="mt-2 text-sm text-deco-muted">
-                        No active skills.
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="deco-frame border-border-gold-muted bg-deco-surface-soft p-3">
-                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-primary-gold">
-                      Available
-                    </p>
-                    {visibleAvailableSkills.length > 0 ? (
-                      <div className="mt-2 flex max-h-28 flex-wrap gap-2 overflow-y-auto">
-                        {visibleAvailableSkills.map((skill) => (
-                          <button
-                            className="deco-frame inline-flex items-center border-border-gold-muted bg-deco-card px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-deco-foreground transition-colors hover:bg-primary-gold-muted"
-                            aria-label={`Add ${skill}`}
-                            key={skill}
-                            onClick={() => addSkillFilter(skill)}
-                            type="button"
-                          >
-                            {skill}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="mt-2 text-sm text-deco-muted">
-                        No more skills available.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </section>
+          <FilterBar
+            sortOrder={sortOrder}
+            onSortToggle={() => {
+              const nextSortOrder =
+                sortOrder === "newest" ? "oldest" : "newest";
+              setSortOrder(nextSortOrder);
+              setApplications((current) =>
+                sortApplications(current, nextSortOrder),
+              );
+            }}
+            isFilterOpen={isFilterOpen}
+            onToggleFilter={() => setIsFilterOpen((current) => !current)}
+            showStatusSankey={showStatusSankey}
+            onToggleDiagram={() => setShowStatusSankey((current) => !current)}
+            onOpenExport={() => setIsExportDialogOpen(true)}
+            themeButtonVariant={themeButtonVariant}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusChange={setStatusFilter}
+            interestRange={interestRange}
+            onInterestLowerChange={(value) =>
+              setInterestRange((current) => ({
+                lower: value,
+                upper: current.upper,
+              }))
+            }
+            onInterestUpperChange={(value) =>
+              setInterestRange((current) => ({
+                lower: current.lower,
+                upper: value,
+              }))
+            }
+            selectedSkills={selectedSkills}
+            availableSkills={visibleAvailableSkills}
+            onAddSkill={addSkillFilter}
+            onRemoveSkill={removeSkillFilter}
+            onClearAll={clearAllFilters}
+          />
 
           {errorMessage ? (
             <p className="deco-frame border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
@@ -1111,154 +759,11 @@ const Dashboard = () => {
                 <TrackerStatusSankey applications={filteredApplications} />
               </div>
             ) : (
-              <>
-                <div className="w-full space-y-4 md:hidden">
-                  {boardColumns.map((column) => {
-                    const isExpanded = mobileExpandedColumns[column.status];
-
-                    return (
-                      <section
-                        className={`kanban-column w-full ${column.frameClass} bg-deco-surface-soft p-4`}
-                        id={`column-${column.title.toLowerCase()}`}
-                        key={column.status}
-                      >
-                        <button
-                          aria-expanded={isExpanded}
-                          className="flex w-full items-start justify-between gap-3 text-left"
-                          onClick={() => toggleMobileColumn(column.status)}
-                          type="button"
-                        >
-                          <div>
-                            <h3 className="text-2xl text-deco-foreground">
-                              {column.title}
-                            </h3>
-                            <p className="mt-1 text-sm text-deco-muted">
-                              {column.subtitle}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className={column.accentClass}>
-                              {columns[column.status].length}
-                            </span>
-                            <ChevronDown
-                              className={`h-4 w-4 text-deco-muted transition-transform ${
-                                isExpanded ? "rotate-180" : ""
-                              }`}
-                            />
-                          </div>
-                        </button>
-
-                        {isExpanded ? (
-                          <div className="mt-4 flex flex-col gap-2">
-                            {columns[column.status].map((application) => (
-                              <article
-                                className={`application-card ${column.borderClass} deco-frame cursor-default select-none border-border-gold-muted bg-deco-card px-3 py-2 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow`}
-                                key={application.id}
-                                onClick={() => openDetails(application)}
-                              >
-                                {renderApplicationCardContent(application)}
-                              </article>
-                            ))}
-                          </div>
-                        ) : null}
-                      </section>
-                    );
-                  })}
-                </div>
-
-                <div className="hidden md:block" data-tour-id="tracker-board">
-                  <DragDropContext
-                    onDragEnd={(result) => void handleDragEnd(result)}
-                  >
-                    <div className="grid min-h-0 flex-1 gap-5 md:grid-cols-4">
-                      {boardColumns.map((column) => (
-                        <section
-                          className={`kanban-column w-full ${column.frameClass} bg-deco-surface-soft p-4`}
-                          id={`column-${column.title.toLowerCase()}`}
-                          key={column.status}
-                        >
-                          <div className="border-b border-primary-gold pb-3">
-                            <div className="flex items-end justify-between gap-3">
-                              <div>
-                                <h3 className="text-2xl text-deco-foreground">
-                                  {column.title}
-                                </h3>
-                                <p className="mt-1 text-sm text-deco-muted">
-                                  {column.subtitle}
-                                </p>
-                              </div>
-                              <span className={column.accentClass}>
-                                {columns[column.status].length}
-                              </span>
-                            </div>
-                          </div>
-
-                          <Droppable droppableId={String(column.status)}>
-                            {(droppableProvided, droppableSnapshot) => (
-                              <div
-                                className={`mt-4 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-2 transition-colors ${
-                                  droppableSnapshot.isDraggingOver
-                                    ? "bg-primary-gold-muted"
-                                    : ""
-                                }`}
-                                ref={droppableProvided.innerRef}
-                                {...droppableProvided.droppableProps}
-                              >
-                                {columns[column.status].map(
-                                  (application, index) => (
-                                    <Draggable
-                                      draggableId={application.id}
-                                      index={index}
-                                      key={application.id}
-                                    >
-                                      {(draggableProvided, draggableSnapshot) => {
-                                        const { style, ...draggableProps } =
-                                          draggableProvided.draggableProps;
-                                        const draggableCard = (
-                                          <article
-                                            className={`application-card ${column.borderClass} deco-frame cursor-grab select-none border-border-gold-muted bg-deco-card px-3 py-2 font-sans text-deco-foreground shadow-sm transition-shadow hover:shadow-deco-glow active:cursor-grabbing ${
-                                              draggableSnapshot.isDragging
-                                                ? "shadow-deco-glow"
-                                                : ""
-                                            }`}
-                                            key={application.id}
-                                            ref={draggableProvided.innerRef}
-                                            {...draggableProps}
-                                            {...draggableProvided.dragHandleProps}
-                                            style={style}
-                                            onClick={() => openDetails(application)}
-                                          >
-                                            {renderApplicationCardContent(
-                                              application,
-                                            )}
-                                          </article>
-                                        );
-
-                                        if (
-                                          draggableSnapshot.isDragging &&
-                                          typeof document !== "undefined"
-                                        ) {
-                                          return createPortal(
-                                            draggableCard,
-                                            document.body,
-                                          );
-                                        }
-
-                                        return draggableCard;
-                                      }}
-                                    </Draggable>
-                                  ),
-                                )}
-                                {droppableProvided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                        </section>
-                      ))}
-                    </div>
-                  </DragDropContext>
-                </div>
-              </>
+              <KanbanBoard
+                columns={columns}
+                onCardClick={openDetails}
+                onDragEnd={(result) => void handleDragEnd(result)}
+              />
             )
           ) : null}
 
