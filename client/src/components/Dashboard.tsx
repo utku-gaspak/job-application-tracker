@@ -594,7 +594,7 @@ const Dashboard = () => {
         {" "}
         <div className="flex min-w-0 flex-col gap-2 md:flex-row md:items-center md:gap-4">
           <div className="min-w-0">
-            <h1 className="font-heading text-[1.75rem] tracking-tight text-deco-foreground md:text-[2.2rem]">
+            <h1 className="font-heading text-3xl tracking-tight text-deco-foreground md:text-4xl">
               Traxr - Job Application Tracker
             </h1>
 
@@ -636,7 +636,7 @@ const Dashboard = () => {
           >
             <div className="flex w-full items-center px-4">
               <LogOut className="h-4 w-4 shrink-0" />
-              <span className="flex-1 text-center text-[0.65rem] uppercase tracking-[0.25em]">
+              <span className="flex-1 text-center text-xs uppercase tracking-[0.2em]">
                 Log Out
               </span>
               <div className="w-4" />
@@ -863,13 +863,13 @@ const Dashboard = () => {
                         <section className="deco-frame flex h-full min-h-0 flex-col border-border-gold-muted bg-deco-surface px-2.5 py-2.5 shadow-sm">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <p className="text-[0.52rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                                 Application Record
                               </p>
                               <h3 className="mt-1 truncate text-lg text-deco-foreground">
                                 {selectedApplication.companyName}
                               </h3>
-                              <p className="mt-1 truncate text-[0.65rem] uppercase tracking-[0.12em] text-deco-muted">
+                              <p className="mt-1 truncate text-xs uppercase tracking-[0.12em] text-deco-muted">
                                 {selectedApplication.position}
                               </p>
                             </div>
@@ -888,16 +888,16 @@ const Dashboard = () => {
                                 key={row.label}
                                 className="deco-frame min-w-0 border-border-gold-muted bg-deco-surface-soft px-2 py-1.5"
                               >
-                                <p className="text-[0.45rem] font-semibold uppercase tracking-[0.1em] text-primary-gold">
+                                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                                   {row.label}
                                 </p>
-                                <p className="mt-0.5 truncate text-[0.68rem] leading-4 text-deco-foreground">
+                                <p className="mt-0.5 truncate text-xs leading-4 text-deco-foreground">
                                   {row.value}
                                 </p>
                               </div>
                             ))}
                             <div className="deco-frame min-w-0 border-border-gold-muted bg-deco-surface-soft px-2 py-1.5 sm:col-span-2">
-                              <p className="text-[0.45rem] font-semibold uppercase tracking-[0.1em] text-primary-gold">
+                              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                                 Technical Stack
                               </p>
                               {splitTechStack(
@@ -908,7 +908,7 @@ const Dashboard = () => {
                                     selectedApplication.technicalStack,
                                   ).map((skill) => (
                                     <span
-                                      className="deco-frame max-w-full break-words border-border-gold-muted bg-deco-card px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-deco-foreground"
+                                      className="deco-frame max-w-full break-words border-border-gold-muted bg-deco-card px-1.5 py-0.5 text-xs font-semibold uppercase tracking-[0.08em] text-deco-foreground"
                                       key={skill}
                                     >
                                       {skill}
@@ -916,13 +916,13 @@ const Dashboard = () => {
                                   ))}
                                 </div>
                               ) : (
-                                <p className="mt-1 text-[0.68rem] leading-4 text-deco-foreground">
+                                <p className="mt-1 text-xs leading-4 text-deco-foreground">
                                   Not provided
                                 </p>
                               )}
                             </div>
                             <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-2 py-1.5">
-                              <p className="text-[0.45rem] font-semibold uppercase tracking-[0.1em] text-primary-gold">
+                              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                                 Interest Level
                               </p>
                               <div className="mt-0.5 flex items-center gap-0.5 text-primary-gold">
@@ -940,12 +940,12 @@ const Dashboard = () => {
                               </div>
                             </div>
                             <div className="deco-frame min-w-0 border-border-gold-muted bg-deco-surface-soft px-2 py-1.5">
-                              <p className="text-[0.45rem] font-semibold uppercase tracking-[0.1em] text-primary-gold">
+                              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                                 Job URL
                               </p>
                               {selectedApplication.jobUrl ? (
                                 <a
-                                  className="inline-flex items-center gap-1.5 text-[0.68rem] text-deco-foreground underline decoration-primary-gold underline-offset-4 transition-colors hover:text-primary-gold"
+                                  className="inline-flex items-center gap-1.5 text-xs text-deco-foreground underline decoration-primary-gold underline-offset-4 transition-colors hover:text-primary-gold"
                                   href={selectedApplication.jobUrl}
                                   rel="noreferrer"
                                   target="_blank"
@@ -954,7 +954,7 @@ const Dashboard = () => {
                                   <span className="truncate">Open posting</span>
                                 </a>
                               ) : (
-                                <p className="mt-1 text-[0.68rem] leading-4 text-deco-foreground">
+                                <p className="mt-1 text-xs leading-4 text-deco-foreground">
                                   Not provided
                                 </p>
                               )}
@@ -986,23 +986,23 @@ const Dashboard = () => {
                         <section className="deco-frame flex h-full min-h-0 flex-col border-border-gold-muted bg-deco-surface-soft p-3 shadow-sm">
                           <div className="flex items-center gap-2 border-b border-primary-gold-muted pb-2">
                             <FileText className="h-3.5 w-3.5 text-primary-gold" />
-                            <h4 className="text-[0.9rem] text-deco-foreground">
+                            <h4 className="text-sm text-deco-foreground">
                               Job Description
                             </h4>
                           </div>
                           <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
-                            <pre className="whitespace-pre-wrap break-words font-mono text-[0.68rem] leading-5 text-deco-foreground">
+                            <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-5 text-deco-foreground">
                               {selectedApplication.jobDescription?.trim()
                                 ? selectedApplication.jobDescription
                                 : "No job description saved."}
                             </pre>
                           </div>
                           <div className="mt-3 border-t border-primary-gold-muted pt-3">
-                            <h4 className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-primary-gold">
+                            <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                               Notes
                             </h4>
                             <div className="deco-frame mt-2 min-h-[7rem] border-border-gold-muted bg-deco-surface-soft p-3">
-                              <pre className="whitespace-pre-wrap break-words font-mono text-[0.68rem] leading-5 text-deco-foreground">
+                              <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-5 text-deco-foreground">
                                 {selectedApplication.notes?.trim()
                                   ? selectedApplication.notes
                                   : "No notes saved."}

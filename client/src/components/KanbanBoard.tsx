@@ -63,14 +63,14 @@ const mobileAccordionDefaults: Record<JobApplicationStatus, boolean> = {
 
 const renderCardContent = (application: JobApplication) => (
   <div className="grid min-w-0 gap-1">
-    <span className="truncate text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-deco-foreground">
+    <span className="truncate text-sm font-semibold uppercase tracking-[0.08em] text-deco-foreground">
       {application.companyName}
     </span>
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-      <span className="truncate text-left text-[0.72rem] tracking-[0.02em] text-deco-muted">
+      <span className="truncate text-left text-xs  text-deco-muted">
         {application.position}
       </span>
-      <span className="shrink-0 text-right text-[0.68rem] tabular-nums tracking-[0.04em] text-deco-muted">
+      <span className="shrink-0 text-right text-xs tabular-nums  text-deco-muted">
         {formatDateDe(application.dateApplied)}
       </span>
     </div>

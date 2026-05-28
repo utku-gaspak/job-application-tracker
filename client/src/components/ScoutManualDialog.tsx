@@ -95,7 +95,7 @@ export const ScoutManualDialog = ({
         <div className="px-4 pb-4 pt-4">
           <div className="grid gap-3 lg:grid-cols-2">
             <div className="grid gap-1">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Title *
               </label>
               <Input
@@ -111,7 +111,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Company *
               </label>
               <Input
@@ -127,7 +127,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Location
               </label>
               <Input
@@ -143,7 +143,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Workplace type
               </label>
               <Input
@@ -159,7 +159,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Commitment
               </label>
               <Input
@@ -175,7 +175,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Posted date
               </label>
               <Input
@@ -191,7 +191,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Job URL
               </label>
               <Input
@@ -207,7 +207,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Apply URL
               </label>
               <Input
@@ -223,7 +223,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1 lg:col-span-2">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Technical tools
               </label>
               <Input
@@ -239,7 +239,7 @@ export const ScoutManualDialog = ({
             </div>
 
             <div className="grid gap-1 lg:col-span-2">
-              <label className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <label className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Requirements summary
               </label>
               <Textarea
@@ -257,7 +257,7 @@ export const ScoutManualDialog = ({
           </div>
 
           {errorMessage ? (
-            <p className="mt-3 deco-frame border-danger bg-danger-soft px-3 py-2 text-[0.68rem] text-danger">
+            <p className="mt-3 deco-frame border-danger bg-danger-soft px-3 py-2 text-xs text-danger">
               {errorMessage}
             </p>
           ) : null}

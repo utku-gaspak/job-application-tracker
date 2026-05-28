@@ -3,8 +3,8 @@
 @import "tailwindcss";
 
 :root {
-  /* UI Scaling - Factor for high-density interface */
-  --ui-scale: 0.8;
+  /* UI Scale — set below 1 for a compact layout on large screens */
+  --ui-scale: 1;
 
   /* Nordic Frost - High Contrast Light Theme */
   --color-background: #f1f5f9;
@@ -27,7 +27,7 @@
 
   --color-input: #ffffff;
   --color-muted: #f8fafc;
-  --color-muted-foreground: #64748b;
+  --color-muted-foreground: #475569;
 
   --color-accent: #0ea5e9;
   --color-accent-foreground: #ffffff;

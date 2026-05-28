@@ -116,7 +116,7 @@ export const ScoutEvaluatePanel = ({
               data-tour-id="scout-evaluate-card"
             >
               <div className="min-w-0">
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                   {currentJob.company}
                 </p>
                 <h3 className="mt-2 font-heading text-2xl text-deco-foreground sm:text-3xl">
@@ -128,7 +128,7 @@ export const ScoutEvaluatePanel = ({
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div className="deco-frame border-border-gold-muted bg-deco-surface px-3 py-2">
-                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                   Location
                 </p>
                 <p className="mt-1 text-sm text-deco-foreground">
@@ -136,7 +136,7 @@ export const ScoutEvaluatePanel = ({
                 </p>
               </div>
               <div className="deco-frame border-border-gold-muted bg-deco-surface px-3 py-2">
-                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                   Workplace
                 </p>
                 <p className="mt-1 text-sm text-deco-foreground">
@@ -144,7 +144,7 @@ export const ScoutEvaluatePanel = ({
                 </p>
               </div>
               <div className="deco-frame border-border-gold-muted bg-deco-surface px-3 py-2">
-                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                   Commitment
                 </p>
                 <p className="mt-1 text-sm text-deco-foreground">
@@ -154,7 +154,7 @@ export const ScoutEvaluatePanel = ({
             </div>
 
             <div className="mt-5">
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                 Tech Stack
               </p>
               {currentTools.length > 0 ? (
@@ -174,11 +174,11 @@ export const ScoutEvaluatePanel = ({
             </div>
 
             <div className="mt-5 grid gap-3">
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                 Requirements Summary
               </p>
               <div className="deco-frame max-h-48 overflow-y-auto border-border-gold-muted bg-deco-surface p-3">
-                <pre className="whitespace-pre-wrap break-words font-mono text-[0.75rem] leading-5 text-deco-foreground">
+                <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-5 text-deco-foreground">
                   {currentJob.requirementsSummary?.trim() ||
                     "No requirements summary provided."}
                 </pre>
@@ -242,7 +242,7 @@ export const ScoutEvaluatePanel = ({
               </Button>
             </div>
 
-            <p className="mt-4 hidden text-xs uppercase tracking-[0.16em] text-deco-muted md:block">
+            <p className="mt-4 hidden text-xs uppercase tracking-[0.12em] text-deco-muted md:block">
               Shortcuts: H or Left = discard, L or Right = save for later, Escape = skip
             </p>
           </article>

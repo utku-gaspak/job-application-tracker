@@ -40,7 +40,7 @@ const RegisterPage = () => {
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-2xl items-center">
         <Card className="w-full border-border-gold bg-deco-surface-soft">
           <CardHeader className="border-b border-primary-gold bg-primary-gold-muted">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-gold">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
               New Account
             </p>
             <CardTitle>Create Account</CardTitle>

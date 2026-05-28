@@ -47,9 +47,9 @@ const defaultInterestLevel = 3;
 const fieldSurfaceClass = "bg-deco-surface";
 const fieldCompactClass = "h-10";
 const labelCompactClass =
-  "text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-deco-muted";
+  "text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted";
 const chipCompactClass =
-  "deco-frame inline-flex items-center gap-1.5 border-border-gold-muted bg-deco-card px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-deco-foreground";
+  "deco-frame inline-flex items-center gap-1.5 border-border-gold-muted bg-deco-card px-1.5 py-0.5 text-xs font-semibold uppercase tracking-[0.12em] text-deco-foreground";
 
 const JobApplicationForm = ({
   onCreate,
@@ -232,7 +232,7 @@ const JobApplicationForm = ({
             required
           />
           {validationErrors.companyName ? (
-            <span className="text-[0.65rem] text-danger">
+            <span className="text-xs text-danger">
               {validationErrors.companyName}
             </span>
           ) : null}
@@ -256,7 +256,7 @@ const JobApplicationForm = ({
             required
           />
           {validationErrors.position ? (
-            <span className="text-[0.65rem] text-danger">
+            <span className="text-xs text-danger">
               {validationErrors.position}
             </span>
           ) : null}
@@ -325,7 +325,7 @@ const JobApplicationForm = ({
             <span className={labelCompactClass}>Interest Level</span>
             <span
               aria-live="polite"
-              className={`deco-frame border-border-gold-muted ${fieldSurfaceClass} px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-primary-gold`}
+              className={`deco-frame border-border-gold-muted ${fieldSurfaceClass} px-1.5 py-0.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold`}
             >
               {form.interestLevel ?? defaultInterestLevel}/5
             </span>
@@ -348,7 +348,7 @@ const JobApplicationForm = ({
         </label>
 
         {errorMessage ? (
-          <p className="deco-frame border-danger bg-danger-soft px-3 py-2 text-[0.68rem] text-danger">
+          <p className="deco-frame border-danger bg-danger-soft px-3 py-2 text-xs text-danger">
             {errorMessage}
           </p>
         ) : null}

@@ -71,7 +71,7 @@ export const FilterBar = ({
     <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
       <div className="flex flex-wrap items-stretch gap-2">
         <Button
-          className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
+          className="h-10 px-4 text-xs uppercase tracking-[0.2em]"
           onClick={onSortToggle}
           type="button"
           variant={themeButtonVariant}
@@ -85,7 +85,7 @@ export const FilterBar = ({
         <Button
           aria-expanded={isFilterOpen}
           aria-controls="tracker-filter-accordion"
-          className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
+          className="h-10 px-4 text-xs uppercase tracking-[0.2em]"
           onClick={onToggleFilter}
           type="button"
           variant={themeButtonVariant}
@@ -98,7 +98,7 @@ export const FilterBar = ({
         </Button>
         <Button
           aria-pressed={showStatusSankey}
-          className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
+          className="h-10 px-4 text-xs uppercase tracking-[0.2em]"
           onClick={onToggleDiagram}
           type="button"
           variant={themeButtonVariant}
@@ -107,7 +107,7 @@ export const FilterBar = ({
           {showStatusSankey ? "Board" : "Diagram"}
         </Button>
         <Button
-          className="h-10 px-4 text-[0.65rem] uppercase tracking-[0.18em]"
+          className="h-10 px-4 text-xs uppercase tracking-[0.2em]"
           onClick={onOpenExport}
           type="button"
           variant={themeButtonVariant}
@@ -125,15 +125,15 @@ export const FilterBar = ({
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="grid gap-1">
-            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted">
               Filters
             </span>
-            <span className="text-[0.6rem] uppercase tracking-[0.15em] text-deco-muted">
+            <span className="text-xs uppercase tracking-[0.12em] text-deco-muted">
               Search, status, interest, and skill transfer
             </span>
           </div>
           <Button
-            className="h-9 px-4 text-[0.6rem] uppercase tracking-[0.18em]"
+            className="h-9 px-4 text-xs uppercase tracking-[0.2em]"
             onClick={onClearAll}
             type="button"
             variant={themeButtonVariant}
@@ -144,7 +144,7 @@ export const FilterBar = ({
 
         <div className="grid gap-3 xl:grid-cols-[minmax(0,2.2fr)_repeat(2,minmax(0,1fr))]">
           <label className="grid gap-2">
-            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted">
               Search
             </span>
             <div className="relative">
@@ -160,7 +160,7 @@ export const FilterBar = ({
           </label>
 
           <label className="grid gap-2">
-            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted">
               Status
             </span>
             <select
@@ -196,7 +196,7 @@ export const FilterBar = ({
 
         <div className="grid gap-3 lg:grid-cols-2">
           <div className="deco-frame border-border-gold-muted bg-deco-surface-soft p-3">
-            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-primary-gold">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
               Selected
             </p>
             {selectedSkills.length > 0 ? (
@@ -222,7 +222,7 @@ export const FilterBar = ({
           </div>
 
           <div className="deco-frame border-border-gold-muted bg-deco-surface-soft p-3">
-            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-primary-gold">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
               Available
             </p>
             {availableSkills.length > 0 ? (

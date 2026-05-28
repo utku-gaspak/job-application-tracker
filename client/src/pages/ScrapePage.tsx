@@ -343,10 +343,10 @@ const ScrapePage = () => {
       <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-3 py-3 lg:px-5">
         <header className="deco-frame-thick mb-4 flex w-full flex-col gap-3 bg-deco-surface-soft px-4 py-4 shadow-deco-panel sm:px-6 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
               HiringCafe Scrape
             </p>
-            <h1 className="mt-1 font-heading text-[1.75rem] tracking-tight text-deco-foreground md:text-[2.2rem]">
+            <h1 className="mt-1 font-heading text-3xl tracking-tight text-deco-foreground md:text-4xl">
               Start a new scrape job
             </h1>
           </div>
@@ -362,7 +362,7 @@ const ScrapePage = () => {
         <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-stretch md:min-h-0 md:flex-1">
           <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-5 shadow-deco-panel md:h-full md:overflow-hidden md:p-6">
             <section className="deco-frame border-border-gold bg-deco-surface p-4 shadow-sm">
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Scrape history
               </p>
               <h2 className="mt-1 font-heading text-xl text-deco-foreground">
@@ -375,7 +375,7 @@ const ScrapePage = () => {
                 <div className="mt-4 grid gap-4">
                   <div className="grid grid-cols-1 gap-2">
                     <div className="deco-frame border-border-gold-muted bg-deco-card p-3 text-center">
-                      <p className="text-[0.58rem] uppercase tracking-[0.16em] text-deco-muted">
+                      <p className="text-xs uppercase tracking-[0.12em] text-deco-muted">
                         Jobs
                       </p>
                       <p className="mt-1 font-heading text-2xl text-deco-foreground">
@@ -383,7 +383,7 @@ const ScrapePage = () => {
                       </p>
                     </div>
                     <div className="deco-frame border-border-gold-muted bg-deco-card p-3 text-center">
-                      <p className="text-[0.58rem] uppercase tracking-[0.16em] text-deco-muted">
+                      <p className="text-xs uppercase tracking-[0.12em] text-deco-muted">
                         Completed
                       </p>
                       <p className="mt-1 font-heading text-2xl text-deco-foreground">
@@ -391,7 +391,7 @@ const ScrapePage = () => {
                       </p>
                     </div>
                     <div className="deco-frame border-border-gold-muted bg-deco-card p-3 text-center">
-                      <p className="text-[0.58rem] uppercase tracking-[0.16em] text-deco-muted">
+                      <p className="text-xs uppercase tracking-[0.12em] text-deco-muted">
                         New found
                       </p>
                       <p className="mt-1 font-heading text-2xl text-deco-foreground">
@@ -399,7 +399,7 @@ const ScrapePage = () => {
                       </p>
                     </div>
                     <div className="deco-frame border-border-gold-muted bg-deco-card p-3 text-center">
-                      <p className="text-[0.58rem] uppercase tracking-[0.16em] text-deco-muted">
+                      <p className="text-xs uppercase tracking-[0.12em] text-deco-muted">
                         Imported
                       </p>
                       <p className="mt-1 font-heading text-2xl text-deco-foreground">
@@ -460,7 +460,7 @@ const ScrapePage = () => {
                 {job ? (
                   <div className="grid gap-4">
                     <div className="deco-frame border-border-gold-muted bg-deco-surface px-4 py-3">
-                      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                         Status
                       </p>
                       <p className="mt-1 font-heading text-2xl text-deco-foreground">
@@ -485,10 +485,10 @@ const ScrapePage = () => {
                     {showProgressCard ? (
                       <div className="deco-frame border-border-gold-muted bg-deco-surface px-4 py-4">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                             Activity
                           </p>
-                          <p className="text-xs uppercase tracking-[0.14em] text-deco-muted">
+                          <p className="text-xs uppercase tracking-[0.12em] text-deco-muted">
                             {progressPercent !== null
                               ? `${Math.round(progressPercent)}%`
                               : job.status === ScrapeJobStatus.Running
@@ -537,7 +537,7 @@ const ScrapePage = () => {
                               Open the verification browser session, clear the challenge, then mark
                               it complete.
                             </p>
-                            <p className="mt-1 text-xs uppercase tracking-[0.14em] text-deco-muted">
+                            <p className="mt-1 text-xs uppercase tracking-[0.12em] text-deco-muted">
                               The same browser profile stays attached to this scrape job.
                             </p>
                           </div>
@@ -610,7 +610,7 @@ const ScrapePage = () => {
                         <div className="flex items-start gap-3">
                           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                           <div className="min-w-0">
-                            <p className="font-semibold uppercase tracking-[0.14em]">
+                            <p className="font-semibold uppercase tracking-[0.12em]">
                               Scrape failed
                             </p>
                             <p className="mt-1 text-sm">
@@ -681,13 +681,13 @@ const ScrapePage = () => {
               <section className="deco-frame-thick border-border-gold bg-deco-bg/78 p-5 shadow-deco-panel backdrop-blur-md sm:p-6">
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                       HiringCafe Guide
                     </p>
                     <h3 className="font-heading text-2xl text-deco-foreground">
                       What is hiring.cafe?
                     </h3>
-                    <p className="text-sm leading-6 text-deco-muted sm:text-[0.95rem]">
+                    <p className="text-sm leading-6 text-deco-muted sm:text-sm">
                       hiring.cafe is a job aggregator that collects postings from hundreds of
                       sources worldwide and provides structured search with precise filters - by
                       keyword, seniority, location, workplace type, and more. Unlike LinkedIn or
@@ -698,10 +698,10 @@ const ScrapePage = () => {
                   </div>
 
                   <div className="grid gap-2 border-t border-primary-gold-muted pt-4">
-                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                       Why do we use it?
                     </p>
-                    <p className="text-sm leading-6 text-deco-muted sm:text-[0.95rem]">
+                    <p className="text-sm leading-6 text-deco-muted sm:text-sm">
                       Most job portals have poor keyword matching and make it difficult to apply
                       directly on company websites. hiring.cafe provides direct apply links to the
                       original job posting, so you skip the middleman and apply where it matters.
@@ -713,7 +713,7 @@ const ScrapePage = () => {
               <section className="deco-frame-thick border-border-gold bg-deco-bg/78 p-5 shadow-deco-panel backdrop-blur-md sm:p-6">
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                       Scout Flow
                     </p>
                     <h3 className="font-heading text-2xl text-deco-foreground">
@@ -721,7 +721,7 @@ const ScrapePage = () => {
                     </h3>
                   </div>
 
-                  <div className="grid gap-2 border-t border-primary-gold-muted pt-4 text-sm leading-6 text-deco-muted sm:text-[0.95rem]">
+                  <div className="grid gap-2 border-t border-primary-gold-muted pt-4 text-sm leading-6 text-deco-muted sm:text-sm">
                     <p>Go to hiring.cafe and set your filters</p>
                     <p>Copy the search URL from your browser</p>
                     <p>Paste it here and start scraping</p>

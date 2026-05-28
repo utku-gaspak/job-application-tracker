@@ -376,7 +376,7 @@ const MissionLoop = ({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Step {missionStepIndex + 1} of {missionSteps.length}
               </p>
               <h3 className="mt-1 flex items-center gap-2 font-heading text-xl text-deco-foreground">
@@ -398,7 +398,7 @@ const MissionLoop = ({
           <p
             className={cn(
               "text-sm leading-6 text-deco-muted",
-              isMobileLayout && "text-[0.8rem] leading-5",
+              isMobileLayout && "text-sm leading-5",
             )}
           >
             {currentStep.body}

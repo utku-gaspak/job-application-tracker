@@ -69,9 +69,9 @@ export const InterestRangeSlider = ({
 
   return (
     <label className="grid gap-2">
-      <span className="flex items-center justify-between gap-3 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
+      <span className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted">
         <span>Interest</span>
-        <span className="text-[0.58rem] tracking-[0.14em] text-primary-gold">
+        <span className="text-xs tracking-[0.12em] text-primary-gold">
           {formatLabel(lower, upper, min, max)}
         </span>
       </span>

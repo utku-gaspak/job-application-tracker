@@ -98,10 +98,10 @@ export const ScoutToApplyPanel = ({
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 flex-col gap-1">
-                          <p className="truncate text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+                          <p className="truncate text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                             {job.company}
                           </p>
-                          <h3 className="truncate font-heading text-[0.95rem] text-deco-foreground">
+                          <h3 className="truncate font-heading text-sm text-deco-foreground">
                             {job.title}
                           </h3>
                         </div>
@@ -154,12 +154,12 @@ export const ScoutToApplyPanel = ({
                       <div className="min-w-0">
                         {viewMode === "list" ? (
                           <>
-                            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] text-deco-muted">
-                              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+                            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-deco-muted">
+                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                                 {job.company}
                               </p>
                               <span className="text-deco-muted">—</span>
-                              <h3 className="truncate font-heading text-[0.95rem] text-deco-foreground">
+                              <h3 className="truncate font-heading text-sm text-deco-foreground">
                                 {job.title}
                               </h3>
                               {listTools.length > 0 ? (
@@ -180,7 +180,7 @@ export const ScoutToApplyPanel = ({
                         ) : (
                           <>
                             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-                              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+                              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                                 {job.company}
                               </p>
                               <span className="text-sm text-deco-muted">—</span>
@@ -188,7 +188,7 @@ export const ScoutToApplyPanel = ({
                                 {job.title}
                               </h3>
                             </div>
-                            <div className="mt-2 flex flex-wrap gap-2 text-[0.72rem] text-deco-muted">
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs text-deco-muted">
                               <span>{job.location ?? "Not provided"}</span>
                               {job.workplaceType ? <span>• {job.workplaceType}</span> : null}
                               {job.commitment ? <span>• {job.commitment}</span> : null}
@@ -248,7 +248,7 @@ export const ScoutToApplyPanel = ({
                     <div className="mt-3 flex flex-wrap gap-2">
                       {jobTools.map((tool) => (
                         <span
-                          className="deco-frame border-border-gold-muted bg-deco-card px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-deco-foreground"
+                          className="deco-frame border-border-gold-muted bg-deco-card px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.12em] text-deco-foreground"
                           key={tool}
                         >
                           {tool}

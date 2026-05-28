@@ -77,7 +77,7 @@ const LoginPage = () => {
         <section className="deco-frame border-border-gold-muted bg-deco-surface p-8 shadow-deco-panel">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 Job Application Tracker
               </p>
               <h1 className="max-w-[12ch] text-5xl leading-[0.95] text-deco-foreground md:text-6xl">
@@ -105,7 +105,7 @@ const LoginPage = () => {
           <p className="mt-5 max-w-xl text-base text-deco-muted">
             Manage all your application data in one secure and clean interface.
           </p>
-          <div className="mt-8 flex items-center gap-4 text-sm uppercase tracking-[0.14em] text-deco-muted">
+          <div className="mt-8 flex items-center gap-4 text-sm uppercase tracking-[0.12em] text-deco-muted">
             <span className="inline-flex items-center gap-2">
               <BriefcaseBusiness className="h-4 w-4 text-primary-gold" />
               APPLY — LOG
@@ -118,7 +118,7 @@ const LoginPage = () => {
         {/* Right Section: Form */}
         <Card className="border-border-gold bg-deco-surface-soft">
           <CardHeader className="border-b border-primary-gold bg-primary-gold-muted">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-gold">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
               SECURE LOGIN
             </p>
             <CardTitle className="mt-1">Access your board</CardTitle>

@@ -46,14 +46,14 @@ const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 
 const SheetTitle = ({ className, ...props }: DialogPrimitive.DialogTitleProps) => (
   <DialogPrimitive.Title
-    className={cn("font-heading text-[1rem] font-semibold text-deco-foreground", className)}
+    className={cn("font-heading text-base font-semibold text-deco-foreground", className)}
     {...props}
   />
 );
 
 const SheetDescription = ({ className, ...props }: DialogPrimitive.DialogDescriptionProps) => (
   <DialogPrimitive.Description
-    className={cn("mt-1 text-[0.6rem] text-deco-muted", className)}
+    className={cn("mt-1 text-xs text-deco-muted", className)}
     {...props}
   />
 );

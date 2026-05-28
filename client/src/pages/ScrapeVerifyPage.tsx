@@ -112,7 +112,7 @@ const ScrapeVerifyPage = () => {
         <CardHeader className="border-b border-primary-gold-muted bg-primary-gold-muted">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 HiringCafe Scrape
               </p>
               <CardTitle className="mt-1">Verification session</CardTitle>
@@ -141,7 +141,7 @@ const ScrapeVerifyPage = () => {
           {job ? (
             <div className="grid gap-4">
               <div className="deco-frame border-border-gold-muted bg-deco-surface px-4 py-3">
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                   Current status
                 </p>
                 <p className="mt-1 font-heading text-2xl text-deco-foreground">

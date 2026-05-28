@@ -269,7 +269,7 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
     <section className="deco-frame border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
             Status flow
           </p>
           <h2 className="mt-1 font-heading text-xl text-deco-foreground sm:text-2xl">
@@ -277,7 +277,7 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
           </h2>
         </div>
         <Button
-          className="h-10 w-full px-4 text-[0.65rem] uppercase tracking-[0.18em] sm:w-auto"
+          className="h-10 w-full px-4 text-xs uppercase tracking-[0.2em] sm:w-auto"
           onClick={() => void handleDownloadPng()}
           type="button"
           variant="outline"
@@ -410,7 +410,7 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
         </svg>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3 text-[0.58rem] uppercase tracking-[0.14em] text-deco-muted sm:text-[0.65rem] sm:tracking-[0.16em]">
+      <div className="mt-4 flex flex-wrap gap-3 text-xs uppercase tracking-[0.12em] text-deco-muted sm:text-xs sm:tracking-[0.12em]">
         {statusPalette.map((status) => (
           <div className="inline-flex items-center gap-2" key={status.status}>
             <span

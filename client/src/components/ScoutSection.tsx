@@ -408,7 +408,7 @@ const ScoutSection = ({
       >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-primary-gold">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
               Job Scout
             </p>
             <h2 className="mt-1 font-heading text-2xl text-deco-foreground">

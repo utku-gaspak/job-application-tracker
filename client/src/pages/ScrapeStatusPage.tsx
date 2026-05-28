@@ -233,7 +233,7 @@ const ScrapeStatusPage = () => {
         <CardHeader className="border-b border-primary-gold-muted bg-primary-gold-muted">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-gold">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
                 HiringCafe Scrape
               </p>
               <CardTitle className="mt-1">{title}</CardTitle>
@@ -262,7 +262,7 @@ const ScrapeStatusPage = () => {
           {job ? (
             <div className="grid gap-4">
               <div className="deco-frame border-border-gold-muted bg-deco-surface px-4 py-3">
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                   Status
                 </p>
                 <p className="mt-1 font-heading text-2xl text-deco-foreground">
@@ -286,10 +286,10 @@ const ScrapeStatusPage = () => {
               {showProgressCard ? (
                 <div className="deco-frame border-border-gold-muted bg-deco-surface px-4 py-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary-gold">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
                       Activity
                     </p>
-                    <p className="text-xs uppercase tracking-[0.14em] text-deco-muted">
+                    <p className="text-xs uppercase tracking-[0.12em] text-deco-muted">
                       {progressPercent !== null
                         ? `${Math.round(progressPercent)}%`
                         : job.status === ScrapeStatus.Running
@@ -334,7 +334,7 @@ const ScrapeStatusPage = () => {
                       <p className="text-sm text-deco-foreground">
                         Open the verification browser session, clear the challenge, then mark it complete.
                       </p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.14em] text-deco-muted">
+                      <p className="mt-1 text-xs uppercase tracking-[0.12em] text-deco-muted">
                         The same browser profile stays attached to this scrape job.
                       </p>
                     </div>
@@ -403,7 +403,7 @@ const ScrapeStatusPage = () => {
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                     <div className="min-w-0">
-                      <p className="font-semibold uppercase tracking-[0.14em]">Scrape failed</p>
+                      <p className="font-semibold uppercase tracking-[0.12em]">Scrape failed</p>
                       <p className="mt-1 text-sm">
                         {job.error ?? "The scraper stopped before producing output."}
                       </p>
