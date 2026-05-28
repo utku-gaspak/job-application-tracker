@@ -44,6 +44,13 @@ const initialFormState: JobApplicationCreateInput = {
 const joinTechnicalStack = (skills: string[]) => skills.join(", ");
 const defaultInterestLevel = 3;
 
+const fieldSurfaceClass = "bg-deco-surface";
+const fieldCompactClass = "h-10";
+const labelCompactClass =
+  "text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-deco-muted";
+const chipCompactClass =
+  "deco-frame inline-flex items-center gap-1.5 border-border-gold-muted bg-deco-card px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-deco-foreground";
+
 const JobApplicationForm = ({
   onCreate,
   onUpdate,
@@ -86,12 +93,6 @@ const JobApplicationForm = ({
   }, [editingApplication]);
 
   const technicalStackSkills = splitTechStack(form.technicalStack);
-  const fieldSurfaceClass = "bg-deco-surface";
-  const fieldCompactClass = "h-10";
-  const labelCompactClass =
-    "text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-deco-muted";
-  const chipCompactClass =
-    "deco-frame inline-flex items-center gap-1.5 border-border-gold-muted bg-deco-card px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-deco-foreground";
 
   const setTechnicalStackSkills = (skills: string[]) => {
     setForm((current) => ({
