@@ -305,14 +305,14 @@ export class ScoutJobsClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    updateState(id: string, scoutJobState: ScoutJobStateUpdateDto): Promise<ScoutJob> {
+    updateState(id: string, dto: ScoutJobStateUpdateDto): Promise<ScoutJob> {
         let url_ = this.baseUrl + "/api/scout/jobs/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(scoutJobState);
+        const content_ = JSON.stringify(dto);
 
         let options_: RequestInit = {
             body: content_,
@@ -386,11 +386,11 @@ export class ScoutJobsClient {
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    create(scoutJob: ScoutJobCreateDto): Promise<ScoutJob> {
+    create(dto: ScoutJobCreateDto): Promise<ScoutJob> {
         let url_ = this.baseUrl + "/api/scout/jobs";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(scoutJob);
+        const content_ = JSON.stringify(dto);
 
         let options_: RequestInit = {
             body: content_,

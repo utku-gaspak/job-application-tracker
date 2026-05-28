@@ -271,7 +271,7 @@
           }
         ],
         "requestBody": {
-          "x-name": "scoutJobState",
+          "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
@@ -344,7 +344,7 @@
         ],
         "operationId": "ScoutJobs_Create",
         "requestBody": {
-          "x-name": "scoutJob",
+          "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
@@ -808,8 +808,7 @@
           "password": {
             "type": "string",
             "maxLength": 100,
-            "minLength": 6,
-            "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$"
+            "minLength": 6
           }
         }
       },
