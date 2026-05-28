@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
+import { splitTechStack } from "../lib/utils";
 import {
   JobApplicationStatus,
   jobApplicationStatusLabels,
@@ -39,12 +40,6 @@ const initialFormState: JobApplicationCreateInput = {
   technicalStack: "",
   status: JobApplicationStatus.Applied,
 };
-
-const splitTechnicalStack = (value?: string | null) =>
-  value
-    ?.split(",")
-    .map((skill) => skill.trim())
-    .filter(Boolean) ?? [];
 
 const joinTechnicalStack = (skills: string[]) => skills.join(", ");
 const defaultInterestLevel = 3;
@@ -90,7 +85,7 @@ const JobApplicationForm = ({
     setTechnicalStackDraft("");
   }, [editingApplication]);
 
-  const technicalStackSkills = splitTechnicalStack(form.technicalStack);
+  const technicalStackSkills = splitTechStack(form.technicalStack);
   const fieldSurfaceClass = "bg-deco-surface";
   const fieldCompactClass = "h-10";
   const labelCompactClass =

@@ -24,6 +24,7 @@ import {
 } from "../api/scoutJobsApi";
 import { createJobApplication } from "../api/jobApplicationsApi";
 import { useWorkflow } from "../context/WorkflowContext";
+import { downloadBlob, escapeCsvField, formatDateDe, splitTechStack } from "../lib/utils";
 import {
   JobApplicationStatus,
   type JobApplication,
@@ -55,30 +56,12 @@ interface ScoutSectionProps {
   isActive: boolean;
 }
 
-const splitTools = (value?: string | null) =>
-  value
-    ?.split(",")
-    .map((tool) => tool.trim())
-    .filter(Boolean) ?? [];
-
 const SCOUT_AUTH_TOKEN_KEY = "token";
 
 const readScoutAuthSignature = () =>
   typeof window === "undefined"
     ? ""
     : window.localStorage.getItem(SCOUT_AUTH_TOKEN_KEY) ?? "";
-
-const formatPostedDate = (value?: string | null) => {
-  if (!value) {
-    return "Not provided";
-  }
-
-  return new Intl.DateTimeFormat("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-  }).format(new Date(value));
-};
 
 const buildScoutNotes = (job: ScoutJob) =>
   [
@@ -90,17 +73,6 @@ const buildScoutNotes = (job: ScoutJob) =>
   ]
     .filter(Boolean)
     .join("\n\n");
-
-const downloadBlob = (blob: Blob, fileName: string) => {
-  const url = window.URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.URL.revokeObjectURL(url);
-};
 
 const buildExportJson = (jobs: ScoutJob[]) =>
   JSON.stringify(
@@ -125,11 +97,6 @@ const buildExportJson = (jobs: ScoutJob[]) =>
     null,
     2,
   );
-
-const escapeCsvField = (value?: string | null) => {
-  const safeValue = value ?? "";
-  return `"${safeValue.replace(/"/g, '""')}"`;
-};
 
 const buildExportCsv = (jobs: ScoutJob[]) => {
   const rows = [
@@ -243,7 +210,7 @@ const ScoutSection = ({
   );
   const currentJob = evaluateJobs[currentIndex] ?? null;
   const currentTools = useMemo(
-    () => splitTools(currentJob?.technicalTools),
+    () => splitTechStack(currentJob?.technicalTools),
     [currentJob],
   );
 
@@ -320,7 +287,7 @@ const ScoutSection = ({
     );
   };
 
-  const compactTools = (job: ScoutJob) => splitTools(job.technicalTools).slice(0, 2);
+  const compactTools = (job: ScoutJob) => splitTechStack(job.technicalTools).slice(0, 2);
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -750,7 +717,7 @@ const ScoutSection = ({
                       {currentJob.title}
                     </h3>
                   </div>
-                  <Badge>{formatPostedDate(currentJob.postedAt)}</Badge>
+                  <Badge>{formatDateDe(currentJob.postedAt)}</Badge>
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -944,7 +911,7 @@ const ScoutSection = ({
                 }`}
               >
                 {toApplyJobs.map((job) => {
-                  const jobTools = splitTools(job.technicalTools);
+                  const jobTools = splitTechStack(job.technicalTools);
                   const listTools = compactTools(job);
                   const applyHref = job.applyUrl ?? null;
 
@@ -1053,7 +1020,7 @@ const ScoutSection = ({
                                   <span>{job.location ?? "Not provided"}</span>
                                   {job.workplaceType ? <span>• {job.workplaceType}</span> : null}
                                   {job.commitment ? <span>• {job.commitment}</span> : null}
-                                  <span>• {formatPostedDate(job.postedAt)}</span>
+                                  <span>• {formatDateDe(job.postedAt)}</span>
                                 </div>
                               </>
                             )}

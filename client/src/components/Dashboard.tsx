@@ -70,44 +70,16 @@ import {
   type JobApplicationUpdateInput,
 } from "../types";
 import { useTheme } from "../context/ThemeContext";
-
-const formatAppliedDate = (isoDate: string) =>
-  new Intl.DateTimeFormat("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-  }).format(new Date(isoDate));
+import { downloadBlob, escapeCsvField, formatDateDe, splitTechStack } from "../lib/utils";
 
 const getApplicationSortTime = (application: JobApplication) =>
   new Date(application.dateApplied).getTime();
-
-const splitTechnicalStack = (value?: string | null) =>
-  value
-    ?.split(",")
-    .map((skill) => skill.trim())
-    .filter(Boolean) ?? [];
-
-const downloadBlob = (blob: Blob, fileName: string) => {
-  const url = window.URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.URL.revokeObjectURL(url);
-};
-
-const escapeCsvField = (value?: string | number | null) => {
-  const safeValue = value ?? "";
-  return `"${String(safeValue).replace(/"/g, '""')}"`;
-};
 
 const getUniqueTechnicalSkills = (applications: JobApplication[]) =>
   Array.from(
     new Set(
       applications.flatMap((application) =>
-        splitTechnicalStack(application.technicalStack),
+        splitTechStack(application.technicalStack),
       ),
     ),
   ).sort((left, right) => left.localeCompare(right));
@@ -189,7 +161,7 @@ const matchesFilters = (
   const normalizedSearchTerm = filters.searchTerm.trim().toLowerCase();
   const normalizedCompany = application.companyName.toLowerCase();
   const normalizedPosition = application.position.toLowerCase();
-  const applicationSkills = splitTechnicalStack(application.technicalStack);
+  const applicationSkills = splitTechStack(application.technicalStack);
 
   if (
     normalizedSearchTerm &&
@@ -359,7 +331,7 @@ const detailRows = (application: JobApplication) =>
     { label: "Company", value: application.companyName },
     { label: "Position", value: application.position },
     { label: "Status", value: jobApplicationStatusLabels[application.status] },
-    { label: "Date", value: formatAppliedDate(application.dateApplied) },
+    { label: "Date", value: formatDateDe(application.dateApplied) },
     { label: "Location", value: application.location ?? "Not provided" },
     { label: "Salary", value: application.salaryRange ?? "Not provided" },
   ] as const;
@@ -560,7 +532,7 @@ const Dashboard = () => {
           {application.position}
         </span>
         <span className="shrink-0 text-right text-[0.68rem] tabular-nums tracking-[0.04em] text-deco-muted">
-          {formatAppliedDate(application.dateApplied)}
+          {formatDateDe(application.dateApplied)}
         </span>
       </div>
     </div>
@@ -1573,11 +1545,11 @@ const Dashboard = () => {
                               <p className="text-[0.45rem] font-semibold uppercase tracking-[0.1em] text-primary-gold">
                                 Technical Stack
                               </p>
-                              {splitTechnicalStack(
+                              {splitTechStack(
                                 selectedApplication.technicalStack,
                               ).length > 0 ? (
                                 <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                  {splitTechnicalStack(
+                                  {splitTechStack(
                                     selectedApplication.technicalStack,
                                   ).map((skill) => (
                                     <span
