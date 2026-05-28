@@ -356,4 +356,97 @@ public class JobApplicationServiceTests(TestAppDbContextFactory dbContextFactory
         persisted.Position.Should().Be("Engineer");
         persisted.Status.Should().Be(JobApplicationStatus.Applied);
     }
+
+    [Fact]
+    public async Task GetByIdAsync_NonExistent_ThrowsNotFoundException()
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+
+        Func<Task> act = async () => await service.GetByIdAsync("nonexistent", "user-1");
+
+        await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_CrossUser_ThrowsNotFoundException()
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+        var existing = new JobApplication
+        {
+            Id = "job-1",
+            CompanyName = "Acme",
+            Position = "Engineer",
+            Status = JobApplicationStatus.Applied,
+            UserId = "owner-user",
+        };
+
+        dbContext.JobApplications.Add(existing);
+        await dbContext.SaveChangesAsync();
+
+        Func<Task> act = async () => await service.GetByIdAsync("job-1", "other-user");
+
+        await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(6)]
+    public async Task CreateAsync_InterestLevelOutOfRange_ThrowsValidationException(int interestLevel)
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+        var dto = new JobApplicationCreateDto(
+            "Acme", "Engineer", null, null, null, null, null,
+            interestLevel, null, JobApplicationStatus.Applied
+        );
+
+        Func<Task> act = async () => await service.CreateAsync(dto, "user-1");
+
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Fact]
+    public async Task CreateAsync_InterestLevelNull_Succeeds()
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+        var dto = new JobApplicationCreateDto(
+            "Acme", "Engineer", null, null, null, null, null,
+            null, null, JobApplicationStatus.Applied
+        );
+
+        var result = await service.CreateAsync(dto, "user-1");
+
+        result.InterestLevel.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    public async Task CreateAsync_InterestLevelBoundaryValues_Succeeds(int interestLevel)
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+        var dto = new JobApplicationCreateDto(
+            "Acme", "Engineer", null, null, null, null, null,
+            interestLevel, null, JobApplicationStatus.Applied
+        );
+
+        var result = await service.CreateAsync(dto, "user-1");
+
+        result.InterestLevel.Should().Be(interestLevel);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_NonExistent_ReturnsFalse()
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+
+        var result = await service.DeleteAsync("nonexistent", "user-1");
+
+        result.Should().BeFalse();
+    }
 }

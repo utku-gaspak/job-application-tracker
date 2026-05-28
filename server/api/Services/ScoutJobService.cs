@@ -145,9 +145,12 @@ public class ScoutJobService(AppDbContext dbContext) : IScoutJobService
         string userId,
         CancellationToken cancellationToken)
     {
-        await dbContext.ScoutJobs
+        var jobs = await dbContext.ScoutJobs
             .Where(j => j.UserId == userId)
-            .ExecuteDeleteAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+
+        dbContext.ScoutJobs.RemoveRange(jobs);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<(byte[] Content, string ContentType, string FileName)> ExportJobsAsync(
