@@ -155,6 +155,10 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await dbContext.Database.MigrateAsync();
     await dbContext.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "JobApplications"
+        ADD COLUMN IF NOT EXISTS "Notes" text NULL;
+        """);
+    await dbContext.Database.ExecuteSqlRawAsync("""
         ALTER TABLE "ScoutJobs"
         ADD COLUMN IF NOT EXISTS "SavedForApply" boolean NOT NULL DEFAULT false;
         """);
@@ -177,6 +181,14 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.ExecuteSqlRawAsync("""
         CREATE INDEX IF NOT EXISTS "IX_ScoutJobs_SourceOrder"
         ON "ScoutJobs" ("SourceOrder");
+        """);
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "ScrapeJobs"
+        ADD COLUMN IF NOT EXISTS "UserId" text NULL;
+        """);
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        CREATE INDEX IF NOT EXISTS "IX_ScrapeJobs_UserId"
+        ON "ScrapeJobs" ("UserId");
         """);
     await DemoDataSeeder.SeedAsync(scope.ServiceProvider);
 }

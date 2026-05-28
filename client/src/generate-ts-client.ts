@@ -922,6 +922,27 @@ export interface IdentityUser extends IdentityUserOfString {
 
 export interface AppUser extends IdentityUser {
     jobApplications?: JobApplication[];
+    scoutJobs?: ScoutJob[];
+}
+
+export interface ScoutJob {
+    id?: string;
+    title: string;
+    company: string;
+    location?: string | undefined;
+    workplaceType?: string | undefined;
+    commitment?: string | undefined;
+    postedAt?: string | undefined;
+    jobUrl?: string | undefined;
+    applyUrl?: string | undefined;
+    technicalTools?: string | undefined;
+    requirementsSummary?: string | undefined;
+    savedForApply?: boolean;
+    isDiscarded?: boolean;
+    createdAt?: string;
+    sourceOrder?: number | undefined;
+    userId?: string | undefined;
+    user?: AppUser | undefined;
 }
 
 export interface JobApplicationCreateDto {
@@ -949,23 +970,6 @@ export interface JobApplicationUpdateDto {
     technicalStack?: string | undefined;
     status?: JobApplicationStatus;
     dateApplied?: string;
-}
-
-export interface ScoutJob {
-    id?: string;
-    title: string;
-    company: string;
-    location?: string | undefined;
-    workplaceType?: string | undefined;
-    commitment?: string | undefined;
-    postedAt?: string | undefined;
-    jobUrl?: string | undefined;
-    applyUrl?: string | undefined;
-    technicalTools?: string | undefined;
-    requirementsSummary?: string | undefined;
-    savedForApply?: boolean;
-    isDiscarded?: boolean;
-    createdAt?: string;
 }
 
 export interface ScoutJobStateUpdateDto {

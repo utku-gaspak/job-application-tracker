@@ -924,10 +924,98 @@
                 "items": {
                   "$ref": "#/components/schemas/JobApplication"
                 }
+              },
+              "scoutJobs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ScoutJob"
+                }
               }
             }
           }
         ]
+      },
+      "ScoutJob": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "company"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "company": {
+            "type": "string",
+            "minLength": 1
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "workplaceType": {
+            "type": "string",
+            "nullable": true
+          },
+          "commitment": {
+            "type": "string",
+            "nullable": true
+          },
+          "postedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "jobUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "applyUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "technicalTools": {
+            "type": "string",
+            "nullable": true
+          },
+          "requirementsSummary": {
+            "type": "string",
+            "nullable": true
+          },
+          "savedForApply": {
+            "type": "boolean"
+          },
+          "isDiscarded": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceOrder": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
+          "user": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AppUser"
+              }
+            ]
+          }
+        }
       },
       "IdentityUser": {
         "allOf": [
@@ -1090,71 +1178,6 @@
             "$ref": "#/components/schemas/JobApplicationStatus"
           },
           "dateApplied": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "ScoutJob": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "title",
-          "company"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string",
-            "minLength": 1
-          },
-          "company": {
-            "type": "string",
-            "minLength": 1
-          },
-          "location": {
-            "type": "string",
-            "nullable": true
-          },
-          "workplaceType": {
-            "type": "string",
-            "nullable": true
-          },
-          "commitment": {
-            "type": "string",
-            "nullable": true
-          },
-          "postedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "jobUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "applyUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "technicalTools": {
-            "type": "string",
-            "nullable": true
-          },
-          "requirementsSummary": {
-            "type": "string",
-            "nullable": true
-          },
-          "savedForApply": {
-            "type": "boolean"
-          },
-          "isDiscarded": {
-            "type": "boolean"
-          },
-          "createdAt": {
             "type": "string",
             "format": "date-time"
           }

@@ -1,7 +1,4 @@
-import axios from "axios";
-import { AxiosHeaders } from "axios";
-import { notifyAuthTokenCleared } from "../authEvents";
-import { finalUrl } from "../baseUrl";
+import { createAuthenticatedClient } from "./client";
 import type {
   ScoutJob,
   ScoutJobCreateInput,
@@ -9,45 +6,7 @@ import type {
   ScoutUploadResult,
 } from "../types";
 
-const tokenKey = "token";
-
-const cleanToken = (rawToken: string | null) => {
-  if (!rawToken || rawToken === "null" || rawToken === "undefined") {
-    return null;
-  }
-
-  return rawToken.replace(/['"]+/g, "").replace(/\s/g, "");
-};
-
-const scoutJobsApi = axios.create({
-  baseURL: `${finalUrl}/api/scout`,
-});
-
-scoutJobsApi.interceptors.request.use((config) => {
-  const token = cleanToken(localStorage.getItem(tokenKey));
-
-  if (token) {
-    const headers =
-      config.headers instanceof AxiosHeaders ? config.headers : new AxiosHeaders(config.headers);
-
-    headers.set("Authorization", `Bearer ${token}`);
-    config.headers = headers;
-  }
-
-  return config;
-});
-
-scoutJobsApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      localStorage.removeItem(tokenKey);
-      notifyAuthTokenCleared();
-    }
-
-    return Promise.reject(error);
-  },
-);
+const scoutJobsApi = createAuthenticatedClient("/api/scout");
 
 export const uploadScoutJobs = async (file: File) => {
   const formData = new FormData();

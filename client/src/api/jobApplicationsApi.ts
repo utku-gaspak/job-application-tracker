@@ -1,56 +1,11 @@
-import axios from "axios";
-import { AxiosHeaders } from "axios";
-import { notifyAuthTokenCleared } from "../authEvents";
-import { finalUrl } from "../baseUrl";
+import { createAuthenticatedClient } from "./client";
 import type {
   JobApplication,
   JobApplicationCreateInput,
   JobApplicationUpdateInput,
 } from "../types";
 
-const tokenKey = "token";
-
-const cleanToken = (rawToken: string | null) => {
-  if (!rawToken || rawToken === "null" || rawToken === "undefined") {
-    return null;
-  }
-
-  return rawToken.replace(/['"]+/g, "").replace(/\s/g, "");
-};
-
-const jobApplicationsApi = axios.create({
-  baseURL: `${finalUrl}/api/jobapplications`,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-jobApplicationsApi.interceptors.request.use((config) => {
-  const token = cleanToken(localStorage.getItem(tokenKey));
-
-  if (token) {
-    const headers =
-      config.headers instanceof AxiosHeaders ? config.headers : new AxiosHeaders(config.headers);
-
-    headers.set("Authorization", `Bearer ${token}`);
-    config.headers = headers;
-  }
-
-  return config;
-});
-
-jobApplicationsApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      // Treat any jobs API 401 as an invalid session and force the app back through the login flow.
-      localStorage.removeItem(tokenKey);
-      notifyAuthTokenCleared();
-    }
-
-    return Promise.reject(error);
-  }
-);
+const jobApplicationsApi = createAuthenticatedClient("/api/jobapplications");
 
 export const listJobApplications = async () => {
   const response = await jobApplicationsApi.get<JobApplication[]>("");
@@ -74,7 +29,10 @@ export const createJobApplication = async (input: JobApplicationCreateInput) => 
   return response.data;
 };
 
-export const updateJobApplication = async (id: string, input: JobApplicationUpdateInput) => {
+export const updateJobApplication = async (
+  id: string,
+  input: JobApplicationUpdateInput,
+) => {
   await jobApplicationsApi.put(`/${id}`, {
     companyName: input.companyName,
     position: input.position,
