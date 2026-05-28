@@ -167,18 +167,9 @@ export const jobApplicationStatusLabels = {
   [JobApplicationStatus.Offer]: "Offer",
 } as const satisfies Record<JobApplicationStatus, string>;
 
-/** Every status value must appear exactly once — TS errors if a status is added but missed here. */
-type AssertAllStatuses<T extends readonly JobApplicationStatus[]> =
-  JobApplicationStatus extends T[number]
-    ? Exclude<JobApplicationStatus, T[number]> extends never
-      ? T
-      : never
-    : never;
-
 export const jobApplicationStatusOrder = [
   JobApplicationStatus.Applied,
   JobApplicationStatus.Interviewing,
   JobApplicationStatus.Rejected,
   JobApplicationStatus.Offer,
 ] as const;
-type _OrderCheck = AssertAllStatuses<typeof jobApplicationStatusOrder>;

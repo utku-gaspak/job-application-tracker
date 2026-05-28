@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
 import { FilterBar } from "./FilterBar";
+import type { DropResult } from "@hello-pangea/dnd";
 import { KanbanBoard } from "./KanbanBoard";
 import { DashboardSidebar } from "./DashboardSidebar";
 import Footer from "./Footer";
@@ -32,7 +33,6 @@ import JobApplicationForm from "./JobApplicationForm";
 import ScoutSection from "./ScoutSection";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import {
   Dialog,
   DialogContent,
@@ -469,7 +469,7 @@ const Dashboard = () => {
       toast.success("Application removed.");
     } catch (error) {
       console.error("Delete job application failed:", error);
-      setErrorMessage("Could not delete the application.");
+      toast.error("Could not delete the application.");
     }
   };
 
@@ -583,7 +583,7 @@ const Dashboard = () => {
         );
         setSelectedApplication(previousSelected ?? null);
       }
-      setErrorMessage("Could not update the application status.");
+      toast.error("Could not update the application status.");
       toast.error("Could not update the application status.");
     }
   };

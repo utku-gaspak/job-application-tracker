@@ -9,7 +9,6 @@ import {
 import { ChevronDown } from "lucide-react";
 import {
   JobApplicationStatus,
-  jobApplicationStatusLabels,
   type JobApplication,
 } from "../types";
 import { formatDateDe } from "../lib/utils";
