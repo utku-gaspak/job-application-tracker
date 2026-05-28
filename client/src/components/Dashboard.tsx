@@ -28,11 +28,12 @@ import {
   X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useWorkflow, type WorkflowSection } from "../context/WorkflowContext";
+import { InterestRangeSlider } from "./InterestRangeSlider";
 import Footer from "./Footer";
 import MissionLoop from "./MissionLoop";
 import TrackerStatusSankey from "./TrackerStatusSankey";
@@ -200,11 +201,6 @@ const matchesFilters = (
 
 const INTEREST_MIN = 1;
 const INTEREST_MAX = 5;
-
-const formatInterestRangeLabel = (lower: number, upper: number) =>
-  lower === INTEREST_MIN && upper === INTEREST_MAX
-    ? "All"
-    : `${lower}/5 - ${upper}/5`;
 
 const getLoadApplicationsErrorMessage = (error: unknown) => {
   // Keep server-side failures and connectivity failures distinct so the UI can suggest the right next step.
@@ -376,14 +372,10 @@ const Dashboard = () => {
     lower: INTEREST_MIN,
     upper: INTEREST_MAX,
   });
-  const [activeInterestHandle, setActiveInterestHandle] = useState<
-    "lower" | "upper" | null
-  >(null);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [mobileExpandedColumns, setMobileExpandedColumns] = useState<
     Record<JobApplicationStatus, boolean>
   >(mobileAccordionDefaults);
-  const interestRangeRef = useRef<HTMLDivElement | null>(null);
   const [scoutSummary, setScoutSummary] = useState({
     total: 0,
     toEvaluate: 0,
@@ -428,63 +420,6 @@ const Dashboard = () => {
     }));
   };
 
-  const updateInterestLower = (nextLower: number) => {
-    setInterestRange((current) => ({
-      lower: Math.min(nextLower, current.upper),
-      upper: current.upper,
-    }));
-  };
-
-  const updateInterestUpper = (nextUpper: number) => {
-    setInterestRange((current) => ({
-      lower: current.lower,
-      upper: Math.max(nextUpper, current.lower),
-    }));
-  };
-
-  const setInterestValueFromClientX = useCallback(
-    (clientX: number, handle: "lower" | "upper") => {
-      const track = interestRangeRef.current;
-      if (!track) {
-        return;
-      }
-
-      const rect = track.getBoundingClientRect();
-      const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-      const nextValue =
-        INTEREST_MIN + Math.round(ratio * (INTEREST_MAX - INTEREST_MIN));
-
-      if (handle === "lower") {
-        updateInterestLower(nextValue);
-        return;
-      }
-
-      updateInterestUpper(nextValue);
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (!activeInterestHandle) {
-      return;
-    }
-
-    const handlePointerMove = (event: PointerEvent) => {
-      setInterestValueFromClientX(event.clientX, activeInterestHandle);
-    };
-
-    const handlePointerUp = () => {
-      setActiveInterestHandle(null);
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, [activeInterestHandle, setInterestValueFromClientX]);
 
   const handleTrackerExport = (format: "json" | "csv") => {
     const content =
@@ -1049,98 +984,24 @@ const Dashboard = () => {
                     </select>
                   </label>
 
-                  <label className="grid gap-2">
-                    <span className="flex items-center justify-between gap-3 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-deco-muted">
-                      <span>Interest</span>
-                      <span className="text-[0.58rem] tracking-[0.14em] text-primary-gold">
-                        {formatInterestRangeLabel(
-                          interestRange.lower,
-                          interestRange.upper,
-                        )}
-                      </span>
-                    </span>
-                    <div className="deco-frame h-10 border-border-gold-muted bg-deco-surface px-3 py-2">
-                      <div
-                        ref={interestRangeRef}
-                        className="relative h-6 select-none"
-                        onPointerDown={(event) => {
-                          const rect =
-                            interestRangeRef.current?.getBoundingClientRect();
-                          if (!rect) {
-                            return;
-                          }
-
-                          const ratio = Math.min(
-                            1,
-                            Math.max(0, (event.clientX - rect.left) / rect.width),
-                          );
-                          const nextValue =
-                            INTEREST_MIN +
-                            Math.round(ratio * (INTEREST_MAX - INTEREST_MIN));
-                          const lowerDistance = Math.abs(
-                            nextValue - interestRange.lower,
-                          );
-                          const upperDistance = Math.abs(
-                            nextValue - interestRange.upper,
-                          );
-                          const nextHandle =
-                            lowerDistance <= upperDistance ? "lower" : "upper";
-
-                          setActiveInterestHandle(nextHandle);
-                          setInterestValueFromClientX(event.clientX, nextHandle);
-                        }}
-                      >
-                        <div className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-deco-card" />
-                        <div
-                          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-primary-gold"
-                          style={{
-                            left: `${((interestRange.lower - INTEREST_MIN) /
-                              (INTEREST_MAX - INTEREST_MIN)) *
-                              100}%`,
-                            right: `${((INTEREST_MAX - interestRange.upper) /
-                              (INTEREST_MAX - INTEREST_MIN)) *
-                              100}%`,
-                          }}
-                        />
-                        <button
-                          aria-label="Interest lower limit"
-                          className={`absolute top-1/2 z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-deco-bg bg-primary-gold shadow-sm transition-transform ${
-                            activeInterestHandle === "lower" ? "scale-110" : ""
-                          }`}
-                          onPointerDown={(event) => {
-                            event.stopPropagation();
-                            setActiveInterestHandle("lower");
-                          }}
-                          style={{
-                            left: `${
-                              ((interestRange.lower - INTEREST_MIN) /
-                                (INTEREST_MAX - INTEREST_MIN)) *
-                              100
-                            }%`,
-                          }}
-                          type="button"
-                        />
-                        <button
-                          aria-label="Interest upper limit"
-                          className={`absolute top-1/2 z-20 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-deco-bg bg-primary-gold shadow-sm transition-transform ${
-                            activeInterestHandle === "upper" ? "scale-110" : ""
-                          }`}
-                          onPointerDown={(event) => {
-                            event.stopPropagation();
-                            setActiveInterestHandle("upper");
-                          }}
-                          style={{
-                            left: `${
-                              ((interestRange.upper - INTEREST_MIN) /
-                                (INTEREST_MAX - INTEREST_MIN)) *
-                              100
-                            }%`,
-                          }}
-                          type="button"
-                        />
-                      </div>
-                    </div>
-                  </label>
+                  <InterestRangeSlider
+                    lower={interestRange.lower}
+                    upper={interestRange.upper}
+                    min={INTEREST_MIN}
+                    max={INTEREST_MAX}
+                    onLowerChange={(value) =>
+                      setInterestRange((current) => ({
+                        lower: value,
+                        upper: current.upper,
+                      }))
+                    }
+                    onUpperChange={(value) =>
+                      setInterestRange((current) => ({
+                        lower: current.lower,
+                        upper: value,
+                      }))
+                    }
+                  />
                 </div>
 
                 <div className="grid gap-3 lg:grid-cols-2">
