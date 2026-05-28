@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { register } from "../api/accountApi";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -24,11 +25,11 @@ const RegisterPage = () => {
         password,
       });
 
-      alert("Registration successful. You can sign in now.");
+      toast.success("Registration successful. You can sign in now.");
       navigate("/login");
     } catch (error) {
       console.error("Registration failed:", error);
-      alert("Registration failed. Check your details and try again.");
+      toast.error("Registration failed. Check your details and try again.");
     } finally {
       setLoading(false);
     }

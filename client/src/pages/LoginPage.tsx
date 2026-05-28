@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { login as loginRequest } from "../api/accountApi";
 import { Button } from "../components/ui/button";
 import {
@@ -29,10 +30,6 @@ const LoginPage = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
-  const showLoginFailure = () => {
-    alert("Login failed.");
-  };
-
   const submitCredentials = async (
     nextUsername: string,
     nextPassword: string,
@@ -49,15 +46,15 @@ const LoginPage = () => {
         storeToken(authData.token);
         navigate("/");
       } else {
-        showLoginFailure();
+        toast.error("Login failed.");
       }
     } catch (error) {
       console.error("Login failed:", error);
 
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        alert("Invalid username or password.");
+        toast.error("Invalid username or password.");
       } else {
-        showLoginFailure();
+        toast.error("Login failed.");
       }
     } finally {
       setLoading(false);
