@@ -36,7 +36,7 @@ type SankeyLink = {
 };
 
 const VIEW_WIDTH = 1200;
-const VIEW_HEIGHT = 420;
+const VIEW_HEIGHT = 900;
 const SOURCE_X = 56;
 const SOURCE_WIDTH = 180;
 const TARGET_X = 930;
