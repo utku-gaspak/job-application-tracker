@@ -288,14 +288,15 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
       </div>
 
       <div className="mt-4 overflow-x-auto">
-        <svg
-          ref={svgRef}
-          role="img"
-          aria-label="Application status Sankey diagram"
-          className="mx-auto block h-auto w-full max-w-[760px]"
-          viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <div className="aspect-[4/3] p-6">
+          <svg
+            ref={svgRef}
+            role="img"
+            aria-label="Application status Sankey diagram"
+            className="mx-auto block h-full w-full"
+            viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+            xmlns="http://www.w3.org/2000/svg"
+          >
           <defs>
             <linearGradient id="source-gradient" x1="0%" x2="100%" y1="0%" y2="0%">
               {nodes.sourceGradientStops.map((stop, index) => (
@@ -407,7 +408,8 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
               </text>
             </g>
           ))}
-        </svg>
+          </svg>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-3 text-xs uppercase tracking-[0.12em] text-deco-muted sm:text-xs sm:tracking-[0.12em]">
