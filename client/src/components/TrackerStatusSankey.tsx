@@ -292,7 +292,7 @@ const TrackerStatusSankey = ({ applications }: TrackerStatusSankeyProps) => {
           ref={svgRef}
           role="img"
           aria-label="Application status Sankey diagram"
-          className="mx-auto block w-[86vw] max-w-[760px] sm:w-full sm:max-w-none"
+          className="mx-auto block h-auto w-full max-w-[760px]"
           viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
           xmlns="http://www.w3.org/2000/svg"
         >
