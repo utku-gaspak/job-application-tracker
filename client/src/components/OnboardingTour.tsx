@@ -106,7 +106,6 @@ const OnboardingTour = ({ open, onClose, variant }: OnboardingTourProps) => {
               (e.target as HTMLImageElement).style.display = "none";
             }}
           />
-          <span className="absolute">Screenshot: {current.title}</span>
         </div>
       </div>
 
