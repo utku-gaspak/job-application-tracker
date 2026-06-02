@@ -39,7 +39,7 @@ const boardColumns = [
   {
     status: JobApplicationStatus.Rejected,
     title: "Rejected",
-    subtitle: "Closed loops",
+    subtitle: "Not moving forward",
     borderClass: "border-l-column-rejected",
     accentClass: "text-column-rejected",
     frameClass: "deco-frame border-border-gold",

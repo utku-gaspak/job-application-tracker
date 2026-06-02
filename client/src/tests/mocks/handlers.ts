@@ -146,6 +146,23 @@ export const handlers = [
     return HttpResponse.json([])
   }),
 
+  http.get(`${finalUrl}/api/scrape/history`, () => {
+    return HttpResponse.json({
+      totalJobs: 5,
+      completedJobs: 3,
+      failedJobs: 1,
+      runningJobs: 1,
+      queuedJobs: 0,
+      lastScrapedAt: '2026-06-01T12:00:00.000Z',
+      lastSuccessfulScrapedAt: '2026-06-01T10:00:00.000Z',
+      lastSuccessfulResultCount: 42,
+      lastSuccessfulImportedCount: 38,
+      totalResultsFound: 150,
+      totalImportedJobs: 120,
+      recentJobs: [],
+    })
+  }),
+
   http.delete(`${finalUrl}/api/jobapplications/:id`, ({ params }) => {
     const id = String(params.id)
 

@@ -379,7 +379,7 @@ const JobApplicationForm = ({
 
       <div className="flex min-h-0 flex-col gap-1.5 lg:h-full">
         <div className="grid gap-1.5">
-          <span className={labelCompactClass}>Technical Stack</span>
+          <span className={labelCompactClass}>Skills</span>
           <div className="grid gap-1.5">
             {technicalStackSkills.length > 0 ? (
               <div

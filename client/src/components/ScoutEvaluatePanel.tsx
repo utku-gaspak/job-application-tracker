@@ -85,11 +85,11 @@ export const ScoutEvaluatePanel = ({
     <Card className="min-h-0 flex-1 overflow-hidden" data-tour-id="scout-evaluate-panel">
       <CardHeader className="flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
         <div className="min-w-0">
-          <CardTitle>Evaluate</CardTitle>
+          <CardTitle>Review</CardTitle>
           <p className="mt-1 text-sm text-deco-muted">
             {currentJob
               ? `${Math.min(currentIndex + 1, evaluateCount)} of ${evaluateCount} remaining`
-              : "No scout jobs waiting."}
+              : "No jobs waiting."}
           </p>
         </div>
         <Button
@@ -100,13 +100,13 @@ export const ScoutEvaluatePanel = ({
           variant="ghost"
         >
           <Trash2 className="h-4 w-4" />
-          Clear Scout Queue
+          Clear All Jobs
         </Button>
       </CardHeader>
 
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-deco-muted">Loading scout jobs...</p>
+          <p className="text-sm text-deco-muted">Loading jobs...</p>
         ) : null}
 
         {!isLoading && currentJob ? (
@@ -155,7 +155,7 @@ export const ScoutEvaluatePanel = ({
 
             <div className="mt-5">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
-                Tech Stack
+                Skills
               </p>
               {currentTools.length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -251,7 +251,7 @@ export const ScoutEvaluatePanel = ({
         {!isLoading && !currentJob ? (
           <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-5 py-10 text-center">
             <p className="font-heading text-2xl text-deco-foreground">
-              No scout jobs in this pass.
+              No jobs in this pass.
             </p>
             <p className="mt-3 text-sm text-deco-muted">
               Upload a new jobs.json file or refresh the queue.

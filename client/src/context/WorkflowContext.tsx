@@ -10,7 +10,7 @@ import {
 import type { ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 
-export type WorkflowSection = "tracker" | "scout";
+export type WorkflowSection = "tracker" | "scout" | "scrape";
 export type MissionPhase = "triage" | "action" | "summary";
 
 interface WorkflowContextType {
@@ -36,12 +36,18 @@ const WorkflowContext = createContext<WorkflowContextType | undefined>(
 const WORKFLOW_SECTION_HASH = {
   tracker: "#tracker",
   scout: "#scout",
+  scrape: "#scrape",
 } as const;
 
 const MISSION_TOUR_SEEN_KEY_PREFIX = "traxr:mission-tour-seen:v1";
 
+const HASH_TO_SECTION: Record<string, WorkflowSection> = {
+  "#scrape": "scrape",
+  "#scout": "scout",
+};
+
 const getSectionFromHash = (hash: string): WorkflowSection =>
-  hash.toLowerCase() === WORKFLOW_SECTION_HASH.scout ? "scout" : "tracker";
+  HASH_TO_SECTION[hash.toLowerCase()] ?? "tracker";
 
 export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const { username } = useAuth();

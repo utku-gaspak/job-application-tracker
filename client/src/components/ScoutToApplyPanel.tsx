@@ -32,7 +32,7 @@ export const ScoutToApplyPanel = ({
     <Card className="flex min-h-0 flex-1 flex-col overflow-hidden" data-tour-id="scout-to-apply-panel">
       <CardHeader className="shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <CardTitle>To Apply</CardTitle>
+          <CardTitle>Saved</CardTitle>
           <p className="mt-1 text-sm text-deco-muted">
             {toApplyJobs.length > 0
               ? `${toApplyJobs.length} jobs saved for later.`
@@ -67,13 +67,13 @@ export const ScoutToApplyPanel = ({
           variant="ghost"
         >
           <Trash2 className="h-4 w-4" />
-          Clear Scout Queue
+          Clear All Jobs
         </Button>
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {isLoading ? (
-          <p className="text-sm text-deco-muted">Loading scout jobs...</p>
+          <p className="text-sm text-deco-muted">Loading jobs...</p>
         ) : null}
 
         {!isLoading && toApplyJobs.length > 0 ? (
@@ -289,10 +289,10 @@ export const ScoutToApplyPanel = ({
         {!isLoading && toApplyJobs.length === 0 ? (
           <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-5 py-10 text-center">
             <p className="font-heading text-2xl text-deco-foreground">
-              No saved Scout jobs yet.
+              No saved jobs yet.
             </p>
             <p className="mt-3 text-sm text-deco-muted">
-              Save jobs from Evaluate to build your To Apply list.
+              Save jobs from Review to build your saved list.
             </p>
           </div>
         ) : null}

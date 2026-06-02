@@ -124,14 +124,9 @@ export const FilterBar = ({
         id="tracker-filter-accordion"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="grid gap-1">
-            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted">
-              Filters
-            </span>
-            <span className="text-xs uppercase tracking-[0.12em] text-deco-muted">
-              Search, status, interest, and skill transfer
-            </span>
-          </div>
+          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted">
+            Filters
+          </span>
           <Button
             className="h-9 px-4 text-xs uppercase tracking-[0.2em]"
             onClick={onClearAll}
@@ -223,10 +218,10 @@ export const FilterBar = ({
 
           <div className="deco-frame border-border-gold-muted bg-deco-surface-soft p-3">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
-              Available
+              Skills
             </p>
             {availableSkills.length > 0 ? (
-              <div className="mt-2 flex max-h-28 flex-wrap gap-2 overflow-y-auto">
+              <div className="mt-2 flex flex-wrap gap-2">
                 {availableSkills.map((skill) => (
                   <button
                     className="deco-frame inline-flex items-center border-border-gold-muted bg-deco-card px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-deco-foreground transition-colors hover:bg-primary-gold-muted"

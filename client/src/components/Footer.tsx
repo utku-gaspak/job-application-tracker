@@ -5,7 +5,7 @@ const Footer = () => {
     <footer className="px-4 py-2 text-xs text-deco-muted md:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-deco-muted">&copy; 2026 Utku Gaspak</p>
-        <p className="text-deco-muted">Traxr job tracker and Scout workflow</p>
+        <p className="text-deco-muted">Traxr job search workflow</p>
         <div className="flex flex-wrap items-center gap-3">
           <a
             href="https://github.com/utku-gaspak"

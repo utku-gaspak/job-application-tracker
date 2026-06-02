@@ -20,6 +20,7 @@ import { FilterBar } from "./FilterBar";
 import type { DropResult } from "@hello-pangea/dnd";
 import { KanbanBoard } from "./KanbanBoard";
 import { DashboardSidebar } from "./DashboardSidebar";
+import PipelineBar from "./PipelineBar";
 import Footer from "./Footer";
 import MissionLoop from "./MissionLoop";
 import TrackerStatusSankey from "./TrackerStatusSankey";
@@ -31,6 +32,8 @@ import {
 } from "../api/jobApplicationsApi";
 import JobApplicationForm from "./JobApplicationForm";
 import ScoutSection from "./ScoutSection";
+import ScrapeSection from "./ScrapeSection";
+import type { ScrapeHistorySummary } from "../types";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import {
@@ -327,6 +330,7 @@ const Dashboard = () => {
     toApply: 0,
     discarded: 0,
   });
+  const [scrapeSummary, setScrapeSummary] = useState<ScrapeHistorySummary | null>(null);
 
   const availableSkills = useMemo(
     () => getUniqueTechnicalSkills(applications),
@@ -590,11 +594,11 @@ const Dashboard = () => {
 
   return (
     <main className="mx-auto flex min-h-[calc(100dvh/var(--ui-scale))] w-full max-w-[1600px] flex-col overflow-x-hidden px-3 py-3 lg:px-5">
-      <header className="deco-frame-thick mb-3 flex w-full flex-col gap-3 px-3 py-3 shadow-deco-panel bg-deco-surface-soft sm:px-6 md:flex-row md:items-center md:justify-between">
+      <header className="deco-frame-thick mb-3 flex w-full flex-col gap-3 overflow-hidden px-3 py-3 shadow-deco-panel bg-deco-surface-soft sm:px-6 md:flex-row md:items-center md:justify-between">
         {" "}
         <div className="flex min-w-0 flex-col gap-2 md:flex-row md:items-center md:gap-4">
           <div className="min-w-0">
-            <h1 className="font-heading text-3xl tracking-tight text-deco-foreground md:text-4xl">
+            <h1 className="font-heading truncate text-2xl tracking-tight text-deco-foreground sm:text-3xl md:text-4xl">
               Traxr - Job Application Tracker
             </h1>
 
@@ -604,7 +608,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 md:ml-auto">
           <Button
             aria-label="Open guided mission loop"
             className="h-11 w-11 p-0 transition-all"
@@ -651,11 +655,21 @@ const Dashboard = () => {
           interviewRate={profileStats.interviewRate}
           offerRate={profileStats.offerRate}
           scoutSummary={scoutSummary}
+          scrapeSummary={scrapeSummary}
           themeButtonVariant={themeButtonVariant}
           onOpenCreate={openCreateDialog}
         />
 
         <section className="flex min-h-0 flex-col gap-3 md:flex-1">
+          <div className="hidden lg:block">
+            <PipelineBar
+              applicationCount={applications.length}
+              scoutSummary={{
+                toEvaluate: scoutSummary.toEvaluate,
+                toApply: scoutSummary.toApply,
+              }}
+            />
+          </div>
           <div className={activeSection === "tracker" ? "contents" : "hidden"}>
           <FilterBar
             sortOrder={sortOrder}
@@ -898,7 +912,7 @@ const Dashboard = () => {
                             ))}
                             <div className="deco-frame min-w-0 border-border-gold-muted bg-deco-surface-soft px-2 py-1.5 sm:col-span-2">
                               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold">
-                                Technical Stack
+                                Skills
                               </p>
                               {splitTechStack(
                                 selectedApplication.technicalStack,
@@ -1017,6 +1031,12 @@ const Dashboard = () => {
               </div>
               </SheetContent>
             </Sheet>
+          </div>
+          <div className={activeSection === "scrape" ? "contents" : "hidden"}>
+            <ScrapeSection
+              isActive={activeSection === "scrape"}
+              onSummaryChange={setScrapeSummary}
+            />
           </div>
           <div className={activeSection === "scout" ? "contents" : "hidden"}>
           <ScoutSection

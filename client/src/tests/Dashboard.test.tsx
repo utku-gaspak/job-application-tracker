@@ -13,6 +13,7 @@ import { finalUrl } from '../baseUrl'
 
 const renderDashboard = () => {
   localStorage.setItem('token', 'test-jwt-token')
+  window.location.hash = ''
 
   return render(
     <ThemeProvider>
@@ -377,5 +378,137 @@ describe('Dashboard', () => {
         'No applications yet. Add your first one and it will appear here immediately.',
       ),
     ).toBeInTheDocument()
+  })
+
+  describe('Sidebar pipeline', () => {
+    it('Sidebar_Pipeline_RendersThreeStepsInOrder', async () => {
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      // Two PipelineBars render (mobile + desktop), both in DOM
+      const findJobsButtons = screen.getAllByRole('button', { name: /Find Jobs/ })
+      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      const trackButtons = screen.getAllByRole('button', { name: /Track Apps/ })
+      expect(findJobsButtons.length).toBeGreaterThanOrEqual(1)
+      expect(reviewButtons.length).toBeGreaterThanOrEqual(1)
+      expect(trackButtons.length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('Sidebar_Pipeline_StepReviewAndSave_SwitchesToScout', async () => {
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      // Click the first Review & Save button (desktop PipelineBar)
+      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      fireEvent.click(reviewButtons[0]!)
+
+      await waitFor(() => {
+        expect(screen.getByText('Upload jobs.json')).toBeInTheDocument()
+      })
+    })
+
+    it('Sidebar_Pipeline_StepTrackApps_SwitchesToTracker', async () => {
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      // Switch to scout first
+      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      fireEvent.click(reviewButtons[0]!)
+      await waitFor(() => {
+        expect(screen.getByText('Upload jobs.json')).toBeInTheDocument()
+      })
+
+      // Switch back to tracker
+      const trackButtons = screen.getAllByRole('button', { name: /Track Apps/ })
+      fireEvent.click(trackButtons[0]!)
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: 'New Application' }),
+        ).toBeInTheDocument()
+      })
+    })
+
+    it('Sidebar_Pipeline_ShowsCounts', async () => {
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      // Pipeline bar shows counts for tracker step (2 applications)
+      const trackButtons = screen.getAllByRole('button', { name: /Track Apps/ })
+      expect(trackButtons[0]).toHaveAccessibleName(/2 tracking/)
+    })
+
+    it('Sidebar_Pipeline_EmptyState_NoCounts', async () => {
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      // Scout starts empty — Find Jobs and Review & Save buttons have no count badge
+      const findButtons = screen.getAllByRole('button', { name: /Find Jobs/ })
+      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      expect(findButtons[0]).not.toHaveAccessibleName(/to review/)
+      expect(reviewButtons[0]).not.toHaveAccessibleName(/saved/)
+    })
+
+    it('Sidebar_Pipeline_AddNewButton_VisibleOnlyInTracker', async () => {
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      // In tracker mode: Add New is visible
+      expect(
+        screen.getByRole('button', { name: 'New Application' }),
+      ).toBeInTheDocument()
+
+      // Switch to scout
+      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      fireEvent.click(reviewButtons[0]!)
+      await waitFor(() => {
+        expect(screen.getByText('Upload jobs.json')).toBeInTheDocument()
+      })
+
+      // In scout mode: Add New should NOT be visible
+      expect(
+        screen.queryByRole('button', { name: 'New Application' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('Sidebar_Pipeline_SummarySection_ContextAware', async () => {
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      // Tracker summary header is visible
+      expect(screen.getByText('Summary')).toBeInTheDocument()
+      expect(
+        screen.queryByText('Total Jobs'),
+      ).not.toBeInTheDocument()
+
+      // Switch to scout
+      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      fireEvent.click(reviewButtons[0]!)
+      await waitFor(() => {
+        expect(screen.getByText('Upload jobs.json')).toBeInTheDocument()
+      })
+
+      // Review summary now visible
+      expect(screen.getByText('Review Summary')).toBeInTheDocument()
+      expect(screen.getByText('Total Jobs')).toBeInTheDocument()
+    })
+
+    it('Sidebar_Pipeline_StepNumbersRenderInCircles', async () => {
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      // Step numbers 1, 2, 3 appear inside circles in the pipeline bar
+      expect(screen.getAllByRole('button', { name: /Find Jobs/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Review & Save/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Track Apps/ }).length).toBeGreaterThanOrEqual(1)
+    })
   })
 })

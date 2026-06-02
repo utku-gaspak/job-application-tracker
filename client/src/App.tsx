@@ -7,7 +7,6 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
-const ScrapePage = lazy(() => import("./pages/ScrapePage"));
 const ScrapeVerifyPage = lazy(() => import("./pages/ScrapeVerifyPage"));
 const Dashboard = lazy(() => import("./components/Dashboard"));
 
@@ -44,7 +43,7 @@ function App() {
                   path="/scrape"
                   element={
                     <ProtectedRoute>
-                      <ScrapePage />
+                      <Navigate to="/#scrape" replace />
                     </ProtectedRoute>
                   }
                 />
@@ -52,7 +51,7 @@ function App() {
                   path="/scrape/:jobId"
                   element={
                     <ProtectedRoute>
-                      <ScrapePage />
+                      <Navigate to="/#scrape" replace />
                     </ProtectedRoute>
                   }
                 />

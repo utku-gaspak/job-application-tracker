@@ -391,7 +391,7 @@ const ScoutSection = ({
       await deleteAllScoutJobs();
       setJobs([]);
       setCurrentIndex(0);
-      toast.success("Scout queue cleared.");
+      toast.success("All jobs cleared.");
     } catch (error) {
       console.error("Clear scout jobs failed:", error);
       setErrorMessage("Could not clear scout jobs.");
@@ -409,7 +409,7 @@ const ScoutSection = ({
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
-              Job Scout
+              Review Jobs
             </p>
             <h2 className="mt-1 font-heading text-2xl text-deco-foreground">
               Review imported jobs
@@ -433,7 +433,7 @@ const ScoutSection = ({
               type="button"
               variant={activeView === "evaluate" ? "default" : "outline"}
             >
-              Evaluate
+              Review
             </Button>
             <Button
               data-tour-id="scout-to-apply"
@@ -442,7 +442,7 @@ const ScoutSection = ({
               type="button"
               variant={activeView === "to-apply" ? "default" : "outline"}
             >
-              To Apply
+              Saved
             </Button>
             <Button
               className="w-full justify-center lg:w-auto"
@@ -533,7 +533,7 @@ const ScoutSection = ({
         <DialogContent className="deco-frame-thick w-[min(96vw,30rem)] border-border-gold bg-deco-bg shadow-deco-panel">
           <DialogHeader>
             <DialogTitle className="font-heading text-2xl text-deco-foreground">
-              Export Scout queue
+              Export job queue
             </DialogTitle>
             <DialogDescription className="text-sm text-deco-muted">
               Choose JSON for re-imports or CSV for spreadsheet tools like Excel.
