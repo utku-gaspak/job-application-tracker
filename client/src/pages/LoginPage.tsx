@@ -1,6 +1,5 @@
 import axios from "axios";
 import {
-  BriefcaseBusiness,
   ChevronRight,
   MoonStar,
   SunMedium,
@@ -20,6 +19,7 @@ import { Input } from "../components/ui/input";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import Footer from "../components/Footer";
+import OnboardingTour from "../components/OnboardingTour";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
@@ -73,45 +73,10 @@ const LoginPage = () => {
   return (
     <main className="flex min-h-screen flex-col px-4 pt-10 md:px-8 md:pt-10">
       <div className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        {/* Left Section: Information */}
-        <section className="deco-frame border-border-gold-muted bg-deco-surface p-8 shadow-deco-panel">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-primary-gold">
-                Job Application Tracker
-              </p>
-              <h1 className="max-w-[12ch] text-4xl leading-[0.95] text-deco-foreground md:text-5xl">
-                Traxr
-              </h1>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={toggleTheme}
-              aria-label={
-                theme === "dark"
-                  ? "Switch to light mode"
-                  : "Switch to dark mode"
-              }
-            >
-              {theme === "dark" ? (
-                <SunMedium className="h-4 w-4" />
-              ) : (
-                <MoonStar className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-          <p className="mt-5 max-w-xl text-base text-deco-muted">
-            Manage all your application data in one secure and clean interface.
-          </p>
-          <div className="mt-8 flex items-center gap-4 text-sm uppercase tracking-[0.12em] text-deco-muted">
-            <span className="inline-flex items-center gap-2">
-              <BriefcaseBusiness className="h-4 w-4 text-primary-gold" />
-              APPLY — LOG
-            </span>
-            <span className="h-px w-8 bg-border-gold" />
-            <span>TRACK</span>
+        {/* Left Section: Onboarding Tour */}
+        <section className="flex items-center">
+          <div className="w-full">
+            <OnboardingTour open onClose={() => {}} variant="inline" />
           </div>
         </section>
 

@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { delay, http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 import Dashboard from '../components/Dashboard'
+import OnboardingTour from '../components/OnboardingTour'
 import { AuthProvider } from '../context/AuthContext'
 import { ThemeProvider } from '../context/ThemeContext'
 import { WorkflowProvider } from '../context/WorkflowContext'
@@ -510,5 +511,51 @@ describe('Dashboard', () => {
       expect(screen.getAllByRole('button', { name: /Review & Save/ }).length).toBeGreaterThanOrEqual(1)
       expect(screen.getAllByRole('button', { name: /Track Apps/ }).length).toBeGreaterThanOrEqual(1)
     })
+  })
+})
+
+describe('OnboardingTour', () => {
+  it('OnboardingTour_Inline_RendersFirstStep', () => {
+    render(<OnboardingTour open variant="inline" onClose={() => {}} />)
+
+    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument()
+    expect(screen.getByText('Welcome to Traxr')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Next/ })).toBeInTheDocument()
+  })
+
+  it('OnboardingTour_Inline_NavigatesToNextStep', () => {
+    render(<OnboardingTour open variant="inline" onClose={() => {}} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Next/ }))
+
+    expect(screen.getByText('Step 2 of 5')).toBeInTheDocument()
+    expect(screen.getByText('Find Jobs')).toBeInTheDocument()
+  })
+
+  it('OnboardingTour_Inline_LastStepShowsGotIt', () => {
+    render(<OnboardingTour open variant="inline" onClose={() => {}} />)
+
+    // Click through to last step
+    for (let i = 0; i < 4; i++) {
+      fireEvent.click(screen.getByRole('button', { name: /Next/ }))
+    }
+
+    expect(screen.getByText('Step 5 of 5')).toBeInTheDocument()
+    expect(screen.getByText("You're All Set")).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Got it/ })).toBeInTheDocument()
+  })
+
+  it('OnboardingTour_Closed_ReturnsNull', () => {
+    const { container } = render(<OnboardingTour open={false} variant="inline" onClose={() => {}} />)
+
+    expect(container.innerHTML).toBe('')
+  })
+
+  it('OnboardingTour_Modal_ShowsBackdrop', () => {
+    render(<OnboardingTour open variant="modal" onClose={() => {}} />)
+
+    // Modal has two close buttons: backdrop + X
+    const closeButtons = screen.getAllByLabelText('Close tour')
+    expect(closeButtons.length).toBeGreaterThanOrEqual(2)
   })
 })

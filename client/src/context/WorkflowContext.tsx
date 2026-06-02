@@ -11,7 +11,6 @@ import type { ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 
 export type WorkflowSection = "tracker" | "scout" | "scrape";
-export type MissionPhase = "triage" | "action" | "summary";
 
 interface WorkflowContextType {
   activeSection: WorkflowSection;
@@ -21,12 +20,6 @@ interface WorkflowContextType {
   isMissionLoopOpen: boolean;
   openMissionLoop: () => void;
   closeMissionLoop: () => void;
-  missionPhase: MissionPhase;
-  setMissionPhase: (phase: MissionPhase) => void;
-  advanceMissionPhase: () => void;
-  missionStepIndex: number;
-  setMissionStepIndex: (index: number) => void;
-  advanceMissionStep: () => void;
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(
@@ -57,8 +50,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       : getSectionFromHash(window.location.hash),
   );
   const [isMissionLoopOpen, setIsMissionLoopOpen] = useState(false);
-  const [missionPhase, setMissionPhase] = useState<MissionPhase>("triage");
-  const [missionStepIndex, setMissionStepIndex] = useState(0);
   const lastSessionUsernameRef = useRef<string | null>(null);
   const [scoutTourView, setScoutTourView] = useState<
     "upload" | "evaluate" | "to-apply" | null
@@ -91,23 +82,11 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const openMissionLoop = useCallback(() => {
-    setMissionPhase("triage");
-    setMissionStepIndex(0);
     setIsMissionLoopOpen(true);
   }, []);
 
   const closeMissionLoop = useCallback(() => {
     setIsMissionLoopOpen(false);
-  }, []);
-
-  const advanceMissionPhase = useCallback(() => {
-    setMissionPhase((current) =>
-      current === "triage" ? "action" : "summary",
-    );
-  }, []);
-
-  const advanceMissionStep = useCallback(() => {
-    setMissionStepIndex((current) => current + 1);
   }, []);
 
   useEffect(() => {
@@ -149,12 +128,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       isMissionLoopOpen,
       openMissionLoop,
       closeMissionLoop,
-      missionPhase,
-      setMissionPhase,
-      advanceMissionPhase,
-      missionStepIndex,
-      setMissionStepIndex,
-      advanceMissionStep,
     }),
     [
       activeSection,
@@ -162,12 +135,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
       isMissionLoopOpen,
       openMissionLoop,
       closeMissionLoop,
-      missionPhase,
-      setMissionPhase,
-      advanceMissionPhase,
-      missionStepIndex,
-      setMissionStepIndex,
-      advanceMissionStep,
       scoutTourView,
     ],
   );

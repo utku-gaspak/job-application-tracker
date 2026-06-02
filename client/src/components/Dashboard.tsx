@@ -22,7 +22,7 @@ import { KanbanBoard } from "./KanbanBoard";
 import { DashboardSidebar } from "./DashboardSidebar";
 import PipelineBar from "./PipelineBar";
 import Footer from "./Footer";
-import MissionLoop from "./MissionLoop";
+import OnboardingTour from "./OnboardingTour";
 import TrackerStatusSankey from "./TrackerStatusSankey";
 import {
   createJobApplication,
@@ -279,7 +279,7 @@ const Dashboard = () => {
     setActiveSection: setWorkflowSection,
     isMissionLoopOpen,
     openMissionLoop,
-    advanceMissionPhase,
+    closeMissionLoop,
   } = useWorkflow();
   const { theme, toggleTheme } = useTheme();
   const themeButtonVariant = theme === "dark" ? "outline" : "default";
@@ -1050,24 +1050,10 @@ const Dashboard = () => {
       <div className="mt-auto pt-3">
         <Footer />
       </div>
-      <MissionLoop
+      <OnboardingTour
         open={isMissionLoopOpen}
-        onGoScout={() => {
-          switchSection("scout");
-        }}
-        onGoTracker={() => {
-          switchSection("tracker");
-          setShowStatusSankey(false);
-        }}
-        onGoDiagram={() => {
-          switchSection("tracker");
-          setShowStatusSankey(true);
-        }}
-        onAdvancePhase={() => {
-          advanceMissionPhase();
-          switchSection("tracker");
-          setShowStatusSankey(false);
-        }}
+        onClose={closeMissionLoop}
+        variant="modal"
       />
     </main>
   );

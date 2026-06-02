@@ -149,12 +149,7 @@ const ScoutSection = ({
     [authSignature],
   );
 
-  const {
-    isMissionLoopOpen,
-    missionPhase,
-    scoutTourView,
-    setMissionPhase,
-  } = useWorkflow();
+  const { scoutTourView } = useWorkflow();
 
   useEffect(() => {
     if (scoutTourView) {
@@ -278,17 +273,14 @@ const ScoutSection = ({
         isDiscarded: false,
       });
       updateJobInQueue(updatedJob);
-      if (isMissionLoopOpen && missionPhase === "triage") {
-        setMissionPhase("action");
-      }
-      toast.success("Scout job moved to To Apply.");
+      toast.success("Job saved for later.");
     } catch (error) {
       console.error("Save scout job for later failed:", error);
       setErrorMessage("Could not save the scout job for later.");
     } finally {
       setIsActing(false);
     }
-  }, [currentJob, isActing, isMissionLoopOpen, missionPhase, setMissionPhase]);
+  }, [currentJob, isActing]);
 
   const handleDiscard = useCallback(async () => {
     if (!currentJob || isActing) {
@@ -303,17 +295,14 @@ const ScoutSection = ({
         isDiscarded: true,
       });
       updateJobInQueue(updatedJob);
-      if (isMissionLoopOpen && missionPhase === "triage") {
-        setMissionPhase("action");
-      }
-      toast.success("Scout job discarded.");
+      toast.success("Job discarded.");
     } catch (error) {
       console.error("Discard scout job failed:", error);
       setErrorMessage("Could not discard the scout job.");
     } finally {
       setIsActing(false);
     }
-  }, [currentJob, isActing, isMissionLoopOpen, missionPhase, setMissionPhase]);
+  }, [currentJob, isActing]);
 
   const handleMarkAsApplied = useCallback(
     async (job: ScoutJob) => {
@@ -338,10 +327,7 @@ const ScoutSection = ({
         await deleteScoutJob(job.id);
         onApplicationCreated(createdApplication);
         removeJobFromQueue(job.id);
-        if (isMissionLoopOpen) {
-          setMissionPhase("summary");
-        }
-        toast.success("Scout job moved to tracker.");
+        toast.success("Job moved to tracker.");
       } catch (error) {
         console.error("Mark scout job applied failed:", error);
         setErrorMessage("Could not move the scout job to the tracker.");
@@ -349,7 +335,7 @@ const ScoutSection = ({
         setIsActing(false);
       }
     },
-    [isActing, isMissionLoopOpen, onApplicationCreated, setMissionPhase],
+    [isActing, onApplicationCreated],
   );
 
   const handleRemoveScoutJob = useCallback(
