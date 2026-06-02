@@ -150,6 +150,14 @@ export const handlers = [
     return HttpResponse.json([])
   }),
 
+  http.post(`${finalUrl}/api/scrape/:jobId/cancel`, ({ params }) => {
+    return HttpResponse.json({
+      jobId: String(params.jobId),
+      status: 'cancelled',
+      message: 'Scrape job was cancelled.',
+    })
+  }),
+
   http.post(`${finalUrl}/api/scrape/presets`, async ({ request }) => {
     const body = await request.json() as { name: string; sourceUrl: string }
     return HttpResponse.json({

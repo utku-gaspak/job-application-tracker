@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json;
 using api;
 using api.Data;
@@ -144,6 +145,8 @@ public sealed class ScrapeJobWorker(
             {
                 throw new InvalidOperationException("Failed to start the HiringCafe scraper process.");
             }
+
+            await WriteScraperPidAsync(job, process.Id);
 
             var stdoutTask = process.StandardOutput.ReadToEndAsync();
             var stderrTask = process.StandardError.ReadToEndAsync();
@@ -541,6 +544,49 @@ public sealed class ScrapeJobWorker(
         {
             return null;
         }
+    }
+
+    private static Task WriteScraperPidAsync(ScrapeJob job, int pid)
+    {
+        Directory.CreateDirectory(job.RunDirectory);
+        return File.WriteAllTextAsync(GetScraperPidPath(job), pid.ToString(CultureInfo.InvariantCulture));
+    }
+
+    internal static string GetScraperPidPath(ScrapeJob job) =>
+        Path.Combine(job.RunDirectory, "scraper.pid");
+
+    internal static bool TryReadScraperPid(ScrapeJob job, out int pid)
+    {
+        var pidPath = GetScraperPidPath(job);
+        pid = 0;
+        if (!File.Exists(pidPath)) return false;
+
+        try
+        {
+            var raw = File.ReadAllText(pidPath);
+            return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out pid) && pid > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    internal static void KillScraperProcess(ScrapeJob job)
+    {
+        if (!TryReadScraperPid(job, out var pid)) return;
+
+        try
+        {
+            using var process = Process.GetProcessById(pid);
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+            }
+        }
+        catch (Exception) { /* process already gone */ }
+
+        try { File.Delete(GetScraperPidPath(job)); } catch { /* best effort */ }
     }
 
     private sealed record ScoutUploadResult(int Imported, int Skipped);

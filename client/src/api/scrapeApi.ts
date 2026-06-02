@@ -12,6 +12,11 @@ export const createScrapeJob = async (input: ScrapeJobCreateInput) => {
   return response.data;
 };
 
+export const cancelScrapeJob = async (jobId: string) => {
+  const response = await scrapeApi.post<ScrapeJobStatusResponse>(`/${jobId}/cancel`);
+  return response.data;
+};
+
 export const getScrapeJob = async (jobId: string) => {
   const response = await scrapeApi.get<ScrapeJobStatusResponse>(`/${jobId}`);
   return response.data;

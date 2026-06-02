@@ -208,6 +208,41 @@ public class ScrapeController(
         return Ok(ToPresetDto(entity));
     }
 
+    [HttpPost("{jobId}/cancel")]
+    public async Task<ActionResult<ScrapeJobStatusDto>> Cancel(
+        [FromRoute] string jobId,
+        CancellationToken cancellationToken
+    )
+    {
+        var job = await dbContext.ScrapeJobs.FindAsync([jobId], cancellationToken);
+        if (job is null) return NotFound();
+        if (!CanAccessJob(job)) return NotFound();
+
+        var status = job.Status?.Trim() ?? string.Empty;
+        if (!status.Equals("queued", StringComparison.OrdinalIgnoreCase)
+            && !status.Equals("running", StringComparison.OrdinalIgnoreCase))
+        {
+            return Conflict("Only queued or running scrape jobs can be cancelled.");
+        }
+
+        ScrapeJobWorker.KillScraperProcess(job);
+        ClearScraperPidFile(job);
+
+        job.Status = "cancelled";
+        job.Message = "Scrape job was cancelled.";
+        job.Error = null;
+        job.FinishedAt = DateTime.UtcNow;
+        job.UpdatedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Ok(await ToStatusDtoAsync(job, cancellationToken));
+    }
+
+    private static void ClearScraperPidFile(ScrapeJob job)
+    {
+        try { System.IO.File.Delete(ScrapeJobWorker.GetScraperPidPath(job)); } catch { /* best effort */ }
+    }
+
     [HttpGet("presets")]
     public async Task<ActionResult<List<ScrapePresetDto>>> ListPresets(
         CancellationToken cancellationToken

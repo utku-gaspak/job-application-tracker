@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import {
+  cancelScrapeJob,
   completeScrapeVerification,
   createScrapeJob,
   createScrapePreset,
@@ -89,6 +90,7 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
   const [presetDialogOpen, setPresetDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [deletePresetId, setDeletePresetId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
   const { setActiveSection, setScoutTourView } = useWorkflow();
 
   const loadPresets = async () => {
@@ -233,6 +235,19 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
     setUrl(presetUrl);
   };
 
+  const handleCancel = async () => {
+    if (!activeJob) return;
+    setCancelling(true);
+    try {
+      const result = await cancelScrapeJob(activeJob.jobId);
+      setActiveJob(result);
+    } catch (error) {
+      console.error("Could not cancel scrape job:", error);
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const job = activeJob;
   const title = useMemo(() => {
     if (!job) return "Start a new scrape";
@@ -290,10 +305,19 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
               </div>
 
               {job.status === ScrapeJobStatus.Queued || job.status === ScrapeJobStatus.Running ? (
-                <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-4 py-3">
+                <div className="deco-frame border-border-gold-muted bg-deco-surface-soft px-4 py-3 flex items-center justify-between gap-3">
                   <p className="text-sm text-deco-muted">
                     {job.status === ScrapeJobStatus.Queued ? "Waiting for the scraper worker to start." : "Collecting jobs from HiringCafe now."}
                   </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 px-3 text-xs shrink-0"
+                    disabled={cancelling}
+                    onClick={() => void handleCancel()}
+                  >
+                    {cancelling ? "Cancelling..." : "Cancel"}
+                  </Button>
                 </div>
               ) : null}
 
