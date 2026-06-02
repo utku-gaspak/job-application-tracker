@@ -26,6 +26,13 @@ import {
 import { useWorkflow } from "../context/WorkflowContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { Input } from "./ui/input";
 import {
   ScrapeJobStatus,
@@ -79,6 +86,9 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
   const [working, setWorking] = useState<"json" | "markdown" | null>(null);
   const [verificationSaving, setVerificationSaving] = useState(false);
   const [presets, setPresets] = useState<ScrapePreset[]>([]);
+  const [presetDialogOpen, setPresetDialogOpen] = useState(false);
+  const [presetName, setPresetName] = useState("");
+  const [deletePresetId, setDeletePresetId] = useState<string | null>(null);
   const { setActiveSection, setScoutTourView } = useWorkflow();
 
   const loadPresets = async () => {
@@ -191,22 +201,31 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
   };
 
   const handleSavePreset = async () => {
-    const name = prompt("Preset name:");
-    if (!name?.trim()) return;
+    if (!presetName.trim()) return;
     try {
-      await createScrapePreset({ name: name.trim(), sourceUrl: url });
+      await createScrapePreset({ name: presetName.trim(), sourceUrl: url });
       await loadPresets();
+      setPresetName("");
+      setPresetDialogOpen(false);
     } catch (error) {
       console.error("Could not save preset:", error);
     }
   };
 
-  const handleDeletePreset = async (id: string) => {
+  const openPresetDialog = () => {
+    setPresetName("");
+    setPresetDialogOpen(true);
+  };
+
+  const handleDeletePreset = async () => {
+    if (!deletePresetId) return;
     try {
-      await deleteScrapePreset(id);
-      setPresets((prev) => prev.filter((p) => p.id !== id));
+      await deleteScrapePreset(deletePresetId);
+      setPresets((prev) => prev.filter((p) => p.id !== deletePresetId));
     } catch (error) {
       console.error("Could not delete preset:", error);
+    } finally {
+      setDeletePresetId(null);
     }
   };
 
@@ -389,35 +408,34 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
                   </a>
                 </Button>
                 {url.trim() && (
-                  <Button type="button" variant="ghost" onClick={() => void handleSavePreset()}>
+                  <Button type="button" variant="ghost" onClick={openPresetDialog}>
                     Save as preset
                   </Button>
                 )}
               </div>
               {presets.length > 0 && (
-                <div className="border-t border-border-gold-muted pt-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted mb-2">
+                <div className="border-t border-primary-gold-muted pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-gold mb-2">
                     Saved searches
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {presets.map((preset) => (
-                      <div key={preset.id} className="deco-frame inline-flex items-center gap-1 border-border-gold-muted bg-deco-surface-soft">
-                        <button
-                          type="button"
-                          className="px-2 py-1 text-xs font-medium text-deco-foreground hover:text-primary-gold transition-colors"
-                          onClick={() => handleUsePreset(preset.sourceUrl)}
-                        >
-                          {preset.name}
-                        </button>
-                        <button
-                          type="button"
-                          className="px-1 py-1 text-deco-muted hover:text-danger transition-colors"
+                      <button
+                        key={preset.id}
+                        type="button"
+                        className="deco-frame group inline-flex items-center gap-2 border-border-gold bg-deco-surface px-3 py-1.5 text-sm font-medium text-deco-foreground shadow-sm transition-all hover:border-primary-gold hover:bg-primary-gold/10 hover:shadow-md"
+                        onClick={() => handleUsePreset(preset.sourceUrl)}
+                      >
+                        {preset.name}
+                        <span
+                          className="flex h-4 w-4 items-center justify-center rounded-full text-deco-muted opacity-0 transition-opacity hover:bg-danger-soft hover:text-danger group-hover:opacity-100"
                           aria-label={`Delete preset ${preset.name}`}
-                          onClick={() => void handleDeletePreset(preset.id)}
+                          onClick={(e) => { e.stopPropagation(); setDeletePresetId(preset.id); }}
+                          role="button"
                         >
                           <X className="h-3 w-3" />
-                        </button>
-                      </div>
+                        </span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -462,6 +480,56 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
           </div>
         </section>
       </div>
+
+      <Dialog open={presetDialogOpen} onOpenChange={setPresetDialogOpen}>
+        <DialogContent className="border-border-gold bg-deco-bg/95 shadow-deco-panel backdrop-blur-md sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-deco-foreground">Save search preset</DialogTitle>
+            <DialogDescription className="text-deco-muted">
+              Save this hiring.cafe URL for quick one-click reuse later.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="grid gap-4 pt-2"
+            onSubmit={(e) => { e.preventDefault(); void handleSavePreset(); }}
+          >
+            <Input
+              autoFocus
+              className="border-border-gold-muted focus-visible:ring-primary-gold"
+              onChange={(e) => setPresetName(e.target.value)}
+              placeholder="e.g. .NET Germany Remote"
+              value={presetName}
+            />
+            <div className="flex justify-end gap-2">
+              <Button className="h-8 px-3 text-xs" type="button" variant="outline" onClick={() => setPresetDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button className="h-8 px-3 text-xs" type="submit" disabled={!presetName.trim()}>
+                Save preset
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deletePresetId !== null} onOpenChange={(open) => { if (!open) setDeletePresetId(null); }}>
+        <DialogContent className="border-border-gold bg-deco-bg/95 shadow-deco-panel backdrop-blur-md sm:max-w-[360px]">
+          <DialogHeader>
+            <DialogTitle className="text-deco-foreground">Delete preset?</DialogTitle>
+            <DialogDescription className="text-deco-muted">
+              This only removes the saved search — your existing scraped jobs are not affected.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button className="h-8 px-3 text-xs" type="button" variant="outline" onClick={() => setDeletePresetId(null)}>
+              Cancel
+            </Button>
+            <Button className="h-8 px-3 text-xs" type="button" variant="default" onClick={() => void handleDeletePreset()}>
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
