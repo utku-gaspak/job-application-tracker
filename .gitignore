@@ -16,9 +16,10 @@ docker-compose.override.yml
 docker-compose.local.yml
 Caddyfile.local
 
-# Build and Temp 
+# Build and Temp
 dist/
 temp/
+*~RF*.TMP
 
 # Personal notes
 notes.md
