@@ -23,6 +23,7 @@ Docker Compose, Caddy — deployment
 ## Running locally
 
 Needs .NET 10 SDK and PostgreSQL. Copy `.env.example` to `.env` and set a database password and JWT signing key.
+If you need the Caddy config locally, copy `Caddyfile.example` to `Caddyfile` and fill in any environment-specific values.
 
 ```bash
 dotnet tool restore
