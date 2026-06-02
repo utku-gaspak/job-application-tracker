@@ -1,9 +1,5 @@
 import axios from "axios";
-import {
-  ChevronRight,
-  MoonStar,
-  SunMedium,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -17,7 +13,6 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
 import Footer from "../components/Footer";
 import OnboardingTour from "../components/OnboardingTour";
 
@@ -27,7 +22,6 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const { login: storeToken } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const submitCredentials = async (
