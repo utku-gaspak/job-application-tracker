@@ -1,0 +1,15 @@
+traxr.xyz, www.traxr.xyz {
+	reverse_proxy frontend:8080
+}
+
+api.traxr.xyz {
+	reverse_proxy backend:8080
+}
+
+verify.traxr.xyz {
+	basic_auth {
+		{$VERIFY_BASIC_AUTH_USER} {$VERIFY_BASIC_AUTH_HASH}
+	}
+
+	reverse_proxy backend:6080
+}
