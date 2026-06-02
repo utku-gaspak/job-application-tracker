@@ -541,7 +541,7 @@ describe('OnboardingTour', () => {
     }
 
     expect(screen.getByText('Step 5 of 5')).toBeInTheDocument()
-    expect(screen.getByText("You're All Set")).toBeInTheDocument()
+    expect(screen.getByText("Track Your Progress")).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Got it/ })).toBeInTheDocument()
   })
 

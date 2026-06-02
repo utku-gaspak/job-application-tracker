@@ -25,14 +25,14 @@ const steps: OnboardingStep[] = [
     body: "Review each job one at a time — save the ones worth applying to, discard the rest. Focus on what matters: company, role, location, skills. Keyboard shortcuts make it fast.",
   },
   {
-    screenshot: "/screenshots/onboarding-4-track.png",
-    title: "Track Applications",
-    body: "Drag applications across columns as they move through your pipeline: Applied → Interviewing → Offer. Filter by anything — skills, interest level, status. Always know where you stand.",
+    screenshot: "/screenshots/onboarding-4-saved.png",
+    title: "Saved Jobs",
+    body: "Jobs you save appear here. Review your shortlist, open the apply link, and mark them as applied when you're done. They'll move straight to your tracker.",
   },
   {
-    screenshot: "/screenshots/onboarding-5-ready.png",
-    title: "You're All Set",
-    body: "Three connected steps: Find Jobs → Review & Save → Track Apps. The pipeline bar at the top keeps you oriented. Click any step to jump in.",
+    screenshot: "/screenshots/onboarding-5-track.png",
+    title: "Track Your Progress",
+    body: "Every application lives on your board. Drag cards from Applied → Interviewing → Offer as you progress. Filter by anything. Good luck on your search!",
   },
 ];
 
@@ -71,12 +71,12 @@ const OnboardingTour = ({ open, onClose, variant }: OnboardingTourProps) => {
 
   const content = (
     <div className="deco-frame-thick flex flex-col border-border-gold bg-deco-bg/95 shadow-deco-panel backdrop-blur-md">
-      <div className="flex items-start justify-between gap-3 border-b border-primary-gold-muted p-4">
+      <div className="flex items-start justify-between gap-3 border-b border-primary-gold-muted p-5">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-gold">
             Step {stepIndex + 1} of {steps.length}
           </p>
-          <h3 className="mt-1 font-heading text-xl text-deco-foreground">
+          <h3 className="mt-1 font-heading text-2xl text-deco-foreground">
             {current.title}
           </h3>
         </div>
@@ -88,15 +88,15 @@ const OnboardingTour = ({ open, onClose, variant }: OnboardingTourProps) => {
             type="button"
             variant="ghost"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         )}
       </div>
 
-      <div className="px-4 pt-4">
+      <div className="p-5">
         <div
-          className="flex w-full items-center justify-center rounded-lg border border-border-gold bg-deco-surface-soft text-xs text-deco-muted"
-          style={{ aspectRatio: "16/10" }}
+          className="flex w-full items-center justify-center rounded-lg border border-border-gold bg-deco-surface-soft text-sm text-deco-muted"
+          style={{ aspectRatio: "16/9" }}
         >
           <img
             src={current.screenshot}
@@ -110,11 +110,11 @@ const OnboardingTour = ({ open, onClose, variant }: OnboardingTourProps) => {
         </div>
       </div>
 
-      <div className="px-4 pb-2">
-        <p className="text-sm leading-6 text-deco-muted">{current.body}</p>
+      <div className="px-5 pb-3">
+        <p className="text-base leading-7 text-deco-muted">{current.body}</p>
       </div>
 
-      <div className="grid items-center gap-3 border-t border-primary-gold-muted p-4" style={{ gridTemplateColumns: "auto 1fr auto" }}>
+      <div className="grid items-center gap-3 border-t border-primary-gold-muted p-5" style={{ gridTemplateColumns: "auto 1fr auto" }}>
         <Button
           type="button"
           variant="outline"
@@ -131,7 +131,7 @@ const OnboardingTour = ({ open, onClose, variant }: OnboardingTourProps) => {
             <span
               aria-hidden="true"
               key={index}
-              className={`h-2.5 w-2.5 rounded-full border ${
+              className={`h-3 w-3 rounded-full border ${
                 index === stepIndex
                   ? "border-primary-gold bg-primary-gold"
                   : "border-border-gold bg-transparent"
@@ -160,12 +160,12 @@ const OnboardingTour = ({ open, onClose, variant }: OnboardingTourProps) => {
     <div className="fixed inset-0 z-70">
       <div
         aria-label="Close tour"
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/50"
         onClick={handleClose}
         role="button"
       />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[720px]">{content}</div>
+      <div className="pointer-events-none fixed inset-0 flex items-center justify-center p-6">
+        <div className="pointer-events-auto w-full max-w-[840px]">{content}</div>
       </div>
     </div>
   );
