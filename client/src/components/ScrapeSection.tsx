@@ -9,7 +9,6 @@ import {
   Download,
   ExternalLink,
   FileText,
-  LoaderCircle,
 } from "lucide-react";
 import {
   completeScrapeVerification,
@@ -31,7 +30,6 @@ import {
 } from "../types";
 
 interface ScrapeSectionProps {
-  isActive: boolean;
   onSummaryChange: (summary: ScrapeHistorySummary | null) => void;
 }
 
@@ -55,17 +53,6 @@ const downloadBlob = (blob: Blob, fileName: string) => {
 const formatCount = (value?: number | null) =>
   value == null ? "—" : new Intl.NumberFormat("en-US").format(value);
 
-const formatTimestamp = (value?: string | null) =>
-  value
-    ? new Intl.DateTimeFormat("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date(value))
-    : "—";
-
 const getVisibleJobsSummary = (progress: ScrapeProgress) => {
   const visibleJobs = formatCount(progress.visibleJobsScraped);
   const pagesScraped = formatCount(progress.pagesScraped);
@@ -77,7 +64,7 @@ const getVisibleJobsSummary = (progress: ScrapeProgress) => {
   return null;
 };
 
-const ScrapeSection = ({ isActive, onSummaryChange }: ScrapeSectionProps) => {
+const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
   const [url, setUrl] = useState("");
   const [includeSeen, setIncludeSeen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -86,8 +73,6 @@ const ScrapeSection = ({ isActive, onSummaryChange }: ScrapeSectionProps) => {
   const [activeJobError, setActiveJobError] = useState<string | null>(null);
   const [working, setWorking] = useState<"json" | "markdown" | null>(null);
   const [verificationSaving, setVerificationSaving] = useState(false);
-  const [historySummary, setHistorySummary] = useState<ScrapeHistorySummary | null>(null);
-  const [historyLoading, setHistoryLoading] = useState(true);
   const { setActiveSection, setScoutTourView } = useWorkflow();
 
   useEffect(() => {
@@ -96,12 +81,9 @@ const ScrapeSection = ({ isActive, onSummaryChange }: ScrapeSectionProps) => {
       try {
         const summary = await getScrapeHistorySummary();
         if (!active) return;
-        setHistorySummary(summary);
         onSummaryChange(summary);
       } catch (error) {
         console.error("Could not load scrape history:", error);
-      } finally {
-        if (active) setHistoryLoading(false);
       }
     };
     void loadHistory();

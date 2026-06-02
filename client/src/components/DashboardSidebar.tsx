@@ -27,7 +27,6 @@ interface DashboardSidebarProps {
     discarded: number;
   };
   scrapeSummary: ScrapeHistorySummary | null;
-  themeButtonVariant: "default" | "outline";
   onOpenCreate: () => void;
 }
 
@@ -38,7 +37,6 @@ export const DashboardSidebar = ({
   offerRate,
   scoutSummary,
   scrapeSummary,
-  themeButtonVariant,
   onOpenCreate,
 }: DashboardSidebarProps) => {
   const { activeSection } = useWorkflow();

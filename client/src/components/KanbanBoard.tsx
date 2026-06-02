@@ -26,6 +26,7 @@ const boardColumns = [
     subtitle: "Fresh outreach",
     borderClass: "border-l-column-applied",
     accentClass: "text-column-applied",
+    bgStyle: { backgroundColor: "rgb(100 116 139 / 0.06)" },
     frameClass: "deco-frame border-border-gold",
   },
   {
@@ -34,6 +35,7 @@ const boardColumns = [
     subtitle: "Active conversations",
     borderClass: "border-l-column-interviewing",
     accentClass: "text-column-interviewing",
+    bgStyle: { backgroundColor: "rgb(14 165 233 / 0.06)" },
     frameClass: "deco-frame border-border-gold",
   },
   {
@@ -42,6 +44,7 @@ const boardColumns = [
     subtitle: "Not moving forward",
     borderClass: "border-l-column-rejected",
     accentClass: "text-column-rejected",
+    bgStyle: { backgroundColor: "rgb(148 163 184 / 0.06)" },
     frameClass: "deco-frame border-border-gold",
   },
   {
@@ -50,6 +53,7 @@ const boardColumns = [
     subtitle: "Decision stage",
     borderClass: "border-l-column-offer",
     accentClass: "text-column-offer",
+    bgStyle: { backgroundColor: "rgb(16 185 129 / 0.06)" },
     frameClass: "deco-frame border-border-gold",
   },
 ] as const;
@@ -154,7 +158,8 @@ export const KanbanBoard = ({
           <div className="grid min-h-0 flex-1 gap-5 md:grid-cols-4">
             {boardColumns.map((column) => (
               <section
-                className={`kanban-column w-full ${column.frameClass} bg-deco-surface-soft p-4`}
+                className={`kanban-column flex min-h-0 flex-col w-full ${column.frameClass} p-4`}
+                style={column.bgStyle}
                 id={`column-${column.title.toLowerCase()}`}
                 key={column.status}
               >
@@ -177,7 +182,7 @@ export const KanbanBoard = ({
                 <Droppable droppableId={String(column.status)}>
                   {(droppableProvided, droppableSnapshot) => (
                     <div
-                      className={`mt-4 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-2 transition-colors ${
+                      className={`mt-4 flex min-h-[120px] flex-1 flex-col gap-2 overflow-y-auto pb-2 transition-colors rounded ${
                         droppableSnapshot.isDraggingOver
                           ? "bg-primary-gold-muted"
                           : ""

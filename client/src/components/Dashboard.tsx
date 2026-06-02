@@ -656,7 +656,6 @@ const Dashboard = () => {
           offerRate={profileStats.offerRate}
           scoutSummary={scoutSummary}
           scrapeSummary={scrapeSummary}
-          themeButtonVariant={themeButtonVariant}
           onOpenCreate={openCreateDialog}
         />
 
@@ -1034,7 +1033,6 @@ const Dashboard = () => {
           </div>
           <div className={activeSection === "scrape" ? "contents" : "hidden"}>
             <ScrapeSection
-              isActive={activeSection === "scrape"}
               onSummaryChange={setScrapeSummary}
             />
           </div>
