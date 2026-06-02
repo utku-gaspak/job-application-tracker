@@ -383,9 +383,9 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
                     <FileText className="h-4 w-4" />
                     {working === "markdown" ? "Downloading..." : "Download jobs.md"}
                   </Button>
-                  <Button onClick={() => { setActiveSection("scout"); setScoutTourView("evaluate"); }} type="button" variant="outline">
+                  <Button onClick={() => { setActiveSection("review"); setScoutTourView("review"); }} type="button" variant="outline">
                     <ArrowRight className="h-4 w-4" />
-                    Open Scout queue
+                    Review imported jobs
                   </Button>
                   <Button onClick={handleNewScrape} type="button" variant="ghost">
                     <ArrowLeft className="h-4 w-4" />

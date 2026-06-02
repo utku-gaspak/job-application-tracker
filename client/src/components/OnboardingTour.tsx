@@ -16,22 +16,27 @@ const steps: OnboardingStep[] = [
   },
   {
     screenshot: "/screenshots/onboarding-2-find-jobs.png",
-    title: "Find Jobs",
+    title: "Scrape",
     body: "Paste a hiring.cafe search URL and Traxr automatically scrapes matching job listings. No manual copy-paste, no spreadsheets. Every job lands in your review queue, ready to evaluate.",
   },
   {
     screenshot: "/screenshots/onboarding-3-review.png",
-    title: "Review & Save",
+    title: "Review",
     body: "Review each job one at a time — save the ones worth applying to, discard the rest. Focus on what matters: company, role, location, skills. Keyboard shortcuts make it fast.",
   },
   {
     screenshot: "/screenshots/onboarding-4-saved.png",
-    title: "Saved Jobs",
-    body: "Jobs you save appear here. Review your shortlist, open the apply link, and mark them as applied when you're done. They'll move straight to your tracker.",
+    title: "Saved",
+    body: "Jobs you save appear here. Review your shortlist before moving into a focused apply pass.",
+  },
+  {
+    screenshot: "/screenshots/onboarding-4-saved.png",
+    title: "Apply",
+    body: "Open each external apply link, work through the saved jobs, and mark applications as applied when you're done.",
   },
   {
     screenshot: "/screenshots/onboarding-5-track.png",
-    title: "Track Your Progress",
+    title: "Board",
     body: "Every application lives on your board. Drag cards from Applied → Interviewing → Offer as you progress. Filter by anything. Good luck on your search!",
   },
 ];

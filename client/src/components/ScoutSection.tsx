@@ -40,6 +40,7 @@ interface ScoutSectionProps {
     discarded: number;
   }) => void;
   isActive: boolean;
+  workflowView: "review" | "saved" | "apply";
 }
 
 const SCOUT_AUTH_TOKEN_KEY = "token";
@@ -129,10 +130,11 @@ const ScoutSection = ({
   onApplicationCreated,
   onSummaryChange,
   isActive,
+  workflowView,
 }: ScoutSectionProps) => {
   const [activeView, setActiveView] = useState<
-    "upload" | "evaluate" | "to-apply"
-  >("evaluate");
+    "upload" | "review" | "saved" | "apply"
+  >(workflowView);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadResult, setUploadResult] = useState<ScoutUploadResult | null>(null);
   const [jobs, setJobs] = useState<ScoutJob[]>([]);
@@ -149,13 +151,17 @@ const ScoutSection = ({
     [authSignature],
   );
 
-  const { scoutTourView } = useWorkflow();
+  const { scoutTourView, setActiveSection } = useWorkflow();
 
   useEffect(() => {
     if (scoutTourView) {
       setActiveView(scoutTourView);
     }
   }, [scoutTourView]);
+
+  useEffect(() => {
+    setActiveView(workflowView);
+  }, [workflowView]);
 
   useEffect(() => {
     if (isActive) {
@@ -257,7 +263,8 @@ const ScoutSection = ({
       setUploadResult(result);
       toast.success(`Scout upload complete: ${result.imported} imported.`);
       await loadJobs();
-      setActiveView("evaluate");
+      setActiveView("review");
+      setActiveSection("review");
     } catch (error) {
       console.error("Upload scout jobs failed:", error);
       setErrorMessage("Could not upload the scout file.");
@@ -401,32 +408,22 @@ const ScoutSection = ({
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
-              Review Jobs
+              {activeView === "apply"
+                ? "Apply"
+                : activeView === "saved"
+                  ? "Saved Jobs"
+                  : "Review Jobs"}
             </p>
             <h2 className="mt-1 font-heading text-2xl text-deco-foreground">
-              Review imported jobs
+              {activeView === "apply"
+                ? "Apply to saved jobs"
+                : activeView === "saved"
+                  ? "Saved jobs"
+                  : "Review imported jobs"}
             </h2>
           </div>
 
           <div className="flex flex-col gap-2 lg:flex-row lg:flex-nowrap lg:items-center">
-            <Button
-              data-tour-id="scout-evaluate"
-              className="w-full justify-center lg:w-auto"
-              onClick={() => setActiveView("evaluate")}
-              type="button"
-              variant={activeView === "evaluate" ? "default" : "outline"}
-            >
-              Review
-            </Button>
-            <Button
-              data-tour-id="scout-to-apply"
-              className="w-full justify-center lg:w-auto"
-              onClick={() => setActiveView("to-apply")}
-              type="button"
-              variant={activeView === "to-apply" ? "default" : "outline"}
-            >
-              Saved
-            </Button>
             <Button
               data-tour-id="scout-upload"
               className="w-full justify-center lg:w-auto"
@@ -486,7 +483,7 @@ const ScoutSection = ({
         />
       ) : null}
 
-      {activeView === "evaluate" ? (
+      {activeView === "review" ? (
         <ScoutEvaluatePanel
           isLoading={isLoading}
           currentJob={currentJob}
@@ -499,11 +496,14 @@ const ScoutSection = ({
           onSaveForLater={() => void handleSaveForLater()}
           onDeleteAll={handleDeleteAll}
           isActive={isActive}
+          savedCount={toApplyJobs.length}
+          onGoToSaved={() => setActiveSection("saved")}
         />
       ) : null}
 
-      {activeView === "to-apply" ? (
+      {activeView === "saved" || activeView === "apply" ? (
         <ScoutToApplyPanel
+          mode={activeView}
           isLoading={isLoading}
           toApplyJobs={toApplyJobs}
           isActing={isActing}
@@ -511,6 +511,8 @@ const ScoutSection = ({
           onMarkAsApplied={(job) => void handleMarkAsApplied(job)}
           onRemove={(job) => void handleRemoveScoutJob(job)}
           onDeleteAll={handleDeleteAll}
+          onStartApplying={() => setActiveSection("apply")}
+          onViewBoard={() => setActiveSection("tracker")}
         />
       ) : null}
 
@@ -518,7 +520,10 @@ const ScoutSection = ({
         open={isManualDialogOpen}
         onOpenChange={setIsManualDialogOpen}
         onJobsReload={loadJobs}
-        onViewSwitch={setActiveView}
+        onViewSwitch={() => {
+          setActiveView("review");
+          setActiveSection("review");
+        }}
       />
 
       <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>

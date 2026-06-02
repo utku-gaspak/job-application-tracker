@@ -40,6 +40,19 @@ export const DashboardSidebar = ({
   onOpenCreate,
 }: DashboardSidebarProps) => {
   const { activeSection } = useWorkflow();
+  const isScoutWorkflow =
+    activeSection === "review" ||
+    activeSection === "saved" ||
+    activeSection === "apply";
+  const summaryTitle = activeSection === "scrape"
+    ? "Import History"
+    : isScoutWorkflow
+      ? activeSection === "review"
+        ? "Review Summary"
+        : activeSection === "saved"
+          ? "Saved Summary"
+          : "Apply Summary"
+      : "Summary";
 
   return (
     <aside className="deco-frame flex h-auto min-h-0 w-full flex-col items-stretch overflow-visible border-border-gold bg-deco-surface-soft p-4 shadow-deco-panel md:h-full md:overflow-hidden md:p-6">
@@ -65,7 +78,7 @@ export const DashboardSidebar = ({
 
       <section className="deco-frame mt-4 border-border-gold bg-deco-surface p-4 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
-          {activeSection === "scout" ? "Review Summary" : activeSection === "scrape" ? "Import History" : "Summary"}
+          {summaryTitle}
         </p>
         {activeSection === "scrape" ? (
           scrapeSummary ? (
@@ -98,16 +111,19 @@ export const DashboardSidebar = ({
               Import history will appear after a run completes.
             </div>
           )
-        ) : activeSection === "scout" ? (
+        ) : isScoutWorkflow ? (
           <div className="mt-2 grid gap-2 text-xs uppercase tracking-[0.12em] text-deco-muted">
             <div>
               <span className="font-heading text-3xl leading-none text-deco-foreground">
-                {scoutSummary.total}
+                {activeSection === "review"
+                  ? scoutSummary.toEvaluate
+                  : scoutSummary.toApply}
               </span>
               <p className="mt-1 text-xs uppercase tracking-[0.12em] text-deco-muted">
-                Total Jobs
+                {activeSection === "review" ? "To Review" : "Saved Jobs"}
               </p>
             </div>
+            <p>{scoutSummary.total} total jobs</p>
             <p>{scoutSummary.toEvaluate} to review</p>
             <p>{scoutSummary.toApply} saved</p>
             <p>{scoutSummary.discarded} discarded</p>

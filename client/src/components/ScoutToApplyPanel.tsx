@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 interface ScoutToApplyPanelProps {
+  mode: "saved" | "apply";
   isLoading: boolean;
   toApplyJobs: ScoutJob[];
   isActing: boolean;
@@ -13,11 +14,14 @@ interface ScoutToApplyPanelProps {
   onMarkAsApplied: (job: ScoutJob) => void;
   onRemove: (job: ScoutJob) => void;
   onDeleteAll: () => void;
+  onStartApplying: () => void;
+  onViewBoard: () => void;
 }
 
 const compactTools = (job: ScoutJob) => splitTechStack(job.technicalTools).slice(0, 2);
 
 export const ScoutToApplyPanel = ({
+  mode,
   isLoading,
   toApplyJobs,
   isActing,
@@ -25,20 +29,46 @@ export const ScoutToApplyPanel = ({
   onMarkAsApplied,
   onRemove,
   onDeleteAll,
+  onStartApplying,
+  onViewBoard,
 }: ScoutToApplyPanelProps) => {
   const [viewMode, setViewMode] = useState<"detailed" | "list">("list");
+  const isApplyMode = mode === "apply";
 
   return (
     <Card className="flex min-h-0 flex-1 flex-col overflow-hidden" data-tour-id="scout-to-apply-panel">
       <CardHeader className="shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <CardTitle>Saved</CardTitle>
+          <CardTitle>{isApplyMode ? "Apply" : "Saved"}</CardTitle>
           <p className="mt-1 text-sm text-deco-muted">
             {toApplyJobs.length > 0
-              ? `${toApplyJobs.length} jobs saved for later.`
+              ? isApplyMode
+                ? `${toApplyJobs.length} jobs ready to apply.`
+                : `${toApplyJobs.length} jobs saved for later.`
               : "No saved jobs yet."}
           </p>
         </div>
+        {!isApplyMode ? (
+          <Button
+            className="h-9 w-full justify-center px-3 sm:w-auto"
+            disabled={toApplyJobs.length === 0}
+            onClick={onStartApplying}
+            type="button"
+          >
+            <ListChecks className="h-4 w-4" />
+            Start applying
+          </Button>
+        ) : (
+          <Button
+            className="h-9 w-full justify-center px-3 sm:w-auto"
+            onClick={onViewBoard}
+            type="button"
+            variant="outline"
+          >
+            <Eye className="h-4 w-4" />
+            View board
+          </Button>
+        )}
         <Button
           aria-pressed={viewMode === "list"}
           className="h-9 w-full justify-center px-3 sm:w-auto"
@@ -107,15 +137,17 @@ export const ScoutToApplyPanel = ({
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        <Button
-                          disabled={isActing}
-                          className="h-9 w-9 shrink-0 p-0"
-                          onClick={() => void onMarkAsApplied(job)}
-                          type="button"
-                          title="Mark as Applied"
-                        >
-                          <Save className="h-4 w-4" />
-                        </Button>
+                        {isApplyMode ? (
+                          <Button
+                            disabled={isActing}
+                            className="h-9 w-9 shrink-0 p-0"
+                            onClick={() => void onMarkAsApplied(job)}
+                            type="button"
+                            title="Mark applied"
+                          >
+                            <Save className="h-4 w-4" />
+                          </Button>
+                        ) : null}
                         <Button
                           disabled={isActing}
                           className="h-9 w-9 shrink-0 p-0"
@@ -200,15 +232,17 @@ export const ScoutToApplyPanel = ({
 
                       {viewMode === "list" ? (
                         <div className="flex shrink-0 items-center gap-2">
-                          <Button
-                            disabled={isActing}
-                            className="h-9 px-3"
-                            onClick={() => void onMarkAsApplied(job)}
-                            type="button"
-                            title="Mark as Applied"
-                          >
-                            <Save className="h-4 w-4" />
-                          </Button>
+                          {isApplyMode ? (
+                            <Button
+                              disabled={isActing}
+                              className="h-9 px-3"
+                              onClick={() => void onMarkAsApplied(job)}
+                              type="button"
+                            >
+                              <Save className="h-4 w-4" />
+                              Mark applied
+                            </Button>
+                          ) : null}
                           <Button
                             disabled={isActing}
                             className="h-9 px-3"
@@ -228,7 +262,7 @@ export const ScoutToApplyPanel = ({
                             >
                               <a href={applyHref} rel="noreferrer" target="_blank">
                                 <ExternalLink className="h-4 w-4" />
-                                Open
+                                Open apply link
                               </a>
                             </Button>
                           ) : null}
@@ -259,15 +293,17 @@ export const ScoutToApplyPanel = ({
 
                   {viewMode === "detailed" ? (
                     <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                      <Button
-                        disabled={isActing}
-                        className="h-9 w-full justify-center px-3 sm:w-auto"
-                        onClick={() => void onMarkAsApplied(job)}
-                        type="button"
-                      >
-                        <Save className="h-4 w-4" />
-                        Mark as Applied
-                      </Button>
+                      {isApplyMode ? (
+                        <Button
+                          disabled={isActing}
+                          className="h-9 w-full justify-center px-3 sm:w-auto"
+                          onClick={() => void onMarkAsApplied(job)}
+                          type="button"
+                        >
+                          <Save className="h-4 w-4" />
+                          Mark applied
+                        </Button>
+                      ) : null}
                       <Button
                         disabled={isActing}
                         className="h-9 w-full justify-center px-3 sm:w-auto"

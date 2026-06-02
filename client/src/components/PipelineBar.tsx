@@ -21,9 +21,11 @@ const PipelineBar = ({ applicationCount, scoutSummary }: PipelineBarProps) => {
   const { activeSection, setActiveSection } = useWorkflow();
 
   const steps: StepDef[] = [
-    { step: 1, label: "Find Jobs", count: scoutSummary.toEvaluate, countLabel: "to review", section: "scrape" },
-    { step: 2, label: "Review & Save", count: scoutSummary.toApply, countLabel: "saved", section: "scout" },
-    { step: 3, label: "Track Apps", count: applicationCount, countLabel: "tracking", section: "tracker" },
+    { step: 1, label: "Scrape", count: 0, countLabel: "", section: "scrape" },
+    { step: 2, label: "Review", count: scoutSummary.toEvaluate, countLabel: "to review", section: "review" },
+    { step: 3, label: "Saved", count: scoutSummary.toApply, countLabel: "saved", section: "saved" },
+    { step: 4, label: "Apply", count: scoutSummary.toApply, countLabel: "ready", section: "apply" },
+    { step: 5, label: "Board", count: applicationCount, countLabel: "tracking", section: "tracker" },
   ];
 
   return (

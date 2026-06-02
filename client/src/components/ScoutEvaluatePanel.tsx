@@ -24,6 +24,8 @@ interface ScoutEvaluatePanelProps {
   onSaveForLater: () => void;
   onDeleteAll: () => void;
   isActive: boolean;
+  savedCount: number;
+  onGoToSaved: () => void;
 }
 
 export const ScoutEvaluatePanel = ({
@@ -38,6 +40,8 @@ export const ScoutEvaluatePanel = ({
   onSaveForLater,
   onDeleteAll,
   isActive,
+  savedCount,
+  onGoToSaved,
 }: ScoutEvaluatePanelProps) => {
   const currentTools = useMemo(
     () => splitTechStack(currentJob?.technicalTools),
@@ -256,6 +260,12 @@ export const ScoutEvaluatePanel = ({
             <p className="mt-3 text-sm text-deco-muted">
               Upload a new jobs.json file or refresh the queue.
             </p>
+            {savedCount > 0 ? (
+              <Button className="mt-6" onClick={onGoToSaved} type="button">
+                Go to saved jobs
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </CardContent>

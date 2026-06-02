@@ -281,6 +281,10 @@ const Dashboard = () => {
     openMissionLoop,
     closeMissionLoop,
   } = useWorkflow();
+  const isScoutWorkflow =
+    activeSection === "review" ||
+    activeSection === "saved" ||
+    activeSection === "apply";
   const { theme, toggleTheme } = useTheme();
   const themeButtonVariant = theme === "dark" ? "outline" : "default";
   const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -1036,9 +1040,10 @@ const Dashboard = () => {
               onSummaryChange={setScrapeSummary}
             />
           </div>
-          <div className={activeSection === "scout" ? "contents" : "hidden"}>
+          <div className={isScoutWorkflow ? "contents" : "hidden"}>
           <ScoutSection
-            isActive={activeSection === "scout"}
+            isActive={isScoutWorkflow}
+            workflowView={activeSection === "review" || activeSection === "saved" || activeSection === "apply" ? activeSection : "review"}
             onSummaryChange={setScoutSummary}
             onApplicationCreated={(application) =>
               setApplications((current) => [application, ...current])

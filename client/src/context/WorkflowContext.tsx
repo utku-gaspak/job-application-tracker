@@ -10,13 +10,13 @@ import {
 import type { ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 
-export type WorkflowSection = "tracker" | "scout" | "scrape";
+export type WorkflowSection = "tracker" | "scrape" | "review" | "saved" | "apply";
 
 interface WorkflowContextType {
   activeSection: WorkflowSection;
   setActiveSection: (section: WorkflowSection) => void;
-  scoutTourView: "upload" | "evaluate" | "to-apply" | null;
-  setScoutTourView: (view: "upload" | "evaluate" | "to-apply" | null) => void;
+  scoutTourView: "upload" | "review" | "saved" | "apply" | null;
+  setScoutTourView: (view: "upload" | "review" | "saved" | "apply" | null) => void;
   isMissionLoopOpen: boolean;
   openMissionLoop: () => void;
   closeMissionLoop: () => void;
@@ -27,16 +27,23 @@ const WorkflowContext = createContext<WorkflowContextType | undefined>(
 );
 
 const WORKFLOW_SECTION_HASH = {
-  tracker: "#tracker",
-  scout: "#scout",
+  tracker: "#board",
   scrape: "#scrape",
+  review: "#review",
+  saved: "#saved",
+  apply: "#apply",
 } as const;
 
 const MISSION_TOUR_SEEN_KEY_PREFIX = "traxr:mission-tour-seen:v1";
 
 const HASH_TO_SECTION: Record<string, WorkflowSection> = {
   "#scrape": "scrape",
-  "#scout": "scout",
+  "#review": "review",
+  "#saved": "saved",
+  "#apply": "apply",
+  "#board": "tracker",
+  "#scout": "review",
+  "#tracker": "tracker",
 };
 
 const getSectionFromHash = (hash: string): WorkflowSection =>
@@ -52,7 +59,7 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const [isMissionLoopOpen, setIsMissionLoopOpen] = useState(false);
   const lastSessionUsernameRef = useRef<string | null>(null);
   const [scoutTourView, setScoutTourView] = useState<
-    "upload" | "evaluate" | "to-apply" | null
+    "upload" | "review" | "saved" | "apply" | null
   >(null);
 
   useEffect(() => {

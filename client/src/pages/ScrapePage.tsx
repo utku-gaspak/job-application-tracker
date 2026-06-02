@@ -588,9 +588,9 @@ const ScrapePage = () => {
                         </Button>
                       <Button
                         onClick={() => {
-                          setActiveSection("scout");
-                          setScoutTourView("evaluate");
-                          navigate("/#scout");
+                          setActiveSection("review");
+                          setScoutTourView("review");
+                          navigate("/#review");
                         }}
                           type="button"
                           variant="outline"

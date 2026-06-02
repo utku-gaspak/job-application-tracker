@@ -17,7 +17,7 @@ interface ScoutManualDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onJobsReload: () => void;
-  onViewSwitch: (view: "evaluate") => void;
+  onViewSwitch: () => void;
 }
 
 const emptyForm = {
@@ -77,7 +77,7 @@ export const ScoutManualDialog = ({
       setForm(emptyForm);
       onOpenChange(false);
       onJobsReload();
-      onViewSwitch("evaluate");
+      onViewSwitch();
     } catch {
       setErrorMessage("Could not add the scout job manually.");
     } finally {

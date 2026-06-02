@@ -7,14 +7,14 @@ import OnboardingTour from '../components/OnboardingTour'
 import { AuthProvider } from '../context/AuthContext'
 import { ThemeProvider } from '../context/ThemeContext'
 import { WorkflowProvider } from '../context/WorkflowContext'
-import { JobApplicationStatus } from '../types'
+import { JobApplicationStatus, type ScoutJob } from '../types'
 import { mockApiState } from './mocks/handlers'
 import { server } from './mocks/server'
 import { finalUrl } from '../baseUrl'
 
-const renderDashboard = () => {
+const renderDashboard = (initialHash = '') => {
   localStorage.setItem('token', 'test-jwt-token')
-  window.location.hash = ''
+  window.location.hash = initialHash
 
   return render(
     <ThemeProvider>
@@ -382,54 +382,57 @@ describe('Dashboard', () => {
   })
 
   describe('Sidebar pipeline', () => {
-    it('Sidebar_Pipeline_RendersThreeStepsInOrder', async () => {
+    it('Sidebar_Pipeline_RendersFiveStepsInOrder', async () => {
       renderDashboard()
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
       // Two PipelineBars render (mobile + desktop), both in DOM
-      const findJobsButtons = screen.getAllByRole('button', { name: /Find Jobs/ })
-      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
-      const trackButtons = screen.getAllByRole('button', { name: /Track Apps/ })
-      expect(findJobsButtons.length).toBeGreaterThanOrEqual(1)
+      const scrapeButtons = screen.getAllByRole('button', { name: /Scrape/ })
+      const reviewButtons = screen.getAllByRole('button', { name: /Review/ })
+      const savedButtons = screen.getAllByRole('button', { name: /Saved/ })
+      const applyButtons = screen.getAllByRole('button', { name: /Apply/ })
+      const boardButtons = screen.getAllByRole('button', { name: /Board/ })
+      expect(scrapeButtons.length).toBeGreaterThanOrEqual(1)
       expect(reviewButtons.length).toBeGreaterThanOrEqual(1)
-      expect(trackButtons.length).toBeGreaterThanOrEqual(1)
+      expect(savedButtons.length).toBeGreaterThanOrEqual(1)
+      expect(applyButtons.length).toBeGreaterThanOrEqual(1)
+      expect(boardButtons.length).toBeGreaterThanOrEqual(1)
     })
 
-    it('Sidebar_Pipeline_StepReviewAndSave_SwitchesToScout', async () => {
+    it('Sidebar_Pipeline_StepReview_SwitchesToReviewAndUpdatesHash', async () => {
       renderDashboard()
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
-      // Click the first Review & Save button (desktop PipelineBar)
-      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      const reviewButtons = screen.getAllByRole('button', { name: /Review/ })
       fireEvent.click(reviewButtons[0]!)
 
       await waitFor(() => {
         expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
+        expect(window.location.hash).toBe('#review')
       })
     })
 
-    it('Sidebar_Pipeline_StepTrackApps_SwitchesToTracker', async () => {
+    it('Sidebar_Pipeline_StepBoard_SwitchesToTrackerAndUpdatesHash', async () => {
       renderDashboard()
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
-      // Switch to scout first
-      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      const reviewButtons = screen.getAllByRole('button', { name: /Review/ })
       fireEvent.click(reviewButtons[0]!)
       await waitFor(() => {
         expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
       })
 
-      // Switch back to tracker
-      const trackButtons = screen.getAllByRole('button', { name: /Track Apps/ })
-      fireEvent.click(trackButtons[0]!)
+      const boardButtons = screen.getAllByRole('button', { name: /Board/ })
+      fireEvent.click(boardButtons[0]!)
 
       await waitFor(() => {
         expect(
           screen.getByRole('button', { name: 'New Application' }),
         ).toBeInTheDocument()
+        expect(window.location.hash).toBe('#board')
       })
     })
 
@@ -438,9 +441,8 @@ describe('Dashboard', () => {
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
-      // Pipeline bar shows counts for tracker step (2 applications)
-      const trackButtons = screen.getAllByRole('button', { name: /Track Apps/ })
-      expect(trackButtons[0]).toHaveAccessibleName(/2 tracking/)
+      const boardButtons = screen.getAllByRole('button', { name: /Board/ })
+      expect(boardButtons[0]).toHaveAccessibleName(/2 tracking/)
     })
 
     it('Sidebar_Pipeline_EmptyState_NoCounts', async () => {
@@ -448,11 +450,10 @@ describe('Dashboard', () => {
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
-      // Scout starts empty — Find Jobs and Review & Save buttons have no count badge
-      const findButtons = screen.getAllByRole('button', { name: /Find Jobs/ })
-      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
-      expect(findButtons[0]).not.toHaveAccessibleName(/to review/)
-      expect(reviewButtons[0]).not.toHaveAccessibleName(/saved/)
+      const reviewButtons = screen.getAllByRole('button', { name: /Review/ })
+      const savedButtons = screen.getAllByRole('button', { name: /Saved/ })
+      expect(reviewButtons[0]).not.toHaveAccessibleName(/to review/)
+      expect(savedButtons[0]).not.toHaveAccessibleName(/saved/)
     })
 
     it('Sidebar_Pipeline_AddNewButton_VisibleOnlyInTracker', async () => {
@@ -465,14 +466,12 @@ describe('Dashboard', () => {
         screen.getByRole('button', { name: 'New Application' }),
       ).toBeInTheDocument()
 
-      // Switch to scout
-      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      const reviewButtons = screen.getAllByRole('button', { name: /Review/ })
       fireEvent.click(reviewButtons[0]!)
       await waitFor(() => {
         expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
       })
 
-      // In scout mode: Add New should NOT be visible
       expect(
         screen.queryByRole('button', { name: 'New Application' }),
       ).not.toBeInTheDocument()
@@ -483,22 +482,19 @@ describe('Dashboard', () => {
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
-      // Tracker summary header is visible
       expect(screen.getByText('Summary')).toBeInTheDocument()
       expect(
         screen.queryByText('Total Jobs'),
       ).not.toBeInTheDocument()
 
-      // Switch to scout
-      const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
+      const reviewButtons = screen.getAllByRole('button', { name: /Review/ })
       fireEvent.click(reviewButtons[0]!)
       await waitFor(() => {
         expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
       })
 
-      // Review summary now visible
       expect(screen.getByText('Review Summary')).toBeInTheDocument()
-      expect(screen.getByText('Total Jobs')).toBeInTheDocument()
+      expect(screen.getByText('To Review')).toBeInTheDocument()
     })
 
     it('Sidebar_Pipeline_StepNumbersRenderInCircles', async () => {
@@ -506,10 +502,102 @@ describe('Dashboard', () => {
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
-      // Step numbers 1, 2, 3 appear inside circles in the pipeline bar
-      expect(screen.getAllByRole('button', { name: /Find Jobs/ }).length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByRole('button', { name: /Review & Save/ }).length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByRole('button', { name: /Track Apps/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Scrape/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Review/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Saved/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Apply/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Board/ }).length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('Sidebar_Pipeline_LegacyHashes_OpenExpectedSections', async () => {
+      const { unmount } = renderDashboard('#scout')
+
+      expect(await screen.findByText('No jobs in this pass.')).toBeInTheDocument()
+      expect(screen.getByText('Review Summary')).toBeInTheDocument()
+
+      unmount()
+      renderDashboard('#tracker')
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+      expect(
+        screen.getByRole('button', { name: 'New Application' }),
+      ).toBeInTheDocument()
+    })
+
+    it('ScoutFlow_SaveStartApplyMarkApplied_StaysApplyAndCanViewBoard', async () => {
+      let scoutJobs: ScoutJob[] = [
+        {
+          id: 'scout-1',
+          title: 'Product Engineer',
+          company: 'Scoutly',
+          location: 'Remote',
+          workplaceType: 'Remote',
+          commitment: 'Full-time',
+          postedAt: '2026-05-31T12:00:00.000Z',
+          jobUrl: 'https://example.com/scoutly',
+          applyUrl: 'https://example.com/scoutly/apply',
+          technicalTools: 'React, TypeScript',
+          requirementsSummary: 'Build product workflows.',
+          savedForApply: false,
+          isDiscarded: false,
+          createdAt: '2026-06-01T12:00:00.000Z',
+        },
+      ]
+
+      server.use(
+        http.get(`${finalUrl}/api/scout/jobs`, () => HttpResponse.json(scoutJobs)),
+        http.patch(`${finalUrl}/api/scout/jobs/:id`, async ({ params, request }) => {
+          const id = String(params.id)
+          const body = await request.json() as Pick<ScoutJob, 'savedForApply' | 'isDiscarded'>
+          scoutJobs = scoutJobs.map((job) =>
+            job.id === id ? { ...job, ...body } : job,
+          )
+          return HttpResponse.json(scoutJobs.find((job) => job.id === id))
+        }),
+        http.delete(`${finalUrl}/api/scout/jobs/:id`, ({ params }) => {
+          const id = String(params.id)
+          scoutJobs = scoutJobs.filter((job) => job.id !== id)
+          return HttpResponse.json(null, { status: 204 })
+        }),
+      )
+
+      renderDashboard()
+
+      expect(await screen.findAllByText('Acme')).toHaveLength(2)
+
+      fireEvent.click(screen.getAllByRole('button', { name: /Review/ })[0]!)
+      expect(await screen.findByText('Scoutly')).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole('button', { name: /Save for later/ }))
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('button', { name: /Saved/ })[0]).toHaveAccessibleName(/1 saved/)
+      })
+
+      fireEvent.click(screen.getAllByRole('button', { name: /Saved/ })[0]!)
+      expect(await screen.findByRole('button', { name: /Start applying/ })).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /Start applying/ }))
+
+      await waitFor(() => {
+        expect(window.location.hash).toBe('#apply')
+        expect(screen.getByRole('button', { name: /View board/ })).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getAllByRole('button', { name: /Mark applied/ })[0]!)
+
+      await waitFor(() => {
+        expect(mockApiState.createJobApplicationRequests).toHaveLength(1)
+        expect(mockApiState.createJobApplicationRequests[0]?.companyName).toBe('Scoutly')
+        expect(window.location.hash).toBe('#apply')
+        expect(screen.getByRole('button', { name: /View board/ })).toBeInTheDocument()
+      })
+
+      fireEvent.click(screen.getByRole('button', { name: /View board/ }))
+
+      await waitFor(() => {
+        expect(window.location.hash).toBe('#board')
+        expect(screen.getAllByText('Scoutly').length).toBeGreaterThan(0)
+      })
     })
   })
 })
@@ -518,7 +606,7 @@ describe('OnboardingTour', () => {
   it('OnboardingTour_Inline_RendersFirstStep', () => {
     render(<OnboardingTour open variant="inline" onClose={() => {}} />)
 
-    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument()
+    expect(screen.getByText('Step 1 of 6')).toBeInTheDocument()
     expect(screen.getByText('Welcome to Traxr')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Next/ })).toBeInTheDocument()
   })
@@ -528,20 +616,20 @@ describe('OnboardingTour', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Next/ }))
 
-    expect(screen.getByText('Step 2 of 5')).toBeInTheDocument()
-    expect(screen.getByText('Find Jobs')).toBeInTheDocument()
+    expect(screen.getByText('Step 2 of 6')).toBeInTheDocument()
+    expect(screen.getByText('Scrape')).toBeInTheDocument()
   })
 
   it('OnboardingTour_Inline_LastStepShowsGotIt', () => {
     render(<OnboardingTour open variant="inline" onClose={() => {}} />)
 
     // Click through to last step
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       fireEvent.click(screen.getByRole('button', { name: /Next/ }))
     }
 
-    expect(screen.getByText('Step 5 of 5')).toBeInTheDocument()
-    expect(screen.getByText("Track Your Progress")).toBeInTheDocument()
+    expect(screen.getByText('Step 6 of 6')).toBeInTheDocument()
+    expect(screen.getByText("Board")).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Got it/ })).toBeInTheDocument()
   })
 
