@@ -158,6 +158,12 @@ const ScoutSection = ({
   }, [scoutTourView]);
 
   useEffect(() => {
+    if (isActive) {
+      reloadJobs();
+    }
+  }, [isActive, reloadJobs]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
       setAuthSignature((current) => {
         const next = readScoutAuthSignature();
