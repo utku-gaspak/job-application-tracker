@@ -144,6 +144,8 @@ const ScoutSection = ({
   const [isActing, setIsActing] = useState(false);
   const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [removeScoutJob, setRemoveScoutJob] = useState<ScoutJob | null>(null);
+  const [isClearAllConfirmOpen, setIsClearAllConfirmOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { isLoading, reload: reloadJobs } = useAsync(
@@ -362,6 +364,7 @@ const ScoutSection = ({
         setErrorMessage(null);
         await deleteScoutJob(job.id);
         removeJobFromQueue(job.id);
+        setRemoveScoutJob(null);
         toast.success("Scout job removed.");
       } catch (error) {
         console.error("Remove scout job failed:", error);
@@ -390,6 +393,7 @@ const ScoutSection = ({
       await deleteAllScoutJobs();
       setJobs([]);
       setCurrentIndex(0);
+      setIsClearAllConfirmOpen(false);
       toast.success("All jobs cleared.");
     } catch (error) {
       console.error("Clear scout jobs failed:", error);
@@ -490,7 +494,7 @@ const ScoutSection = ({
           onDiscard={() => void handleDiscard()}
           onSkip={handleSkip}
           onSaveForLater={() => void handleSaveForLater()}
-          onDeleteAll={handleDeleteAll}
+          onDeleteAll={() => setIsClearAllConfirmOpen(true)}
           isActive={isActive}
           savedCount={toApplyJobs.length}
           onGoToApply={() => setActiveSection("apply")}
@@ -504,8 +508,8 @@ const ScoutSection = ({
           isActing={isActing}
           jobsLength={jobs.length}
           onMarkAsApplied={(job) => void handleMarkAsApplied(job)}
-          onRemove={(job) => void handleRemoveScoutJob(job)}
-          onDeleteAll={handleDeleteAll}
+          onRemove={setRemoveScoutJob}
+          onDeleteAll={() => setIsClearAllConfirmOpen(true)}
           onViewBoard={() => setActiveSection("tracker")}
         />
       ) : null}
@@ -519,6 +523,91 @@ const ScoutSection = ({
           setActiveSection("review");
         }}
       />
+
+      <Dialog
+        open={removeScoutJob !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRemoveScoutJob(null);
+          }
+        }}
+      >
+        <DialogContent className="border-border-gold bg-deco-bg/95 shadow-deco-panel backdrop-blur-md sm:max-w-[380px]">
+          <DialogHeader>
+            <DialogTitle className="text-deco-foreground">
+              Remove saved job?
+            </DialogTitle>
+            <DialogDescription className="text-deco-muted">
+              This removes{" "}
+              {removeScoutJob
+                ? `${removeScoutJob.title} at ${removeScoutJob.company}`
+                : "this job"}{" "}
+              from your apply queue.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              className="h-8 px-3 text-xs"
+              disabled={isActing}
+              onClick={() => setRemoveScoutJob(null)}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-8 px-3 text-xs"
+              disabled={isActing || removeScoutJob === null}
+              onClick={() => {
+                if (!removeScoutJob) {
+                  return;
+                }
+
+                void handleRemoveScoutJob(removeScoutJob);
+              }}
+              type="button"
+            >
+              Remove
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isClearAllConfirmOpen}
+        onOpenChange={(open) => setIsClearAllConfirmOpen(open)}
+      >
+        <DialogContent className="border-border-gold bg-deco-bg/95 shadow-deco-panel backdrop-blur-md sm:max-w-[380px]">
+          <DialogHeader>
+            <DialogTitle className="text-deco-foreground">
+              Clear all Scout jobs?
+            </DialogTitle>
+            <DialogDescription className="text-deco-muted">
+              This permanently removes every job in Review and Apply. Tracker
+              applications are not affected.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              className="h-8 px-3 text-xs"
+              disabled={isActing}
+              onClick={() => setIsClearAllConfirmOpen(false)}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-8 px-3 text-xs"
+              disabled={isActing || jobs.length === 0}
+              onClick={() => void handleDeleteAll()}
+              type="button"
+            >
+              Clear All
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
         <DialogContent className="deco-frame-thick w-[min(96vw,30rem)] border-border-gold bg-deco-bg shadow-deco-panel">

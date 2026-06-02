@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { delay, http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -308,6 +308,10 @@ describe('Dashboard', () => {
     fireEvent.click(acmeCards[0]!.closest('article')!)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Delete Application' }))
+    expect(screen.getByText('Delete application?')).toBeInTheDocument()
+    expect(mockApiState.deleteJobApplicationRequests).toEqual([])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
 
     await waitFor(() => {
       expect(screen.queryByText('Acme')).not.toBeInTheDocument()
@@ -585,10 +589,11 @@ describe('Dashboard', () => {
       await waitFor(() => {
         expect(window.location.hash).toBe('#apply')
         expect(screen.getByRole('button', { name: /View board/ })).toBeInTheDocument()
-        expect(screen.getAllByRole('button', { name: /Mark applied/ }).length).toBeGreaterThan(0)
+        expect(screen.getAllByText('Scoutly').length).toBeGreaterThan(0)
       })
 
-      fireEvent.click(screen.getAllByRole('button', { name: /Mark applied/ })[0]!)
+      const scoutlyArticle = screen.getAllByText('Scoutly')[0]!.closest('article')!
+      fireEvent.click(within(scoutlyArticle).getAllByRole('button', { name: /Applied/ })[0]!)
 
       await waitFor(() => {
         expect(mockApiState.createJobApplicationRequests).toHaveLength(1)
@@ -602,6 +607,53 @@ describe('Dashboard', () => {
       await waitFor(() => {
         expect(window.location.hash).toBe('#board')
         expect(screen.getAllByText('Scoutly').length).toBeGreaterThan(0)
+      })
+    })
+
+    it('ScoutFlow_RemoveSavedJob_RequiresConfirmation', async () => {
+      let scoutJobs: ScoutJob[] = [
+        {
+          id: 'scout-remove-1',
+          title: 'Platform Engineer',
+          company: 'QueueCo',
+          location: 'Remote',
+          workplaceType: 'Remote',
+          commitment: 'Full-time',
+          postedAt: '2026-05-31T12:00:00.000Z',
+          jobUrl: 'https://example.com/queueco',
+          applyUrl: 'https://example.com/queueco/apply',
+          technicalTools: 'React, TypeScript',
+          requirementsSummary: 'Build queue workflows.',
+          savedForApply: true,
+          isDiscarded: false,
+          createdAt: '2026-06-01T12:00:00.000Z',
+        },
+      ]
+
+      server.use(
+        http.get(`${finalUrl}/api/scout/jobs`, () => HttpResponse.json(scoutJobs)),
+        http.delete(`${finalUrl}/api/scout/jobs/:id`, ({ params }) => {
+          const id = String(params.id)
+          scoutJobs = scoutJobs.filter((job) => job.id !== id)
+          return HttpResponse.json(null, { status: 204 })
+        }),
+      )
+
+      renderDashboard('#apply')
+
+      expect((await screen.findAllByText('QueueCo')).length).toBeGreaterThan(0)
+
+      const queueArticle = screen.getAllByText('QueueCo')[0]!.closest('article')!
+      fireEvent.click(within(queueArticle).getAllByRole('button', { name: /Remove/ })[0]!)
+
+      expect(screen.getByText('Remove saved job?')).toBeInTheDocument()
+      expect(screen.getAllByText('QueueCo').length).toBeGreaterThan(0)
+
+      const dialog = screen.getByText('Remove saved job?').closest('[role="dialog"]')!
+      fireEvent.click(within(dialog as HTMLElement).getByRole('button', { name: 'Remove' }))
+
+      await waitFor(() => {
+        expect(screen.queryByText('QueueCo')).not.toBeInTheDocument()
       })
     })
   })

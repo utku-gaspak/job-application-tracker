@@ -118,12 +118,25 @@ export const ScoutToApplyPanel = ({
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
+                        {applyHref ? (
+                          <Button
+                            asChild
+                            className="h-9 w-9 shrink-0 p-0"
+                            size="sm"
+                            variant="outline"
+                            title="Apply"
+                          >
+                            <a href={applyHref} rel="noreferrer" target="_blank">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        ) : null}
                         <Button
                           disabled={isActing}
                           className="h-9 w-9 shrink-0 p-0"
                           onClick={() => void onMarkAsApplied(job)}
                           type="button"
-                          title="Mark applied"
+                          title="Applied"
                         >
                           <Save className="h-4 w-4" />
                         </Button>
@@ -137,19 +150,6 @@ export const ScoutToApplyPanel = ({
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                        {applyHref ? (
-                          <Button
-                            asChild
-                            className="h-9 w-9 shrink-0 p-0"
-                            size="sm"
-                            variant="outline"
-                            title="Open apply link"
-                          >
-                            <a href={applyHref} rel="noreferrer" target="_blank">
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
-                          </Button>
-                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -211,6 +211,19 @@ export const ScoutToApplyPanel = ({
 
                       {viewMode === "list" ? (
                         <div className="flex shrink-0 items-center gap-2">
+                          {applyHref ? (
+                            <Button
+                              asChild
+                              className="h-9 shrink-0"
+                              size="sm"
+                              variant="outline"
+                            >
+                              <a href={applyHref} rel="noreferrer" target="_blank">
+                                <ExternalLink className="h-4 w-4" />
+                                Apply
+                              </a>
+                            </Button>
+                          ) : null}
                           <Button
                             disabled={isActing}
                             className="h-9 px-3"
@@ -218,7 +231,7 @@ export const ScoutToApplyPanel = ({
                             type="button"
                           >
                             <Save className="h-4 w-4" />
-                            Mark applied
+                            Applied
                           </Button>
                           <Button
                             disabled={isActing}
@@ -230,25 +243,12 @@ export const ScoutToApplyPanel = ({
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                          {applyHref ? (
-                            <Button
-                              asChild
-                              className="h-9 shrink-0"
-                              size="sm"
-                              variant="outline"
-                            >
-                              <a href={applyHref} rel="noreferrer" target="_blank">
-                                <ExternalLink className="h-4 w-4" />
-                                Open apply link
-                              </a>
-                            </Button>
-                          ) : null}
                         </div>
                       ) : applyHref ? (
                         <Button asChild className="h-9 shrink-0" size="sm" variant="outline">
                           <a href={applyHref} rel="noreferrer" target="_blank">
                             <ExternalLink className="h-4 w-4" />
-                            Open apply link
+                            Apply
                           </a>
                         </Button>
                       ) : null}
@@ -270,6 +270,19 @@ export const ScoutToApplyPanel = ({
 
                   {viewMode === "detailed" ? (
                     <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      {applyHref ? (
+                        <Button
+                          asChild
+                          className="h-9 w-full justify-center px-3 sm:w-auto"
+                          size="sm"
+                          variant="outline"
+                        >
+                          <a href={applyHref} rel="noreferrer" target="_blank">
+                            <ExternalLink className="h-4 w-4" />
+                            Apply
+                          </a>
+                        </Button>
+                      ) : null}
                       <Button
                         disabled={isActing}
                         className="h-9 w-full justify-center px-3 sm:w-auto"
@@ -277,7 +290,7 @@ export const ScoutToApplyPanel = ({
                         type="button"
                       >
                         <Save className="h-4 w-4" />
-                        Mark applied
+                        Applied
                       </Button>
                       <Button
                         disabled={isActing}

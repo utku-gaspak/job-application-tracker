@@ -313,6 +313,8 @@ const Dashboard = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] =
     useState<JobApplication | null>(null);
+  const [deleteApplication, setDeleteApplication] =
+    useState<JobApplication | null>(null);
   const [isDetailEditing, setIsDetailEditing] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -990,7 +992,7 @@ const Dashboard = () => {
                               size="sm"
                               variant="ghost"
                               onClick={() =>
-                                void handleDelete(selectedApplication.id)
+                                setDeleteApplication(selectedApplication)
                               }
                             >
                               <Trash2 className="h-4 w-4" />
@@ -1051,6 +1053,54 @@ const Dashboard = () => {
         </div>
         </section>
       </div>
+      <Dialog
+        open={deleteApplication !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteApplication(null);
+          }
+        }}
+      >
+        <DialogContent className="border-border-gold bg-deco-bg/95 shadow-deco-panel backdrop-blur-md sm:max-w-[380px]">
+          <DialogHeader>
+            <DialogTitle className="text-deco-foreground">
+              Delete application?
+            </DialogTitle>
+            <DialogDescription className="text-deco-muted">
+              This permanently removes{" "}
+              {deleteApplication
+                ? `${deleteApplication.position} at ${deleteApplication.companyName}`
+                : "this application"}{" "}
+              from your tracker.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              className="h-8 px-3 text-xs"
+              onClick={() => setDeleteApplication(null)}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-8 px-3 text-xs"
+              onClick={() => {
+                if (!deleteApplication) {
+                  return;
+                }
+
+                const id = deleteApplication.id;
+                setDeleteApplication(null);
+                void handleDelete(id);
+              }}
+              type="button"
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div className="mt-auto pt-3">
         <Footer />
       </div>
