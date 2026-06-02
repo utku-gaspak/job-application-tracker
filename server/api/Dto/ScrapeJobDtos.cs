@@ -59,6 +59,18 @@ public record ScrapeHistoryJobDto(
     int? ImportedCount
 );
 
+public record ScrapePresetCreateDto(
+    [Required] string Name,
+    [Required] string SourceUrl
+);
+
+public record ScrapePresetDto(
+    string Id,
+    string Name,
+    string SourceUrl,
+    DateTime CreatedAt
+);
+
 public record ScrapeHistorySummaryDto(
     int TotalJobs,
     int CompletedJobs,

@@ -146,6 +146,24 @@ export const handlers = [
     return HttpResponse.json([])
   }),
 
+  http.get(`${finalUrl}/api/scrape/presets`, () => {
+    return HttpResponse.json([])
+  }),
+
+  http.post(`${finalUrl}/api/scrape/presets`, async ({ request }) => {
+    const body = await request.json() as { name: string; sourceUrl: string }
+    return HttpResponse.json({
+      id: 'preset-1',
+      name: body.name,
+      sourceUrl: body.sourceUrl,
+      createdAt: '2026-06-01T12:00:00.000Z',
+    }, { status: 201 })
+  }),
+
+  http.delete(`${finalUrl}/api/scrape/presets/:id`, () => {
+    return HttpResponse.json(null, { status: 204 })
+  }),
+
   http.get(`${finalUrl}/api/scrape/history`, () => {
     return HttpResponse.json({
       totalJobs: 5,

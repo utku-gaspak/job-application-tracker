@@ -241,6 +241,10 @@ export const KanbanBoard = ({
             ))}
           </div>
         </DragDropContext>
+        <p className="mt-3 text-center text-xs font-medium uppercase tracking-[0.2em] text-deco-muted">
+          <span className="mr-2 inline-block h-1 w-1 rounded-full bg-primary-gold" />
+          Drag cards to update status
+        </p>
       </div>
     </>
   );

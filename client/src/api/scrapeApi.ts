@@ -49,3 +49,24 @@ export const downloadScrapeMarkdown = async (jobId: string) => {
   });
   return response.data;
 };
+
+export interface ScrapePreset {
+  id: string;
+  name: string;
+  sourceUrl: string;
+  createdAt: string;
+}
+
+export const listScrapePresets = async () => {
+  const response = await scrapeApi.get<ScrapePreset[]>("/presets");
+  return response.data;
+};
+
+export const createScrapePreset = async (input: { name: string; sourceUrl: string }) => {
+  const response = await scrapeApi.post<ScrapePreset>("/presets", input);
+  return response.data;
+};
+
+export const deleteScrapePreset = async (id: string) => {
+  await scrapeApi.delete(`/presets/${id}`);
+};

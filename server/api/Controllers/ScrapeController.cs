@@ -168,6 +168,92 @@ public class ScrapeController(
         return Ok(await ToStatusDtoAsync(job, cancellationToken));
     }
 
+    [HttpPost("presets")]
+    public async Task<ActionResult<ScrapePresetDto>> CreatePreset(
+        [FromBody] ScrapePresetCreateDto request,
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return BadRequest("Preset name is required.");
+        }
+
+        if (
+            string.IsNullOrWhiteSpace(request.SourceUrl)
+            || !Uri.TryCreate(request.SourceUrl.Trim(), UriKind.Absolute, out var uri)
+            || !uri.Host.Equals(HiringCafeHost, StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return BadRequest("A valid hiring.cafe URL is required.");
+        }
+
+        var entity = new ScrapePreset
+        {
+            UserId = userId,
+            Name = request.Name.Trim(),
+            SourceUrl = uri.ToString(),
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        dbContext.ScrapePresets.Add(entity);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Ok(ToPresetDto(entity));
+    }
+
+    [HttpGet("presets")]
+    public async Task<ActionResult<List<ScrapePresetDto>>> ListPresets(
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized();
+        }
+
+        var presets = await dbContext
+            .ScrapePresets.AsNoTracking()
+            .Where(preset => preset.UserId == userId)
+            .OrderBy(preset => preset.CreatedAt)
+            .Select(preset => ToPresetDto(preset))
+            .ToListAsync(cancellationToken);
+
+        return Ok(presets);
+    }
+
+    [HttpDelete("presets/{id}")]
+    public async Task<IActionResult> DeletePreset(
+        [FromRoute] string id,
+        CancellationToken cancellationToken
+    )
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var preset = await dbContext.ScrapePresets.FindAsync([id], cancellationToken);
+        if (preset is null)
+        {
+            return NotFound();
+        }
+
+        if (preset.UserId != userId)
+        {
+            return NotFound();
+        }
+
+        dbContext.ScrapePresets.Remove(preset);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
     [HttpGet("history")]
     public async Task<ActionResult<ScrapeHistorySummaryDto>> GetHistory(
         CancellationToken cancellationToken
@@ -728,6 +814,9 @@ public class ScrapeController(
             ? importedCount
             : null;
     }
+
+    private static ScrapePresetDto ToPresetDto(ScrapePreset preset) =>
+        new(preset.Id, preset.Name, preset.SourceUrl, preset.CreatedAt);
 
     private static bool CanDownload(ScrapeJob job) =>
         job.Status.Equals("done", StringComparison.OrdinalIgnoreCase);

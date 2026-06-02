@@ -149,10 +149,6 @@ export const DashboardSidebar = ({
           )}
         </div>
 
-        <p className="hidden items-center gap-2 px-1 text-xs font-medium uppercase tracking-[0.2em] text-deco-muted md:flex">
-          <span className="h-1 w-1 rounded-full bg-primary-gold" />
-          Drag to update status
-        </p>
       </div>
     </aside>
   );

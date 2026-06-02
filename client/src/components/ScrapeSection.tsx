@@ -9,14 +9,19 @@ import {
   Download,
   ExternalLink,
   FileText,
+  X,
 } from "lucide-react";
 import {
   completeScrapeVerification,
   createScrapeJob,
+  createScrapePreset,
+  deleteScrapePreset,
   downloadScrapeJson,
   downloadScrapeMarkdown,
   getScrapeHistorySummary,
   getScrapeJob,
+  listScrapePresets,
+  type ScrapePreset,
 } from "../api/scrapeApi";
 import { useWorkflow } from "../context/WorkflowContext";
 import { Button } from "./ui/button";
@@ -73,7 +78,16 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
   const [activeJobError, setActiveJobError] = useState<string | null>(null);
   const [working, setWorking] = useState<"json" | "markdown" | null>(null);
   const [verificationSaving, setVerificationSaving] = useState(false);
+  const [presets, setPresets] = useState<ScrapePreset[]>([]);
   const { setActiveSection, setScoutTourView } = useWorkflow();
+
+  const loadPresets = async () => {
+    try {
+      setPresets(await listScrapePresets());
+    } catch (error) {
+      console.error("Could not load scrape presets:", error);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -87,6 +101,7 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
       }
     };
     void loadHistory();
+    void loadPresets();
     return () => { active = false; };
   }, [onSummaryChange]);
 
@@ -173,6 +188,30 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
     setIncludeSeen(false);
     setErrorMessage(null);
     setActiveJobError(null);
+  };
+
+  const handleSavePreset = async () => {
+    const name = prompt("Preset name:");
+    if (!name?.trim()) return;
+    try {
+      await createScrapePreset({ name: name.trim(), sourceUrl: url });
+      await loadPresets();
+    } catch (error) {
+      console.error("Could not save preset:", error);
+    }
+  };
+
+  const handleDeletePreset = async (id: string) => {
+    try {
+      await deleteScrapePreset(id);
+      setPresets((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Could not delete preset:", error);
+    }
+  };
+
+  const handleUsePreset = (presetUrl: string) => {
+    setUrl(presetUrl);
   };
 
   const job = activeJob;
@@ -349,7 +388,40 @@ const ScrapeSection = ({ onSummaryChange }: ScrapeSectionProps) => {
                     Go to hiring.cafe
                   </a>
                 </Button>
+                {url.trim() && (
+                  <Button type="button" variant="ghost" onClick={() => void handleSavePreset()}>
+                    Save as preset
+                  </Button>
+                )}
               </div>
+              {presets.length > 0 && (
+                <div className="border-t border-border-gold-muted pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-deco-muted mb-2">
+                    Saved searches
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {presets.map((preset) => (
+                      <div key={preset.id} className="deco-frame inline-flex items-center gap-1 border-border-gold-muted bg-deco-surface-soft">
+                        <button
+                          type="button"
+                          className="px-2 py-1 text-xs font-medium text-deco-foreground hover:text-primary-gold transition-colors"
+                          onClick={() => handleUsePreset(preset.sourceUrl)}
+                        >
+                          {preset.name}
+                        </button>
+                        <button
+                          type="button"
+                          className="px-1 py-1 text-deco-muted hover:text-danger transition-colors"
+                          aria-label={`Delete preset ${preset.name}`}
+                          onClick={() => void handleDeletePreset(preset.id)}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </form>
           )}
         </CardContent>

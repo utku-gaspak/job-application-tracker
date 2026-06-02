@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<JobApplication> JobApplications { get; set; } = null!;
     public DbSet<ScoutJob> ScoutJobs { get; set; } = null!;
     public DbSet<ScrapeJob> ScrapeJobs { get; set; } = null!;
+    public DbSet<ScrapePreset> ScrapePresets { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -41,5 +42,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
         builder.Entity<ScrapeJob>()
             .HasIndex(scrapeJob => scrapeJob.UserId);
+
+        builder.Entity<ScrapePreset>()
+            .HasIndex(preset => preset.UserId);
     }
 }
