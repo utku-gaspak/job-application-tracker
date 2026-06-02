@@ -10,13 +10,13 @@ import {
 import type { ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 
-export type WorkflowSection = "tracker" | "scrape" | "review" | "saved" | "apply";
+export type WorkflowSection = "tracker" | "scrape" | "review" | "apply";
 
 interface WorkflowContextType {
   activeSection: WorkflowSection;
   setActiveSection: (section: WorkflowSection) => void;
-  scoutTourView: "upload" | "review" | "saved" | "apply" | null;
-  setScoutTourView: (view: "upload" | "review" | "saved" | "apply" | null) => void;
+  scoutTourView: "upload" | "review" | "apply" | null;
+  setScoutTourView: (view: "upload" | "review" | "apply" | null) => void;
   isMissionLoopOpen: boolean;
   openMissionLoop: () => void;
   closeMissionLoop: () => void;
@@ -30,7 +30,6 @@ const WORKFLOW_SECTION_HASH = {
   tracker: "#board",
   scrape: "#scrape",
   review: "#review",
-  saved: "#saved",
   apply: "#apply",
 } as const;
 
@@ -39,7 +38,7 @@ const MISSION_TOUR_SEEN_KEY_PREFIX = "traxr:mission-tour-seen:v1";
 const HASH_TO_SECTION: Record<string, WorkflowSection> = {
   "#scrape": "scrape",
   "#review": "review",
-  "#saved": "saved",
+  "#saved": "apply",
   "#apply": "apply",
   "#board": "tracker",
   "#scout": "review",
@@ -59,12 +58,22 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const [isMissionLoopOpen, setIsMissionLoopOpen] = useState(false);
   const lastSessionUsernameRef = useRef<string | null>(null);
   const [scoutTourView, setScoutTourView] = useState<
-    "upload" | "review" | "saved" | "apply" | null
+    "upload" | "review" | "apply" | null
   >(null);
 
   useEffect(() => {
     const handleHashChange = () => {
-      setActiveSectionState(getSectionFromHash(window.location.hash));
+      const hash = window.location.hash.toLowerCase();
+      const section = getSectionFromHash(hash);
+      setActiveSectionState(section);
+
+      if (hash === "#saved") {
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}${WORKFLOW_SECTION_HASH.apply}`,
+        );
+      }
     };
 
     window.addEventListener("hashchange", handleHashChange);

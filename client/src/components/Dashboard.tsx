@@ -283,7 +283,6 @@ const Dashboard = () => {
   } = useWorkflow();
   const isScoutWorkflow =
     activeSection === "review" ||
-    activeSection === "saved" ||
     activeSection === "apply";
   const { theme, toggleTheme } = useTheme();
   const themeButtonVariant = theme === "dark" ? "outline" : "default";
@@ -1043,7 +1042,7 @@ const Dashboard = () => {
           <div className={isScoutWorkflow ? "contents" : "hidden"}>
           <ScoutSection
             isActive={isScoutWorkflow}
-            workflowView={activeSection === "review" || activeSection === "saved" || activeSection === "apply" ? activeSection : "review"}
+            workflowView={activeSection === "review" || activeSection === "apply" ? activeSection : "review"}
             onSummaryChange={setScoutSummary}
             onApplicationCreated={(application) =>
               setApplications((current) => [application, ...current])

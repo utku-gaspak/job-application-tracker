@@ -40,7 +40,7 @@ interface ScoutSectionProps {
     discarded: number;
   }) => void;
   isActive: boolean;
-  workflowView: "review" | "saved" | "apply";
+  workflowView: "review" | "apply";
 }
 
 const SCOUT_AUTH_TOKEN_KEY = "token";
@@ -132,9 +132,9 @@ const ScoutSection = ({
   isActive,
   workflowView,
 }: ScoutSectionProps) => {
-  const [activeView, setActiveView] = useState<
-    "upload" | "review" | "saved" | "apply"
-  >(workflowView);
+  const [activeView, setActiveView] = useState<"upload" | "review" | "apply">(
+    workflowView,
+  );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadResult, setUploadResult] = useState<ScoutUploadResult | null>(null);
   const [jobs, setJobs] = useState<ScoutJob[]>([]);
@@ -410,16 +410,12 @@ const ScoutSection = ({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-gold">
               {activeView === "apply"
                 ? "Apply"
-                : activeView === "saved"
-                  ? "Saved Jobs"
-                  : "Review Jobs"}
+                : "Review Jobs"}
             </p>
             <h2 className="mt-1 font-heading text-2xl text-deco-foreground">
               {activeView === "apply"
                 ? "Apply to saved jobs"
-                : activeView === "saved"
-                  ? "Saved jobs"
-                  : "Review imported jobs"}
+                : "Review imported jobs"}
             </h2>
           </div>
 
@@ -497,13 +493,12 @@ const ScoutSection = ({
           onDeleteAll={handleDeleteAll}
           isActive={isActive}
           savedCount={toApplyJobs.length}
-          onGoToSaved={() => setActiveSection("saved")}
+          onGoToApply={() => setActiveSection("apply")}
         />
       ) : null}
 
-      {activeView === "saved" || activeView === "apply" ? (
+      {activeView === "apply" ? (
         <ScoutToApplyPanel
-          mode={activeView}
           isLoading={isLoading}
           toApplyJobs={toApplyJobs}
           isActing={isActing}
@@ -511,7 +506,6 @@ const ScoutSection = ({
           onMarkAsApplied={(job) => void handleMarkAsApplied(job)}
           onRemove={(job) => void handleRemoveScoutJob(job)}
           onDeleteAll={handleDeleteAll}
-          onStartApplying={() => setActiveSection("apply")}
           onViewBoard={() => setActiveSection("tracker")}
         />
       ) : null}

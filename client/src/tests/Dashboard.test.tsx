@@ -382,22 +382,21 @@ describe('Dashboard', () => {
   })
 
   describe('Sidebar pipeline', () => {
-    it('Sidebar_Pipeline_RendersFiveStepsInOrder', async () => {
+    it('Sidebar_Pipeline_RendersFourStepsInOrder', async () => {
       renderDashboard()
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
       // Two PipelineBars render (mobile + desktop), both in DOM
-      const scrapeButtons = screen.getAllByRole('button', { name: /Scrape/ })
+      const searchButtons = screen.getAllByRole('button', { name: /Search/ })
       const reviewButtons = screen.getAllByRole('button', { name: /Review/ })
-      const savedButtons = screen.getAllByRole('button', { name: /Saved/ })
       const applyButtons = screen.getAllByRole('button', { name: /Apply/ })
-      const boardButtons = screen.getAllByRole('button', { name: /Board/ })
-      expect(scrapeButtons.length).toBeGreaterThanOrEqual(1)
+      const trackButtons = screen.getAllByRole('button', { name: /Track/ })
+      expect(searchButtons.length).toBeGreaterThanOrEqual(1)
       expect(reviewButtons.length).toBeGreaterThanOrEqual(1)
-      expect(savedButtons.length).toBeGreaterThanOrEqual(1)
       expect(applyButtons.length).toBeGreaterThanOrEqual(1)
-      expect(boardButtons.length).toBeGreaterThanOrEqual(1)
+      expect(trackButtons.length).toBeGreaterThanOrEqual(1)
+      expect(screen.queryByRole('button', { name: /Saved/ })).not.toBeInTheDocument()
     })
 
     it('Sidebar_Pipeline_StepReview_SwitchesToReviewAndUpdatesHash', async () => {
@@ -425,8 +424,8 @@ describe('Dashboard', () => {
         expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
       })
 
-      const boardButtons = screen.getAllByRole('button', { name: /Board/ })
-      fireEvent.click(boardButtons[0]!)
+      const trackButtons = screen.getAllByRole('button', { name: /Track/ })
+      fireEvent.click(trackButtons[0]!)
 
       await waitFor(() => {
         expect(
@@ -441,8 +440,8 @@ describe('Dashboard', () => {
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
-      const boardButtons = screen.getAllByRole('button', { name: /Board/ })
-      expect(boardButtons[0]).toHaveAccessibleName(/2 tracking/)
+      const trackButtons = screen.getAllByRole('button', { name: /Track/ })
+      expect(trackButtons[0]).toHaveAccessibleName(/2 tracking/)
     })
 
     it('Sidebar_Pipeline_EmptyState_NoCounts', async () => {
@@ -451,9 +450,9 @@ describe('Dashboard', () => {
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
       const reviewButtons = screen.getAllByRole('button', { name: /Review/ })
-      const savedButtons = screen.getAllByRole('button', { name: /Saved/ })
+      const applyButtons = screen.getAllByRole('button', { name: /Apply/ })
       expect(reviewButtons[0]).not.toHaveAccessibleName(/to review/)
-      expect(savedButtons[0]).not.toHaveAccessibleName(/saved/)
+      expect(applyButtons[0]).not.toHaveAccessibleName(/ready/)
     })
 
     it('Sidebar_Pipeline_AddNewButton_VisibleOnlyInTracker', async () => {
@@ -502,11 +501,11 @@ describe('Dashboard', () => {
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
 
-      expect(screen.getAllByRole('button', { name: /Scrape/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Search/ }).length).toBeGreaterThanOrEqual(1)
       expect(screen.getAllByRole('button', { name: /Review/ }).length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByRole('button', { name: /Saved/ }).length).toBeGreaterThanOrEqual(1)
       expect(screen.getAllByRole('button', { name: /Apply/ }).length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByRole('button', { name: /Board/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByRole('button', { name: /Track/ }).length).toBeGreaterThanOrEqual(1)
+      expect(screen.queryByRole('button', { name: /Saved/ })).not.toBeInTheDocument()
     })
 
     it('Sidebar_Pipeline_LegacyHashes_OpenExpectedSections', async () => {
@@ -516,15 +515,22 @@ describe('Dashboard', () => {
       expect(screen.getByText('Review Summary')).toBeInTheDocument()
 
       unmount()
-      renderDashboard('#tracker')
+      const tracker = renderDashboard('#tracker')
 
       expect(await screen.findAllByText('Acme')).toHaveLength(2)
       expect(
         screen.getByRole('button', { name: 'New Application' }),
       ).toBeInTheDocument()
+
+      tracker.unmount()
+      renderDashboard('#saved')
+
+      expect(await screen.findByText('Apply Summary')).toBeInTheDocument()
+      expect(screen.getByText('Apply to saved jobs')).toBeInTheDocument()
+      expect(window.location.hash).toBe('#apply')
     })
 
-    it('ScoutFlow_SaveStartApplyMarkApplied_StaysApplyAndCanViewBoard', async () => {
+    it('ScoutFlow_SaveApplyMarkApplied_StaysApplyAndCanViewBoard', async () => {
       let scoutJobs: ScoutJob[] = [
         {
           id: 'scout-1',
@@ -571,16 +577,15 @@ describe('Dashboard', () => {
       fireEvent.click(screen.getByRole('button', { name: /Save for later/ }))
 
       await waitFor(() => {
-        expect(screen.getAllByRole('button', { name: /Saved/ })[0]).toHaveAccessibleName(/1 saved/)
+        expect(screen.getAllByRole('button', { name: /Apply/ })[0]).toHaveAccessibleName(/1 ready/)
       })
 
-      fireEvent.click(screen.getAllByRole('button', { name: /Saved/ })[0]!)
-      expect(await screen.findByRole('button', { name: /Start applying/ })).toBeInTheDocument()
-      fireEvent.click(screen.getByRole('button', { name: /Start applying/ }))
+      fireEvent.click(screen.getAllByRole('button', { name: /Apply/ })[0]!)
 
       await waitFor(() => {
         expect(window.location.hash).toBe('#apply')
         expect(screen.getByRole('button', { name: /View board/ })).toBeInTheDocument()
+        expect(screen.getAllByRole('button', { name: /Mark applied/ }).length).toBeGreaterThan(0)
       })
 
       fireEvent.click(screen.getAllByRole('button', { name: /Mark applied/ })[0]!)
@@ -606,7 +611,7 @@ describe('OnboardingTour', () => {
   it('OnboardingTour_Inline_RendersFirstStep', () => {
     render(<OnboardingTour open variant="inline" onClose={() => {}} />)
 
-    expect(screen.getByText('Step 1 of 6')).toBeInTheDocument()
+    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument()
     expect(screen.getByText('Welcome to Traxr')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Next/ })).toBeInTheDocument()
   })
@@ -616,20 +621,20 @@ describe('OnboardingTour', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Next/ }))
 
-    expect(screen.getByText('Step 2 of 6')).toBeInTheDocument()
-    expect(screen.getByText('Scrape')).toBeInTheDocument()
+    expect(screen.getByText('Step 2 of 5')).toBeInTheDocument()
+    expect(screen.getByText('Search')).toBeInTheDocument()
   })
 
   it('OnboardingTour_Inline_LastStepShowsGotIt', () => {
     render(<OnboardingTour open variant="inline" onClose={() => {}} />)
 
     // Click through to last step
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       fireEvent.click(screen.getByRole('button', { name: /Next/ }))
     }
 
-    expect(screen.getByText('Step 6 of 6')).toBeInTheDocument()
-    expect(screen.getByText("Board")).toBeInTheDocument()
+    expect(screen.getByText('Step 5 of 5')).toBeInTheDocument()
+    expect(screen.getByText("Track")).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Got it/ })).toBeInTheDocument()
   })
 

@@ -42,16 +42,13 @@ export const DashboardSidebar = ({
   const { activeSection } = useWorkflow();
   const isScoutWorkflow =
     activeSection === "review" ||
-    activeSection === "saved" ||
     activeSection === "apply";
   const summaryTitle = activeSection === "scrape"
     ? "Import History"
     : isScoutWorkflow
       ? activeSection === "review"
         ? "Review Summary"
-        : activeSection === "saved"
-          ? "Saved Summary"
-          : "Apply Summary"
+        : "Apply Summary"
       : "Summary";
 
   return (
@@ -120,12 +117,12 @@ export const DashboardSidebar = ({
                   : scoutSummary.toApply}
               </span>
               <p className="mt-1 text-xs uppercase tracking-[0.12em] text-deco-muted">
-                {activeSection === "review" ? "To Review" : "Saved Jobs"}
+                {activeSection === "review" ? "To Review" : "Ready To Apply"}
               </p>
             </div>
             <p>{scoutSummary.total} total jobs</p>
             <p>{scoutSummary.toEvaluate} to review</p>
-            <p>{scoutSummary.toApply} saved</p>
+            <p>{scoutSummary.toApply} ready to apply</p>
             <p>{scoutSummary.discarded} discarded</p>
           </div>
         ) : (

@@ -15,21 +15,21 @@
           v
 +-----------------------------+
 |         Dashboard           |
-|  Tracker  |  Scout  |Scrape |
+|  Tracker  |  Scout  |Search |
 +-----------------------------+
      |            |        |
      |            |        +---------------------------+
      |            |                                    |
      |            v                                    v
      |     +-------------------+             +----------------------+
-     |     |       Scout        |             |  HiringCafe Scrape   |
+     |     |       Scout        |             |  HiringCafe Search   |
      |     | upload/evaluate    |             |  start scrape job    |
      |     +-------------------+             +----------------------+
      |            |                                    |
-     |            | save / discard / apply             |
+     |            | save / discard                     |
      |            v                                    |
      |     +-------------------+                      |
-     |     |  To Apply queue   |                      |
+     |     |   Apply queue     |                      |
      |     +-------------------+                      |
      |            |                                    |
      |            v                                    |

@@ -21,11 +21,10 @@ const PipelineBar = ({ applicationCount, scoutSummary }: PipelineBarProps) => {
   const { activeSection, setActiveSection } = useWorkflow();
 
   const steps: StepDef[] = [
-    { step: 1, label: "Scrape", count: 0, countLabel: "", section: "scrape" },
+    { step: 1, label: "Search", count: 0, countLabel: "", section: "scrape" },
     { step: 2, label: "Review", count: scoutSummary.toEvaluate, countLabel: "to review", section: "review" },
-    { step: 3, label: "Saved", count: scoutSummary.toApply, countLabel: "saved", section: "saved" },
-    { step: 4, label: "Apply", count: scoutSummary.toApply, countLabel: "ready", section: "apply" },
-    { step: 5, label: "Board", count: applicationCount, countLabel: "tracking", section: "tracker" },
+    { step: 3, label: "Apply", count: scoutSummary.toApply, countLabel: "ready", section: "apply" },
+    { step: 4, label: "Track", count: applicationCount, countLabel: "tracking", section: "tracker" },
   ];
 
   return (
@@ -36,35 +35,33 @@ const PipelineBar = ({ applicationCount, scoutSummary }: PipelineBarProps) => {
 
         return (
           <div key={step.section} className="flex min-w-0 flex-1 items-stretch">
-            {index > 0 && (
-              <div className="flex shrink-0 items-center px-0.5 text-primary-gold/30 sm:px-1" aria-hidden="true">
-                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+            {index > 0 ? (
+              <div className="flex shrink-0 items-center px-px text-primary-gold/30 sm:px-1" aria-hidden="true">
+                <ChevronRight className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
               </div>
-            )}
+            ) : null}
             <button
               type="button"
               onClick={() => setActiveSection(step.section)}
               aria-label={`${step.label}${hasItems ? ` — ${step.count} ${step.countLabel}` : ""}`}
-              className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 text-base transition-all hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-gold sm:gap-2 sm:px-4 ${
+              className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md px-1 py-1.5 text-xs transition-all hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-gold sm:gap-2 sm:px-4 sm:py-2 sm:text-base ${
                 active
                   ? "border border-primary-gold bg-primary-gold/15 text-deco-foreground font-semibold shadow-inner"
                   : "border border-transparent bg-deco-surface-soft text-deco-muted hover:text-deco-foreground hover:bg-deco-surface"
               }`}
             >
               <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-bold sm:h-6 sm:w-6 sm:text-xs ${
                   active
                     ? "bg-primary-gold text-deco-surface"
-                    : hasItems
-                      ? "border-2 border-primary-gold text-primary-gold"
-                      : "border-2 border-deco-muted text-deco-muted"
+                    : "border-2 border-primary-gold text-primary-gold"
                 }`}
                 aria-hidden="true"
               >
                 {step.step}
               </span>
               <span className="truncate hidden sm:inline">{step.label}</span>
-              <span className="truncate sm:hidden text-sm">{step.label.split(" ")[0]}</span>
+              <span className="truncate sm:hidden">{step.label}</span>
               {hasItems && (
                 <span className={`hidden sm:inline text-sm ${active ? "text-deco-muted" : "text-deco-muted/60"}`}>
                   {step.count} {step.countLabel}
