@@ -406,7 +406,7 @@ describe('Dashboard', () => {
       fireEvent.click(reviewButtons[0]!)
 
       await waitFor(() => {
-        expect(screen.getByText('Upload jobs.json')).toBeInTheDocument()
+        expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
       })
     })
 
@@ -419,7 +419,7 @@ describe('Dashboard', () => {
       const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
       fireEvent.click(reviewButtons[0]!)
       await waitFor(() => {
-        expect(screen.getByText('Upload jobs.json')).toBeInTheDocument()
+        expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
       })
 
       // Switch back to tracker
@@ -469,7 +469,7 @@ describe('Dashboard', () => {
       const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
       fireEvent.click(reviewButtons[0]!)
       await waitFor(() => {
-        expect(screen.getByText('Upload jobs.json')).toBeInTheDocument()
+        expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
       })
 
       // In scout mode: Add New should NOT be visible
@@ -493,7 +493,7 @@ describe('Dashboard', () => {
       const reviewButtons = screen.getAllByRole('button', { name: /Review & Save/ })
       fireEvent.click(reviewButtons[0]!)
       await waitFor(() => {
-        expect(screen.getByText('Upload jobs.json')).toBeInTheDocument()
+        expect(screen.getByText('No jobs in this pass.')).toBeInTheDocument()
       })
 
       // Review summary now visible

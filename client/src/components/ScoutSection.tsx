@@ -132,7 +132,7 @@ const ScoutSection = ({
 }: ScoutSectionProps) => {
   const [activeView, setActiveView] = useState<
     "upload" | "evaluate" | "to-apply"
-  >("upload");
+  >("evaluate");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadResult, setUploadResult] = useState<ScoutUploadResult | null>(null);
   const [jobs, setJobs] = useState<ScoutJob[]>([]);
@@ -404,15 +404,6 @@ const ScoutSection = ({
 
           <div className="flex flex-col gap-2 lg:flex-row lg:flex-nowrap lg:items-center">
             <Button
-              data-tour-id="scout-upload"
-              className="w-full justify-center lg:w-auto"
-              onClick={() => setActiveView("upload")}
-              type="button"
-              variant={activeView === "upload" ? "default" : "outline"}
-            >
-              Upload
-            </Button>
-            <Button
               data-tour-id="scout-evaluate"
               className="w-full justify-center lg:w-auto"
               onClick={() => setActiveView("evaluate")}
@@ -429,6 +420,15 @@ const ScoutSection = ({
               variant={activeView === "to-apply" ? "default" : "outline"}
             >
               Saved
+            </Button>
+            <Button
+              data-tour-id="scout-upload"
+              className="w-full justify-center lg:w-auto"
+              onClick={() => setActiveView("upload")}
+              type="button"
+              variant={activeView === "upload" ? "default" : "outline"}
+            >
+              Upload
             </Button>
             <Button
               className="w-full justify-center lg:w-auto"
