@@ -33,6 +33,39 @@ const renderLoginPage = () => {
 }
 
 describe('LoginPage', () => {
+  it('LoginPage_RendersProductEntryCopyAndRegisterLink', () => {
+    renderLoginPage()
+
+    expect(screen.getByRole('heading', { name: 'Traxr' })).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Import job leads, review them quickly, and track every application in one board.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText('No signup required. Opens a seeded job-search board.')).toBeInTheDocument()
+    expect(screen.getByText('Find jobs')).toBeInTheDocument()
+    expect(screen.getByText('Review leads')).toBeInTheDocument()
+    expect(screen.getByText('Track progress')).toBeInTheDocument()
+
+    const registerLink = screen.getByRole('link', { name: /create your own board/i })
+    expect(registerLink).toHaveAttribute('href', '/register')
+  })
+
+  it('LoginPage_DemoLogin_SubmitsSeededCredentials', async () => {
+    renderLoginPage()
+
+    fireEvent.click(screen.getByRole('button', { name: /try live demo/i }))
+
+    await screen.findByText('Dashboard Home')
+
+    expect(localStorage.getItem('token')).toBe('test-jwt-token')
+    await waitFor(() => {
+      expect(mockApiState.loginRequests).toEqual([
+        { username: 'demo', password: 'demo123' },
+      ])
+    })
+  })
+
   it('LoginPage_SubmitValidCredentials_StoresTokenAndCallsApi', async () => {
     renderLoginPage()
 
