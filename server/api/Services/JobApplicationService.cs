@@ -7,11 +7,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Services;
 
-public class JobApplicationService(AppDbContext dbContext) : IJobApplicationService
+public class JobApplicationService(
+    AppDbContext dbContext,
+    JobDuplicateDetector? duplicateDetector = null) : IJobApplicationService
 {
+    private readonly JobDuplicateDetector jobDuplicateDetector = duplicateDetector ?? new(dbContext);
+
     public async Task<JobApplication> CreateAsync(JobApplicationCreateDto dto, string userId, CancellationToken cancellationToken = default)
     {
         ValidateCreateRequest(dto, userId);
+
+        if (await jobDuplicateDetector.IsDuplicateApplicationAsync(dto, userId, cancellationToken))
+            throw new ValidationException(JobDuplicateDetector.DuplicateMessage);
 
         var jobApplication = new JobApplication
         {

@@ -117,6 +117,111 @@ public class JobApplicationServiceTests(TestAppDbContextFactory dbContextFactory
     }
 
     [Fact]
+    public async Task CreateAsync_DuplicateJobUrlForSameUser_ShouldThrowValidationException()
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+
+        dbContext.JobApplications.Add(new JobApplication
+        {
+            Id = "existing-application",
+            CompanyName = "Acme",
+            Position = "Backend Engineer",
+            JobUrl = "https://example.com/jobs/backend",
+            Status = JobApplicationStatus.Applied,
+            UserId = "user-1",
+        });
+        await dbContext.SaveChangesAsync();
+
+        var dto = new JobApplicationCreateDto(
+            "Acme",
+            "Backend Engineer",
+            "https://EXAMPLE.com/jobs/backend/#details",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            JobApplicationStatus.Applied);
+
+        Func<Task> act = async () => await service.CreateAsync(dto, "user-1");
+
+        var exceptionAssertions = await act.Should().ThrowAsync<ValidationException>();
+        exceptionAssertions.WithMessage(JobDuplicateDetector.DuplicateMessage);
+        (await dbContext.JobApplications.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CreateAsync_SameJobUrlForDifferentUser_ShouldSucceed()
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+
+        dbContext.JobApplications.Add(new JobApplication
+        {
+            Id = "existing-application",
+            CompanyName = "Acme",
+            Position = "Backend Engineer",
+            JobUrl = "https://example.com/jobs/backend",
+            Status = JobApplicationStatus.Applied,
+            UserId = "user-1",
+        });
+        await dbContext.SaveChangesAsync();
+
+        var dto = new JobApplicationCreateDto(
+            "Acme",
+            "Backend Engineer",
+            "https://example.com/jobs/backend",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            JobApplicationStatus.Applied);
+
+        var result = await service.CreateAsync(dto, "user-2");
+
+        result.UserId.Should().Be("user-2");
+        (await dbContext.JobApplications.CountAsync()).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task CreateAsync_UrlLessDuplicateByTitleCompanyLocation_ShouldThrowValidationException()
+    {
+        await using var dbContext = dbContextFactory.CreateContext();
+        var service = new JobApplicationService(dbContext);
+
+        dbContext.ScoutJobs.Add(new ScoutJob
+        {
+            Title = "Backend Engineer",
+            Company = "Acme",
+            Location = "Remote",
+            UserId = "user-1",
+        });
+        await dbContext.SaveChangesAsync();
+
+        var dto = new JobApplicationCreateDto(
+            "  ACME  ",
+            "Backend   Engineer",
+            null,
+            " remote ",
+            null,
+            null,
+            null,
+            null,
+            null,
+            JobApplicationStatus.Applied);
+
+        Func<Task> act = async () => await service.CreateAsync(dto, "user-1");
+
+        var exceptionAssertions = await act.Should().ThrowAsync<ValidationException>();
+        exceptionAssertions.WithMessage(JobDuplicateDetector.DuplicateMessage);
+        (await dbContext.JobApplications.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
     public async Task GetAllAsync_MultipleUsersExist_ReturnsOnlyCurrentUsersData()
     {
         await using var dbContext = dbContextFactory.CreateContext();

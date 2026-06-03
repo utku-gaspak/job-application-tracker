@@ -71,6 +71,32 @@
         }
       }
     },
+    "/api/account/logout": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "Account_Logout",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/JobApplications": {
       "get": {
         "tags": [
@@ -729,6 +755,42 @@
         ]
       }
     },
+    "/api/scrape/{jobId}/cancel": {
+      "post": {
+        "tags": [
+          "Scrape"
+        ],
+        "operationId": "Scrape_Cancel",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapeJobStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/scrape/presets/{id}": {
       "delete": {
         "tags": [
@@ -1018,6 +1080,19 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
+              "isDemoSession": {
+                "type": "boolean"
+              },
+              "demoSessionCreatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "demoSessionExpiresAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
               "jobApplications": {
                 "type": "array",
                 "items": {

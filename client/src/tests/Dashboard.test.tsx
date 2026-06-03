@@ -610,6 +610,79 @@ describe('Dashboard', () => {
       })
     })
 
+    it('ScoutFlow_MarkAppliedDuplicate_ShowsBackendMessageAndKeepsSavedJob', async () => {
+      const duplicateMessage = 'This job already exists in Scout or Tracker.'
+      let deleteRequests = 0
+      let createAttempts = 0
+      const scoutJobs: ScoutJob[] = [
+        {
+          id: 'scout-duplicate-1',
+          title: 'Duplicate Engineer',
+          company: 'DupCo',
+          location: 'Remote',
+          workplaceType: 'Remote',
+          commitment: 'Full-time',
+          postedAt: '2026-05-31T12:00:00.000Z',
+          jobUrl: 'https://example.com/dupco',
+          applyUrl: 'https://example.com/dupco/apply',
+          technicalTools: 'React, TypeScript',
+          requirementsSummary: 'Build duplicate-safe workflows.',
+          savedForApply: true,
+          isDiscarded: false,
+          createdAt: '2026-06-01T12:00:00.000Z',
+        },
+      ]
+      mockApiState.jobApplications = [
+        {
+          id: 'job-duplicate-1',
+          companyName: 'DupCo',
+          position: 'Duplicate Engineer',
+          jobUrl: 'https://example.com/dupco/apply',
+          location: 'Remote',
+          salaryRange: null,
+          jobDescription: null,
+          notes: null,
+          interestLevel: null,
+          technicalStack: null,
+          status: JobApplicationStatus.Applied,
+          dateApplied: '2026-05-12T12:00:00.000Z',
+          userId: 'user-1',
+        },
+      ]
+
+      server.use(
+        http.get(`${finalUrl}/api/scout/jobs`, () => HttpResponse.json(scoutJobs)),
+        http.post(`${finalUrl}/api/jobapplications`, async () => {
+          createAttempts += 1
+          return HttpResponse.json({
+            status: 400,
+            title: 'Bad Request',
+            detail: duplicateMessage,
+          }, { status: 400 })
+        }),
+        http.delete(`${finalUrl}/api/scout/jobs/:id`, () => {
+          deleteRequests += 1
+          return HttpResponse.json(null, { status: 204 })
+        }),
+      )
+
+      const { container } = renderDashboard('#apply')
+
+      expect(await screen.findByText('Apply Summary')).toBeInTheDocument()
+      const applyPanel = container.querySelector('[data-tour-id="scout-to-apply-panel"]')!
+      const duplicateArticle = within(applyPanel as HTMLElement).getAllByText('DupCo')[0]!.closest('article')!
+
+      fireEvent.click(within(duplicateArticle).getAllByRole('button', { name: /Applied/ })[0]!)
+
+      await waitFor(() => {
+        expect(screen.getByText(duplicateMessage)).toBeInTheDocument()
+        expect(createAttempts).toBe(1)
+        expect(deleteRequests).toBe(0)
+        expect(screen.getAllByText('DupCo').length).toBeGreaterThan(0)
+        expect(mockApiState.jobApplications).toHaveLength(1)
+      })
+    })
+
     it('ScoutFlow_RemoveSavedJob_RequiresConfirmation', async () => {
       let scoutJobs: ScoutJob[] = [
         {

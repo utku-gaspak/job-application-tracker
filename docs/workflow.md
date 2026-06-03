@@ -55,7 +55,7 @@
      |                                 |
      |                                 v
      |                    +---------------------------+
-     |                    | Import into Scout queue   |
+     |                    | Import new jobs into Scout |
      |                    +---------------------------+
      |                                 |
      +---------------------------------+-------------------------------+
@@ -66,3 +66,7 @@
                               | or Scout results  |
                               +-------------------+
 ```
+
+Scrape results are imported only when they are new for the current user. The import checks
+Scout review jobs, saved/apply jobs, discarded jobs, and Tracker applications before adding
+rows back into Scout.

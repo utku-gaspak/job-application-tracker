@@ -244,4 +244,88 @@ public class ScoutJobServiceTests
         result.Imported.Should().Be(1);
         result.Skipped.Should().Be(1);
     }
+
+    [Fact]
+    public async Task UploadAsync_SkipsJobsAlreadyInAnyScoutState()
+    {
+        await using var db = new TestAppDbContextFactory().CreateContext();
+        var service = CreateService(db);
+
+        db.ScoutJobs.AddRange(
+            new ScoutJob
+            {
+                Title = "Review Job",
+                Company = "Acme",
+                JobUrl = "https://example.com/review",
+                UserId = UserId,
+            },
+            new ScoutJob
+            {
+                Title = "Saved Job",
+                Company = "Acme",
+                JobUrl = "https://example.com/saved",
+                SavedForApply = true,
+                UserId = UserId,
+            },
+            new ScoutJob
+            {
+                Title = "Discarded Job",
+                Company = "Acme",
+                JobUrl = "https://example.com/discarded",
+                IsDiscarded = true,
+                UserId = UserId,
+            });
+        await db.SaveChangesAsync();
+
+        const string json = """
+            {
+              "results": [
+                { "title": "Review Job", "company": "Acme", "job_url": "https://example.com/review" },
+                { "title": "Saved Job", "company": "Acme", "job_url": "https://example.com/saved" },
+                { "title": "Discarded Job", "company": "Acme", "job_url": "https://example.com/discarded" },
+                { "title": "New Job", "company": "Globex", "job_url": "https://example.com/new" }
+              ]
+            }
+            """;
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+
+        var result = await service.UploadAsync(stream, UserId, CancellationToken.None);
+
+        result.Imported.Should().Be(1);
+        result.Skipped.Should().Be(3);
+        (await db.ScoutJobs.CountAsync(job => job.UserId == UserId)).Should().Be(4);
+    }
+
+    [Fact]
+    public async Task UploadAsync_SkipsJobsAlreadyInTracker()
+    {
+        await using var db = new TestAppDbContextFactory().CreateContext();
+        var service = CreateService(db);
+
+        db.JobApplications.Add(new JobApplication
+        {
+            Id = "application-1",
+            CompanyName = "Acme",
+            Position = "Backend Engineer",
+            JobUrl = "https://example.com/apply",
+            Status = JobApplicationStatus.Applied,
+            UserId = UserId,
+        });
+        await db.SaveChangesAsync();
+
+        const string json = """
+            {
+              "results": [
+                { "title": "Backend Engineer", "company": "Acme", "apply_url": "https://example.com/apply" },
+                { "title": "New Job", "company": "Globex", "job_url": "https://example.com/new" }
+              ]
+            }
+            """;
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+
+        var result = await service.UploadAsync(stream, UserId, CancellationToken.None);
+
+        result.Imported.Should().Be(1);
+        result.Skipped.Should().Be(1);
+    }
 }

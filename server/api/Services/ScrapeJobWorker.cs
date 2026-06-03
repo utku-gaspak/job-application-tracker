@@ -486,7 +486,7 @@ public sealed class ScrapeJobWorker(
         );
     }
 
-    private static async Task<ScoutUploadResult?> TryImportIntoScoutAsync(
+    internal static async Task<ScoutUploadResult?> TryImportIntoScoutAsync(
         ScrapeJob job,
         AppDbContext dbContext,
         CancellationToken cancellationToken
@@ -502,29 +502,22 @@ public sealed class ScrapeJobWorker(
             await using var stream = File.OpenRead(job.JsonOutputPath);
             var parsed = await ScoutJobUploadParser.ParseAsync(stream, cancellationToken);
 
-            var existingJobUrls = new HashSet<string>(
-                await dbContext
-                    .ScoutJobs.Where(current => current.UserId == job.UserId && current.JobUrl != null)
-                    .Select(current => current.JobUrl!)
-                    .ToListAsync(cancellationToken),
-                StringComparer.OrdinalIgnoreCase
-            );
-            var importedJobUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var duplicateDetector = new JobDuplicateDetector(dbContext);
+            var duplicateSnapshot = await duplicateDetector.CreateSnapshotAsync(job.UserId, cancellationToken);
             var jobsToImport = new List<ScoutJob>();
             var skipped = parsed.Skipped;
 
             foreach (var scoutJob in parsed.Jobs)
             {
-                if (
-                    scoutJob.JobUrl is not null
-                    && (!importedJobUrls.Add(scoutJob.JobUrl) || existingJobUrls.Contains(scoutJob.JobUrl))
-                )
+                var candidate = JobDuplicateDetector.ToCandidate(scoutJob);
+                if (duplicateSnapshot.Contains(candidate))
                 {
                     skipped++;
                     continue;
                 }
 
                 scoutJob.UserId = job.UserId;
+                duplicateSnapshot.Add(candidate);
                 jobsToImport.Add(scoutJob);
             }
 
@@ -589,7 +582,7 @@ public sealed class ScrapeJobWorker(
         try { File.Delete(GetScraperPidPath(job)); } catch { /* best effort */ }
     }
 
-    private sealed record ScoutUploadResult(int Imported, int Skipped);
+    internal sealed record ScoutUploadResult(int Imported, int Skipped);
 
     private static bool NeedsVerification(string stdout, string stderr, int exitCode)
     {

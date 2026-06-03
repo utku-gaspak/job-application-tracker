@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { useAsync } from "../hooks/useAsync";
 import { Download, FileDigit, Plus, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
@@ -44,6 +45,36 @@ interface ScoutSectionProps {
 }
 
 const SCOUT_AUTH_TOKEN_KEY = "token";
+
+const extractApiErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data;
+
+    if (typeof data === "string" && data.trim()) {
+      return data;
+    }
+
+    if (data && typeof data === "object") {
+      const payload = data as {
+        detail?: string;
+        message?: string;
+        title?: string;
+        errors?: Record<string, string[]>;
+      };
+
+      if (payload.detail?.trim()) return payload.detail;
+      if (payload.message?.trim()) return payload.message;
+      if (payload.title?.trim()) return payload.title;
+
+      const validationMessage = Object.values(payload.errors ?? {})
+        .flat()
+        .find((message) => typeof message === "string" && message.trim());
+      if (validationMessage) return validationMessage;
+    }
+  }
+
+  return fallback;
+};
 
 const readScoutAuthSignature = () =>
   typeof window === "undefined"
@@ -345,12 +376,14 @@ const ScoutSection = ({
         toast.success("Job moved to tracker.");
       } catch (error) {
         console.error("Mark scout job applied failed:", error);
-        setErrorMessage("Could not move the scout job to the tracker.");
+        setErrorMessage(
+          extractApiErrorMessage(error, "Could not move the scout job to the tracker."),
+        );
       } finally {
         setIsActing(false);
       }
     },
-    [isActing, onApplicationCreated],
+    [isActing, onApplicationCreated, removeJobFromQueue],
   );
 
   const handleRemoveScoutJob = useCallback(
@@ -373,7 +406,7 @@ const ScoutSection = ({
         setIsActing(false);
       }
     },
-    [isActing],
+    [isActing, removeJobFromQueue],
   );
 
   const handleSkip = useCallback(() => {

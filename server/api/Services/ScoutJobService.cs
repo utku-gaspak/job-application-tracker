@@ -10,8 +10,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Services;
 
-public class ScoutJobService(AppDbContext dbContext) : IScoutJobService
+public class ScoutJobService(
+    AppDbContext dbContext,
+    JobDuplicateDetector? duplicateDetector = null) : IScoutJobService
 {
+    private readonly JobDuplicateDetector jobDuplicateDetector = duplicateDetector ?? new(dbContext);
+
     public async Task<List<ScoutJob>> GetJobsAsync(
         string userId,
         CancellationToken cancellationToken)
@@ -53,12 +57,6 @@ public class ScoutJobService(AppDbContext dbContext) : IScoutJobService
         var (normalizedJobUrl, normalizedApplyUrl) = ScoutJobLinkNormalizer.Normalize(
             dto.JobUrl, dto.ApplyUrl);
 
-        if (normalizedJobUrl is not null
-            && await dbContext.ScoutJobs.AnyAsync(
-                j => j.UserId == userId && j.JobUrl == normalizedJobUrl,
-                cancellationToken))
-            throw new ValidationException("A scout job with the same job URL already exists.");
-
         var entity = new ScoutJob
         {
             Title = dto.Title.Trim(),
@@ -75,6 +73,9 @@ public class ScoutJobService(AppDbContext dbContext) : IScoutJobService
             IsDiscarded = false,
             UserId = userId,
         };
+
+        if (await jobDuplicateDetector.IsDuplicateScoutJobAsync(entity, userId, cancellationToken))
+            throw new ValidationException(JobDuplicateDetector.DuplicateMessage);
 
         dbContext.ScoutJobs.Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -97,27 +98,21 @@ public class ScoutJobService(AppDbContext dbContext) : IScoutJobService
             throw new ValidationException("Upload must be a hiring-cafe-scout JSON file with a results array.");
         }
 
-        var existingJobUrls = new HashSet<string>(
-            await dbContext
-                .ScoutJobs.Where(j => j.UserId == userId && j.JobUrl != null)
-                .Select(j => j.JobUrl!)
-                .ToListAsync(cancellationToken),
-            StringComparer.OrdinalIgnoreCase);
-
-        var uploadJobUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var duplicateSnapshot = await jobDuplicateDetector.CreateSnapshotAsync(userId, cancellationToken);
         var jobsToImport = new List<ScoutJob>();
         var skipped = parsed.Skipped;
 
         foreach (var job in parsed.Jobs)
         {
-            if (job.JobUrl is not null
-                && (!uploadJobUrls.Add(job.JobUrl) || existingJobUrls.Contains(job.JobUrl)))
+            var candidate = JobDuplicateDetector.ToCandidate(job);
+            if (duplicateSnapshot.Contains(candidate))
             {
                 skipped++;
                 continue;
             }
 
             job.UserId = userId;
+            duplicateSnapshot.Add(candidate);
             jobsToImport.Add(job);
         }
 
