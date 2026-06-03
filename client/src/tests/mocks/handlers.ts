@@ -22,6 +22,7 @@ interface CreateJobApplicationBody {
 
 interface MockApiState {
   loginRequests: LoginRequestBody[]
+  logoutRequests: number
   createJobApplicationRequests: CreateJobApplicationBody[]
   updateJobApplicationRequests: Array<{ id: string; body: CreateJobApplicationBody & { dateApplied: string } }>
   deleteJobApplicationRequests: string[]
@@ -61,6 +62,7 @@ const defaultJobs: JobApplication[] = [
 
 export const mockApiState: MockApiState = {
   loginRequests: [],
+  logoutRequests: 0,
   createJobApplicationRequests: [],
   updateJobApplicationRequests: [],
   deleteJobApplicationRequests: [],
@@ -69,6 +71,7 @@ export const mockApiState: MockApiState = {
 
 export const resetMockApiState = () => {
   mockApiState.loginRequests = []
+  mockApiState.logoutRequests = 0
   mockApiState.createJobApplicationRequests = []
   mockApiState.updateJobApplicationRequests = []
   mockApiState.deleteJobApplicationRequests = []
@@ -85,6 +88,11 @@ export const handlers = [
       userName: body.username,
       email: `${body.username}@example.com`,
     })
+  }),
+
+  http.post(`${finalUrl}/api/account/logout`, () => {
+    mockApiState.logoutRequests += 1
+    return HttpResponse.json(null, { status: 204 })
   }),
 
   http.get(`${finalUrl}/api/jobapplications`, () => {

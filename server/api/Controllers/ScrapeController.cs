@@ -21,7 +21,8 @@ public class ScrapeController(
     AppDbContext dbContext,
     IScrapeJobQueue scrapeJobQueue,
     IConfiguration configuration,
-    ILogger<ScrapeController> logger
+    ILogger<ScrapeController> logger,
+    IDemoSessionService demoSessionService
 ) : ControllerBase
 {
     private const string HiringCafeHost = "hiring.cafe";
@@ -37,6 +38,14 @@ public class ScrapeController(
         CancellationToken cancellationToken
     )
     {
+        if (demoSessionService.IsDemoSession(User))
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                "Live scraping is disabled in the demo."
+            );
+        }
+
         if (!TryValidateSourceUrl(request.Url, out var normalizedUrl, out var validationError))
         {
             return BadRequest(validationError);

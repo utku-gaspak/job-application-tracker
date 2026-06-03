@@ -6,6 +6,7 @@ import { AuthProvider } from '../context/AuthContext'
 import { ThemeProvider } from '../context/ThemeContext'
 import { server } from './mocks/server'
 import { finalUrl } from '../baseUrl'
+import { mockApiState } from './mocks/handlers'
 
 const renderAppAt = (path: string) => {
   window.history.pushState({}, '', path)
@@ -64,5 +65,6 @@ describe('App', () => {
       expect(localStorage.getItem('token')).toBeNull()
       expect(screen.getByText('Access your board')).toBeInTheDocument()
     })
+    expect(mockApiState.logoutRequests).toBe(1)
   })
 })

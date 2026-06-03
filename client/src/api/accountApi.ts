@@ -29,6 +29,18 @@ export const login = async (payload: AuthPayload) => {
   return response.data;
 };
 
+export const logout = async (token: string) => {
+  await accountApi.post(
+    "/logout",
+    null,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+};
+
 export const register = async (payload: RegisterPayload) => {
   const response = await accountApi.post<AuthResponse>("/register", payload);
   return response.data;

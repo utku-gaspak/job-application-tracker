@@ -11,14 +11,21 @@ public class TokenService(IConfiguration config) : ITokenService
 {
     private readonly SymmetricSecurityKey _key = CreateSigningKey(config["JWT:SigningKey"]);
 
-    public string CreateToken(AppUser user)
+    public string CreateToken(AppUser user) =>
+        CreateToken(user, user.UserName ?? string.Empty, user.IsDemoSession);
+
+    public string CreateToken(AppUser user, string displayUsername, bool isDemoSession)
     {
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-            new Claim(JwtRegisteredClaimNames.GivenName, user.UserName!),
+            new Claim(JwtRegisteredClaimNames.GivenName, displayUsername),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
         };
+
+        if (isDemoSession)
+            claims.Add(new Claim(DemoSessionClaims.IsDemoSession, "true"));
+
         var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
         var tokenDescriptor = new SecurityTokenDescriptor

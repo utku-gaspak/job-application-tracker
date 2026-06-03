@@ -38,6 +38,25 @@ public class TokenServiceTests
     }
 
     [Fact]
+    public void CreateToken_DemoSession_ShouldUseDisplayUsernameAndIncludeDemoClaim()
+    {
+        var service = new TokenService(CreateConfiguration());
+        var user = new AppUser
+        {
+            Id = "demo-session-1",
+            UserName = "demo-session-1",
+            Email = "demo-session-1@traxr.local",
+            IsDemoSession = true,
+        };
+
+        var token = ReadToken(service.CreateToken(user, "demo", isDemoSession: true));
+
+        token.Claims.Should().Contain(claim => claim.Type == JwtRegisteredClaimNames.GivenName && claim.Value == "demo");
+        token.Claims.Should().Contain(claim => claim.Type == ClaimTypes.NameIdentifier && claim.Value == user.Id);
+        token.Claims.Should().Contain(claim => claim.Type == DemoSessionClaims.IsDemoSession && claim.Value == "true");
+    }
+
+    [Fact]
     public void CreateToken_ShouldExpireInAboutSevenDays()
     {
         var beforeCreate = DateTime.UtcNow;

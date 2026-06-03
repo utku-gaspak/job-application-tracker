@@ -32,7 +32,8 @@ public class AccountControllerTests
         var controller = new AccountController(
             userManagerMock.Object,
             tokenServiceMock.Object,
-            signInManagerMock.Object
+            signInManagerMock.Object,
+            Mock.Of<IDemoSessionService>()
         );
 
         var result = await controller.Register(registerDto);
@@ -55,7 +56,8 @@ public class AccountControllerTests
         var controller = new AccountController(
             userManagerMock.Object,
             tokenServiceMock.Object,
-            signInManagerMock.Object
+            signInManagerMock.Object,
+            Mock.Of<IDemoSessionService>()
         );
         controller.ModelState.AddModelError(nameof(RegisterDto.Email), "Email is required.");
 
@@ -94,7 +96,8 @@ public class AccountControllerTests
         var controller = new AccountController(
             userManagerMock.Object,
             tokenServiceMock.Object,
-            signInManagerMock.Object
+            signInManagerMock.Object,
+            Mock.Of<IDemoSessionService>()
         );
 
         var result = await controller.Register(registerDto);
@@ -118,7 +121,8 @@ public class AccountControllerTests
         var controller = new AccountController(
             userManagerMock.Object,
             tokenServiceMock.Object,
-            signInManagerMock.Object
+            signInManagerMock.Object,
+            Mock.Of<IDemoSessionService>()
         );
 
         var result = await controller.Login(new LoginDto { Username = "missing", Password = "Password1!" });
@@ -154,7 +158,8 @@ public class AccountControllerTests
         var controller = new AccountController(
             userManagerMock.Object,
             tokenServiceMock.Object,
-            signInManagerMock.Object
+            signInManagerMock.Object,
+            Mock.Of<IDemoSessionService>()
         );
 
         var result = await controller.Login(new LoginDto { Username = appUser.UserName, Password = "wrong-password" });
@@ -196,7 +201,8 @@ public class AccountControllerTests
         var controller = new AccountController(
             userManagerMock.Object,
             tokenServiceMock.Object,
-            signInManagerMock.Object
+            signInManagerMock.Object,
+            Mock.Of<IDemoSessionService>()
         );
 
         var result = await controller.Login(new LoginDto { Username = appUser.UserName, Password = "Password1!" });
@@ -211,5 +217,101 @@ public class AccountControllerTests
             Times.Once
         );
         tokenServiceMock.Verify(service => service.CreateToken(appUser), Times.Once);
+    }
+
+    [Fact]
+    public async Task Login_DemoCredentials_ShouldCreateTemporaryDemoSession()
+    {
+        var demoUser = new AppUser
+        {
+            Id = "demo-template",
+            UserName = "demo",
+            Email = "demo@traxr.xyz",
+        };
+        var demoSessionUser = new AppUser
+        {
+            Id = "demo-session-1",
+            UserName = "demo-session-1",
+            Email = "demo-session-1@traxr.local",
+            IsDemoSession = true,
+        };
+        var dbContextFactory = new TestAppDbContextFactory();
+        await using var dbContext = dbContextFactory.CreateContext();
+        dbContext.Users.Add(demoUser);
+        await dbContext.SaveChangesAsync();
+
+        var userManagerMock = IdentityManagerMocks.CreateUserManager();
+        userManagerMock.SetupGet(manager => manager.Users).Returns(dbContext.Users);
+
+        var tokenServiceMock = new Mock<ITokenService>(MockBehavior.Strict);
+        tokenServiceMock
+            .Setup(service => service.CreateToken(demoSessionUser, "demo", true))
+            .Returns("demo-session-token");
+
+        var signInManagerMock = IdentityManagerMocks.CreateSignInManager(userManagerMock.Object);
+        signInManagerMock
+            .Setup(manager => manager.CheckPasswordSignInAsync(demoUser, "demo123", false))
+            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+
+        var demoSessionServiceMock = new Mock<IDemoSessionService>(MockBehavior.Strict);
+        demoSessionServiceMock
+            .Setup(service => service.CreateSessionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(demoSessionUser);
+
+        var controller = new AccountController(
+            userManagerMock.Object,
+            tokenServiceMock.Object,
+            signInManagerMock.Object,
+            demoSessionServiceMock.Object
+        );
+
+        var result = await controller.Login(new LoginDto { Username = "demo", Password = "demo123" });
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value.Should().BeOfType<NewUserDto>().Subject;
+        response.UserName.Should().Be("demo");
+        response.Email.Should().Be(demoUser.Email);
+        response.Token.Should().Be("demo-session-token");
+        demoSessionServiceMock.Verify(service => service.CreateSessionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        tokenServiceMock.Verify(service => service.CreateToken(demoSessionUser, "demo", true), Times.Once);
+    }
+
+    [Fact]
+    public async Task Logout_DemoSession_ShouldDeleteTemporaryDemoSession()
+    {
+        var userManagerMock = IdentityManagerMocks.CreateUserManager();
+        var tokenServiceMock = new Mock<ITokenService>(MockBehavior.Strict);
+        var signInManagerMock = IdentityManagerMocks.CreateSignInManager(userManagerMock.Object);
+        var demoSessionServiceMock = new Mock<IDemoSessionService>(MockBehavior.Strict);
+        demoSessionServiceMock
+            .Setup(service => service.IsDemoSession(It.IsAny<ClaimsPrincipal>()))
+            .Returns(true);
+        demoSessionServiceMock
+            .Setup(service => service.DeleteSessionAsync("demo-session-1", It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var controller = new AccountController(
+            userManagerMock.Object,
+            tokenServiceMock.Object,
+            signInManagerMock.Object,
+            demoSessionServiceMock.Object
+        )
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(
+                        new ClaimsIdentity(
+                            [new Claim(ClaimTypes.NameIdentifier, "demo-session-1")],
+                            authenticationType: "TestAuthentication"))
+                }
+            }
+        };
+
+        var result = await controller.Logout();
+
+        result.Should().BeOfType<NoContentResult>();
+        demoSessionServiceMock.Verify(service => service.DeleteSessionAsync("demo-session-1", It.IsAny<CancellationToken>()), Times.Once);
     }
 }

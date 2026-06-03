@@ -50,10 +50,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IDemoSessionService, DemoSessionService>();
 builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
 builder.Services.AddScoped<IScoutJobService, ScoutJobService>();
 builder.Services.AddSingleton<ScrapeJobQueue>();
 builder.Services.AddSingleton<IScrapeJobQueue>(provider => provider.GetRequiredService<ScrapeJobQueue>());
+builder.Services.AddHostedService<DemoSessionCleanupService>();
 builder.Services.AddHostedService<ScrapeJobWorker>();
 
 builder.Services.AddOpenApiDocument(config =>

@@ -1,13 +1,14 @@
 import { createContext, useEffect, useState, useContext } from "react";
 import type { ReactNode } from "react";
 import { AUTH_TOKEN_CLEARED_EVENT } from "../authEvents";
+import { logout as logoutRequest } from "../api/accountApi";
 
 interface AuthContextType {
   token: string | null;
   username: string | null;
   isLoggedIn: boolean;
   login: (token: string) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,7 +73,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("token", newToken);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const currentToken = token;
+    if (currentToken) {
+      try {
+        await logoutRequest(currentToken);
+      } catch {
+        // Logout should still clear the local session even if server cleanup fails.
+      }
+    }
+
     setToken(null);
     localStorage.removeItem("token");
   };

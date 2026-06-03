@@ -7,7 +7,7 @@ namespace api.Services;
 
 public static class DemoDataSeeder
 {
-    private const string DemoUsername = "demo";
+    public const string DemoUsername = "demo";
     private const string DemoEmail = "demo@traxr.xyz";
     private const string DemoPassword = "demo123";
 
@@ -44,30 +44,21 @@ public static class DemoDataSeeder
             await userManager.UpdateAsync(demoUser);
         }
 
-        if (
-            !await dbContext.JobApplications.AnyAsync(
-                jobApplication => jobApplication.UserId == demoUser.Id,
-                cancellationToken
-            )
-        )
-        {
-            dbContext.JobApplications.AddRange(CreateDemoJobApplications(demoUser.Id));
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
+        var existingApplications = await dbContext
+            .JobApplications.Where(jobApplication => jobApplication.UserId == demoUser.Id)
+            .ToListAsync(cancellationToken);
+        var existingScoutJobs = await dbContext
+            .ScoutJobs.Where(scoutJob => scoutJob.UserId == demoUser.Id)
+            .ToListAsync(cancellationToken);
 
-        if (
-            !await dbContext.ScoutJobs.AnyAsync(
-                scoutJob => scoutJob.UserId == demoUser.Id,
-                cancellationToken
-            )
-        )
-        {
-            dbContext.ScoutJobs.AddRange(CreateDemoScoutJobs(demoUser.Id));
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
+        dbContext.JobApplications.RemoveRange(existingApplications);
+        dbContext.ScoutJobs.RemoveRange(existingScoutJobs);
+        dbContext.JobApplications.AddRange(CreateDemoJobApplications(demoUser.Id));
+        dbContext.ScoutJobs.AddRange(CreateDemoScoutJobs(demoUser.Id));
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static List<JobApplication> CreateDemoJobApplications(string userId)
+    public static List<JobApplication> CreateDemoJobApplications(string userId)
     {
         var now = DateTime.UtcNow;
 
@@ -236,7 +227,7 @@ public static class DemoDataSeeder
         ];
     }
 
-    private static List<ScoutJob> CreateDemoScoutJobs(string userId)
+    public static List<ScoutJob> CreateDemoScoutJobs(string userId)
     {
         var now = DateTime.UtcNow;
 
