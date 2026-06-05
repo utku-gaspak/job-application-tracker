@@ -4,17 +4,16 @@ import { useAsync } from "../hooks/useAsync";
 import { Download, FileDigit, Plus, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import {
+  applyScoutJob,
   deleteAllScoutJobs,
   deleteScoutJob,
   listScoutJobs,
   updateScoutJobState,
   uploadScoutJobs,
 } from "../api/scoutJobsApi";
-import { createJobApplication } from "../api/jobApplicationsApi";
 import { useWorkflow } from "../context/WorkflowContext";
 import { downloadBlob, escapeCsvField } from "../lib/utils";
 import {
-  JobApplicationStatus,
   type JobApplication,
   type ScoutJob,
   type ScoutUploadResult,
@@ -80,17 +79,6 @@ const readScoutAuthSignature = () =>
   typeof window === "undefined"
     ? ""
     : window.localStorage.getItem(SCOUT_AUTH_TOKEN_KEY) ?? "";
-
-const buildScoutNotes = (job: ScoutJob) =>
-  [
-    job.requirementsSummary?.trim()
-      ? `Requirements summary:\n${job.requirementsSummary.trim()}`
-      : null,
-    job.applyUrl?.trim() ? `Apply URL: ${job.applyUrl.trim()}` : null,
-    job.jobUrl?.trim() ? `Scout job URL: ${job.jobUrl.trim()}` : null,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
 
 const buildExportJson = (jobs: ScoutJob[]) =>
   JSON.stringify(
@@ -359,18 +347,7 @@ const ScoutSection = ({
       try {
         setIsActing(true);
         setErrorMessage(null);
-        const notes = buildScoutNotes(job);
-        const createdApplication = await createJobApplication({
-          companyName: job.company,
-          position: job.title,
-          jobUrl: job.applyUrl ?? undefined,
-          location: job.location ?? undefined,
-          notes: notes || undefined,
-          technicalStack: job.technicalTools ?? undefined,
-          status: JobApplicationStatus.Applied,
-        });
-
-        await deleteScoutJob(job.id);
+        const createdApplication = await applyScoutJob(job.id);
         onApplicationCreated(createdApplication);
         removeJobFromQueue(job.id);
         toast.success("Job moved to tracker.");

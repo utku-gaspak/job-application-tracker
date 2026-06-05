@@ -83,6 +83,56 @@ public class ScoutJobService(
         return entity;
     }
 
+    public async Task<JobApplication> MoveToTrackerAsync(
+        Guid id,
+        string userId,
+        CancellationToken cancellationToken)
+    {
+        var scoutJob = await dbContext.ScoutJobs.FirstOrDefaultAsync(
+            job => job.Id == id && job.UserId == userId,
+            cancellationToken)
+            ?? throw new NotFoundException("Scout job not found.");
+
+        var dto = new JobApplicationCreateDto(
+            scoutJob.Company,
+            scoutJob.Title,
+            scoutJob.ApplyUrl,
+            scoutJob.Location,
+            null,
+            null,
+            BuildScoutNotes(scoutJob),
+            null,
+            scoutJob.TechnicalTools,
+            JobApplicationStatus.Applied);
+
+        var duplicateSnapshot = await jobDuplicateDetector.CreateSnapshotAsync(userId, id, cancellationToken);
+        if (duplicateSnapshot.Contains(JobDuplicateDetector.ToCandidate(scoutJob)))
+            throw new ValidationException(JobDuplicateDetector.DuplicateMessage);
+
+        var jobApplication = new JobApplication
+        {
+            Id = Guid.NewGuid().ToString(),
+            CompanyName = dto.CompanyName,
+            Position = dto.Position,
+            JobUrl = NormalizeOptionalText(dto.JobUrl),
+            Location = NormalizeOptionalText(dto.Location),
+            SalaryRange = NormalizeOptionalText(dto.SalaryRange),
+            JobDescription = NormalizeOptionalText(dto.JobDescription),
+            Notes = NormalizeOptionalText(dto.Notes),
+            InterestLevel = dto.InterestLevel,
+            TechnicalStack = NormalizeOptionalText(dto.TechnicalStack),
+            Status = dto.Status,
+            DateApplied = DateTime.UtcNow,
+            UserId = userId,
+        };
+
+        dbContext.JobApplications.Add(jobApplication);
+        dbContext.ScoutJobs.Remove(scoutJob);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return jobApplication;
+    }
+
     public async Task<ScoutUploadResultDto> UploadAsync(
         Stream fileStream,
         string userId,
@@ -253,6 +303,25 @@ public class ScoutJobService(
             ])));
 
         return string.Join(Environment.NewLine, rows);
+    }
+
+    private static string? BuildScoutNotes(ScoutJob job)
+    {
+        var parts = new[]
+        {
+            string.IsNullOrWhiteSpace(job.RequirementsSummary)
+                ? null
+                : $"Requirements summary:{Environment.NewLine}{job.RequirementsSummary.Trim()}",
+            string.IsNullOrWhiteSpace(job.ApplyUrl)
+                ? null
+                : $"Apply URL: {job.ApplyUrl.Trim()}",
+            string.IsNullOrWhiteSpace(job.JobUrl)
+                ? null
+                : $"Scout job URL: {job.JobUrl.Trim()}",
+        }.Where(part => part is not null);
+
+        var notes = string.Join($"{Environment.NewLine}{Environment.NewLine}", parts);
+        return string.IsNullOrWhiteSpace(notes) ? null : notes;
     }
 
     private static string CsvEscape(string? value)

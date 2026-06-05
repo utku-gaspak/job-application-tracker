@@ -113,6 +113,107 @@ public class ScoutJobServiceTests
     }
 
     [Fact]
+    public async Task MoveToTrackerAsync_SavedJob_CreatesApplicationAndRemovesScoutJob()
+    {
+        await using var db = new TestAppDbContextFactory().CreateContext();
+        var service = CreateService(db);
+        var scoutJob = new ScoutJob
+        {
+            Title = "Backend Engineer",
+            Company = "Acme",
+            Location = "Remote",
+            JobUrl = "https://example.com/jobs/backend",
+            ApplyUrl = "https://example.com/apply/backend",
+            TechnicalTools = "C#, PostgreSQL",
+            RequirementsSummary = "Build APIs.",
+            SavedForApply = true,
+            UserId = UserId,
+        };
+        db.ScoutJobs.Add(scoutJob);
+        await db.SaveChangesAsync();
+
+        var result = await service.MoveToTrackerAsync(scoutJob.Id, UserId, CancellationToken.None);
+
+        result.CompanyName.Should().Be("Acme");
+        result.Position.Should().Be("Backend Engineer");
+        result.JobUrl.Should().Be("https://example.com/apply/backend");
+        result.Location.Should().Be("Remote");
+        result.TechnicalStack.Should().Be("C#, PostgreSQL");
+        result.Status.Should().Be(JobApplicationStatus.Applied);
+        result.Notes.Should().Contain("Requirements summary:");
+        result.Notes.Should().Contain("Apply URL: https://example.com/apply/backend");
+        result.Notes.Should().Contain("Scout job URL: https://example.com/jobs/backend");
+
+        (await db.JobApplications.CountAsync(application => application.UserId == UserId)).Should().Be(1);
+        (await db.ScoutJobs.CountAsync(job => job.UserId == UserId)).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task MoveToTrackerAsync_DuplicateInTracker_ThrowsValidationException()
+    {
+        await using var db = new TestAppDbContextFactory().CreateContext();
+        var service = CreateService(db);
+        var scoutJob = new ScoutJob
+        {
+            Title = "Backend Engineer",
+            Company = "Acme",
+            ApplyUrl = "https://example.com/apply/backend",
+            SavedForApply = true,
+            UserId = UserId,
+        };
+        db.ScoutJobs.Add(scoutJob);
+        db.JobApplications.Add(new JobApplication
+        {
+            Id = "application-1",
+            CompanyName = "Acme",
+            Position = "Backend Engineer",
+            JobUrl = "https://example.com/apply/backend",
+            Status = JobApplicationStatus.Applied,
+            UserId = UserId,
+        });
+        await db.SaveChangesAsync();
+
+        Func<Task> act = async () => await service.MoveToTrackerAsync(scoutJob.Id, UserId, CancellationToken.None);
+
+        var exceptionAssertions = await act.Should().ThrowAsync<ValidationException>();
+        exceptionAssertions.WithMessage(JobDuplicateDetector.DuplicateMessage);
+        (await db.JobApplications.CountAsync(application => application.UserId == UserId)).Should().Be(1);
+        (await db.ScoutJobs.CountAsync(job => job.UserId == UserId)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task MoveToTrackerAsync_DuplicateInAnotherScoutJob_ThrowsValidationException()
+    {
+        await using var db = new TestAppDbContextFactory().CreateContext();
+        var service = CreateService(db);
+        var scoutJob = new ScoutJob
+        {
+            Title = "Backend Engineer",
+            Company = "Acme",
+            JobUrl = "https://example.com/jobs/backend",
+            SavedForApply = true,
+            UserId = UserId,
+        };
+        db.ScoutJobs.AddRange(
+            scoutJob,
+            new ScoutJob
+            {
+                Title = "Backend Engineer",
+                Company = "Acme",
+                JobUrl = "https://example.com/jobs/backend",
+                UserId = UserId,
+            });
+        await db.SaveChangesAsync();
+
+        Func<Task> act = async () => await service.MoveToTrackerAsync(scoutJob.Id, UserId, CancellationToken.None);
+
+        var exceptionAssertions = await act.Should().ThrowAsync<ValidationException>();
+        exceptionAssertions.WithMessage(JobDuplicateDetector.DuplicateMessage);
+        (await db.JobApplications.CountAsync(application => application.UserId == UserId)).Should().Be(0);
+        (await db.ScoutJobs.CountAsync(job => job.UserId == UserId)).Should().Be(2);
+    }
+
+    [Fact]
     public async Task DeleteAsync_RemovesJob()
     {
         await using var db = new TestAppDbContextFactory().CreateContext();

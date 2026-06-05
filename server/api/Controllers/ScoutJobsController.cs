@@ -32,6 +32,16 @@ public class ScoutJobsController(IScoutJobService service) : BaseApiController
         return Ok(await service.CreateAsync(dto, userId, cancellationToken));
     }
 
+    [HttpPost("jobs/{id:guid}/apply")]
+    public async Task<ActionResult<JobApplication>> MoveToTracker(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        return Ok(await service.MoveToTrackerAsync(id, userId, cancellationToken));
+    }
+
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<ScoutUploadResultDto>> Upload(

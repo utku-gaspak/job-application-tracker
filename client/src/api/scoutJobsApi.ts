@@ -1,5 +1,6 @@
 import { createAuthenticatedClient } from "./client";
 import type {
+  JobApplication,
   ScoutJob,
   ScoutJobCreateInput,
   ScoutJobStateUpdateInput,
@@ -18,6 +19,11 @@ export const uploadScoutJobs = async (file: File) => {
 
 export const createScoutJob = async (input: ScoutJobCreateInput) => {
   const response = await scoutJobsApi.post<ScoutJob>("/jobs", input);
+  return response.data;
+};
+
+export const applyScoutJob = async (id: string) => {
+  const response = await scoutJobsApi.post<JobApplication>(`/jobs/${id}/apply`);
   return response.data;
 };
 

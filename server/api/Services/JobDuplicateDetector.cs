@@ -14,10 +14,12 @@ public sealed class JobDuplicateDetector(AppDbContext dbContext)
 
     public async Task<JobDuplicateSnapshot> CreateSnapshotAsync(
         string? userId,
+        Guid? excludedScoutJobId,
         CancellationToken cancellationToken)
     {
         var scoutJobs = await dbContext.ScoutJobs
             .Where(job => job.UserId == userId)
+            .Where(job => excludedScoutJobId == null || job.Id != excludedScoutJobId)
             .Select(job => new JobDuplicateCandidate(
                 job.Title,
                 job.Company,
@@ -43,6 +45,11 @@ public sealed class JobDuplicateDetector(AppDbContext dbContext)
 
         return snapshot;
     }
+
+    public Task<JobDuplicateSnapshot> CreateSnapshotAsync(
+        string? userId,
+        CancellationToken cancellationToken) =>
+        CreateSnapshotAsync(userId, null, cancellationToken);
 
     public async Task<bool> IsDuplicateScoutJobAsync(
         ScoutJob job,
@@ -70,9 +77,10 @@ public sealed class JobDuplicateDetector(AppDbContext dbContext)
     public async Task<bool> IsDuplicateApplicationAsync(
         JobApplicationCreateDto dto,
         string userId,
+        Guid? excludedScoutJobId,
         CancellationToken cancellationToken)
     {
-        var snapshot = await CreateSnapshotAsync(userId, cancellationToken);
+        var snapshot = await CreateSnapshotAsync(userId, excludedScoutJobId, cancellationToken);
         return snapshot.Contains(new JobDuplicateCandidate(
             dto.Position,
             dto.CompanyName,
@@ -80,6 +88,12 @@ public sealed class JobDuplicateDetector(AppDbContext dbContext)
             dto.JobUrl,
             null));
     }
+
+    public Task<bool> IsDuplicateApplicationAsync(
+        JobApplicationCreateDto dto,
+        string userId,
+        CancellationToken cancellationToken) =>
+        IsDuplicateApplicationAsync(dto, userId, null, cancellationToken);
 
     public static JobDuplicateCandidate ToCandidate(ScoutJob job) =>
         new(job.Title, job.Company, job.Location, job.JobUrl, job.ApplyUrl);
